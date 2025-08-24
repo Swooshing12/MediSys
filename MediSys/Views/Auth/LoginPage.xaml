@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
+             x:Class="MediSys.Views.Auth.LoginPage"
+             x:DataType="viewmodels:LoginViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource Primary}">
+
+    <ScrollView>
+        <!-- Grid principal con 3 filas -->
+        <Grid RowDefinitions="2*, Auto, 1*" Padding="40">
+
+            <!-- SECCIÓN SUPERIOR: Logo y Títulos -->
+            <Grid Grid.Row="0" VerticalOptions="End">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="120" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="30" />
+                </Grid.RowDefinitions>
+
+                <!-- Logo -->
+                <Image Grid.Row="0"
+                       Source="dotnet_bot.png" 
+                       Aspect="AspectFit" />
+
+                <!-- Título Principal -->
+                <Label Grid.Row="1"
+                       Text="MediSys" 
+                       FontSize="32" 
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center" />
+
+                <!-- Subtítulo -->
+                <Label Grid.Row="2"
+                       Text="Sistema de Gestión Médica" 
+                       FontSize="16"
+                       TextColor="White"
+                       Opacity="0.8"
+                       HorizontalOptions="Center" />
+            </Grid>
+
+            <!-- SECCIÓN CENTRAL: Formulario de Login -->
+            <Border Grid.Row="1" 
+                    BackgroundColor="White"
+                    Stroke="Transparent"
+                    StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="20" />
+                </Border.StrokeShape>
+
+                <!-- Contenido del formulario -->
+                <Grid Padding="30" RowDefinitions="Auto,*">
+
+                    <!-- Título del formulario -->
+                    <Label Grid.Row="0"
+                           Text="Iniciar Sesión" 
+                           FontSize="24" 
+                           FontAttributes="Bold"
+                           TextColor="{DynamicResource Primary}"
+                           HorizontalOptions="Center"
+                           Margin="0,0,0,30" />
+
+                    <!-- Campos del formulario -->
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="20" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="20" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="20" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- CAMPO EMAIL -->
+                        <Grid Grid.Row="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="5" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0"
+                                   Text="Correo Electrónico" 
+                                   FontSize="14" 
+                                   TextColor="{DynamicResource Gray600}" />
+
+                            <Border Grid.Row="2"
+                                    BackgroundColor="{DynamicResource Gray100}"
+                                    Stroke="Transparent">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10" />
+                                </Border.StrokeShape>
+
+                                <Entry x:Name="EmailEntry"
+                                       Text="{Binding Correo}"
+                                       Placeholder="ejemplo@correo.com"
+                                       Keyboard="Email"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{DynamicResource Black}"
+                                       Margin="15,10" />
+                            </Border>
+                        </Grid>
+
+                        <!-- CAMPO CONTRASEÑA -->
+                        <Grid Grid.Row="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="5" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0"
+                                   Text="Contraseña" 
+                                   FontSize="14" 
+                                   TextColor="{DynamicResource Gray600}" />
+
+                            <Border Grid.Row="2"
+                                    BackgroundColor="{DynamicResource Gray100}"
+                                    Stroke="Transparent">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10" />
+                                </Border.StrokeShape>
+
+                                <Entry x:Name="PasswordEntry"
+                                       Text="{Binding Password}"
+                                       Placeholder="Ingrese su contraseña"
+                                       IsPassword="True"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{DynamicResource Black}"
+                                       Margin="15,10" />
+                            </Border>
+                        </Grid>
+
+                        <!-- MENSAJE DE ERROR -->
+                        <Label Grid.Row="4"
+                               Text="{Binding ErrorMessage}"
+                               IsVisible="{Binding ShowError}"
+                               TextColor="Red"
+                               FontSize="14"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center" />
+
+                        <!-- BOTÓN LOGIN -->
+                        <Button Grid.Row="6"
+                                Text="INICIAR SESIÓN"
+                                Command="{Binding LoginCommand}"
+                                BackgroundColor="{DynamicResource Primary}"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                FontSize="16"
+                                HeightRequest="50">
+                            <Button.Shadow>
+                                <Shadow Brush="Black"
+                                        Offset="0,2"
+                                        Radius="4"
+                                        Opacity="0.1" />
+                            </Button.Shadow>
+
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" 
+                                             Binding="{Binding IsLoading}" 
+                                             Value="True">
+                                    <Setter Property="Text" Value="INGRESANDO..." />
+                                    <Setter Property="IsEnabled" Value="False" />
+                                    <Setter Property="Opacity" Value="0.7" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <!-- LOADING INDICATOR -->
+                        <ActivityIndicator Grid.Row="8"
+                                           IsRunning="{Binding IsLoading}"
+                                           IsVisible="{Binding IsLoading}"
+                                           Color="{DynamicResource Primary}"
+                                           HorizontalOptions="Center" />
+
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- SECCIÓN INFERIOR: Copyright -->
+            <Grid Grid.Row="2" VerticalOptions="Start">
+                <Label Text="© 2025 MediSys - Sistema Médico"
+                       TextColor="White"
+                       Opacity="0.6"
+                       FontSize="12"
+                       HorizontalOptions="Center"
+                       Margin="0,40,0,0" />
+            </Grid>
+
+        </Grid>
+    </ScrollView>
+</ContentPage>
