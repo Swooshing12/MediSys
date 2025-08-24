@@ -14,6 +14,11 @@ namespace MediSys.ViewModels
 		private readonly MediSysApiService _apiService;
 		private readonly AuthService _authService;
 
+
+		// Añade esta propiedad
+		[ObservableProperty]
+		private bool showForgotPassword = false;
+
 		[ObservableProperty]
 		private string correo = "";
 
@@ -62,23 +67,33 @@ namespace MediSys.ViewModels
 				{
 					// ✅ LOGIN EXITOSO
 					var user = result.Data.Usuario;
-
-					// Guardar usuario en almacenamiento seguro
 					await _authService.SaveUserAsync(user);
 
-					// Verificar si requiere cambio de contraseña
 					if (user.RequiereCambioPassword)
 					{
 						await Shell.Current.DisplayAlert("Cambio de Contraseña",
 							"Debe cambiar su contraseña temporal para continuar", "OK");
 
-						// TODO: Navegar a pantalla de cambio de contraseña
-						// await Shell.Current.GoToAsync("//changepassword");
+						// 🔥 NAVEGAR CON EL EMAIL COMO PARÁMETRO
+						await Shell.Current.GoToAsync($"//changepassword?email={user.Correo}");
 						return;
 					}
 
-					// Navegar al dashboard principal
-					await Shell.Current.GoToAsync("//dashboard");
+					// 🎉 MENSAJE DE ÉXITO MEJORADO
+					var welcomeMessage = $"¡Bienvenido, {user.Nombres}!\n\n" +
+										$"👤 {user.RolDisplay}\n" +
+										$"📧 {user.Correo}\n" +
+										$"🆔 {user.CedulaString}";
+
+					if (!string.IsNullOrEmpty(user.Especialidad))
+					{
+						welcomeMessage += $"\n🏥 {user.Especialidad}";
+					}
+
+					await Shell.Current.DisplayAlert("¡Inicio de Sesión Exitoso!", welcomeMessage, "Continuar");
+
+					// TODO: Navegar al dashboard según el rol
+					// await Shell.Current.GoToAsync("//dashboard");
 				}
 				else
 				{
@@ -94,6 +109,14 @@ namespace MediSys.ViewModels
 			{
 				IsLoading = false;
 			}
+		}
+
+
+		// Añade este comando
+		[RelayCommand]
+		private async Task ForgotPasswordAsync()
+		{
+			await Shell.Current.GoToAsync("//forgotpassword");
 		}
 
 		private void ShowErrorMessage(string message)
@@ -114,5 +137,7 @@ namespace MediSys.ViewModels
 				return false;
 			}
 		}
+
+
 	}
 }
