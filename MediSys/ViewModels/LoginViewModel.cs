@@ -11,11 +11,10 @@ namespace MediSys.ViewModels
 {
 	public partial class LoginViewModel : ObservableObject
 	{
-		private readonly MediSysApiService _apiService;
+		// Instancia estática para mantener cookies entre intentos
+		private static MediSysApiService? _sharedApiService;
 		private readonly AuthService _authService;
 
-
-		// Añade esta propiedad
 		[ObservableProperty]
 		private bool showForgotPassword = false;
 
@@ -36,7 +35,10 @@ namespace MediSys.ViewModels
 
 		public LoginViewModel()
 		{
-			_apiService = new MediSysApiService();
+			// Crear una sola instancia compartida para mantener cookies
+			if (_sharedApiService == null)
+				_sharedApiService = new MediSysApiService();
+
 			_authService = new AuthService();
 		}
 
@@ -61,11 +63,11 @@ namespace MediSys.ViewModels
 
 			try
 			{
-				var result = await _apiService.LoginAsync(Correo, Password);
+				// Usar la instancia compartida para mantener cookies
+				var result = await _sharedApiService!.LoginAsync(Correo, Password);
 
 				if (result.Success && result.Data?.Usuario != null)
 				{
-					// ✅ LOGIN EXITOSO
 					var user = result.Data.Usuario;
 					await _authService.SaveUserAsync(user);
 
@@ -73,13 +75,10 @@ namespace MediSys.ViewModels
 					{
 						await Shell.Current.DisplayAlert("Cambio de Contraseña",
 							"Debe cambiar su contraseña temporal para continuar", "OK");
-
-						// 🔥 NAVEGAR CON EL EMAIL COMO PARÁMETRO
 						await Shell.Current.GoToAsync($"//changepassword?email={user.Correo}");
 						return;
 					}
 
-					// 🎉 MENSAJE DE ÉXITO MEJORADO
 					var welcomeMessage = $"¡Bienvenido, {user.Nombres}!\n\n" +
 										$"👤 {user.RolDisplay}\n" +
 										$"📧 {user.Correo}\n" +
@@ -92,13 +91,27 @@ namespace MediSys.ViewModels
 
 					await Shell.Current.DisplayAlert("¡Inicio de Sesión Exitoso!", welcomeMessage, "Continuar");
 
-					// TODO: Navegar al dashboard según el rol
-					// await Shell.Current.GoToAsync("//dashboard");
+					Correo = "";
+					Password = "";
+					ErrorMessage = "";
+					ShowError = false;
+
+					Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+					await Shell.Current.GoToAsync("//dashboard");
 				}
 				else
 				{
-					// ❌ LOGIN FALLIDO
-					ShowErrorMessage(result.Message);
+					string errorMessage = result.Message ?? "Error de autenticación";
+
+					if (errorMessage.Contains("bloqueada por múltiples intentos") ||
+						errorMessage.Contains("Cuenta bloqueada"))
+					{
+						ShowErrorMessage("🔒 Cuenta bloqueada por seguridad.\n\nContacte al administrador para desbloquear su cuenta.");
+					}
+					else
+					{
+						ShowErrorMessage("❌ Credenciales incorrectas.\n\nVerifique su correo y contraseña.");
+					}
 				}
 			}
 			catch (Exception ex)
@@ -111,8 +124,6 @@ namespace MediSys.ViewModels
 			}
 		}
 
-
-		// Añade este comando
 		[RelayCommand]
 		private async Task ForgotPasswordAsync()
 		{
@@ -137,7 +148,5 @@ namespace MediSys.ViewModels
 				return false;
 			}
 		}
-
-
 	}
 }

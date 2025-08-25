@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:auth="clr-namespace:MediSys.Views.Auth"
+    xmlns:dashboard="clr-namespace:MediSys.Views.Dashboard"
     Title="MediSys"
     FlyoutBehavior="Disabled">
 
@@ -13,16 +14,31 @@
         ContentTemplate="{DataTemplate auth:LoginPage}"
         Route="login" />
 
-    <!-- 🔥 NUEVA: Forgot Password Page -->
+    <!-- Forgot Password Page -->
     <ShellContent
         Title="Forgot Password"
         ContentTemplate="{DataTemplate auth:ForgotPasswordPage}"
         Route="forgotpassword" />
 
-    <!-- 🔥 NUEVA: Change Password Page -->
+    <!-- Change Password Page -->
     <ShellContent
         Title="Change Password"
         ContentTemplate="{DataTemplate auth:ChangePasswordPage}"
         Route="changepassword" />
+
+    <!-- 🚀 DASHBOARD - Se activa después del login -->
+    <TabBar Route="dashboard">
+        <ShellContent
+            Title="Dashboard"
+            Icon="home"
+            ContentTemplate="{DataTemplate dashboard:DashboardPage}"
+            Route="home" />
+
+        <ShellContent
+            Title="Perfil"
+            Icon="person"
+            ContentTemplate="{DataTemplate dashboard:PerfilPage}"
+            Route="perfil" />
+    </TabBar>
 
 </Shell>
