@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediSys.Views.Dashboard.DashboardPage"
+             Title="Dashboard">
+
+    <ScrollView>
+        <Grid Padding="20" RowDefinitions="Auto,*">
+
+            <!-- Header -->
+            <Label Grid.Row="0"
+                   Text="¡Bienvenido a MediSys!"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,30" />
+
+            <!-- Cards placeholder -->
+            <Grid Grid.Row="1">
+                <Label Text="🚧 Dashboard en construcción 🚧"
+                       FontSize="16"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Grid>
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>

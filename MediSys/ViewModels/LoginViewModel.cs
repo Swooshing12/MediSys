@@ -73,9 +73,6 @@ namespace MediSys.ViewModels
 					{
 						await Shell.Current.DisplayAlert("Cambio de Contraseña",
 							"Debe cambiar su contraseña temporal para continuar", "OK");
-
-						// 🔥 NAVEGAR CON EL EMAIL COMO PARÁMETRO
-						await Shell.Current.GoToAsync($"//changepassword?email={user.Correo}");
 						return;
 					}
 
