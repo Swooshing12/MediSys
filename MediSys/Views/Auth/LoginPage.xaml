@@ -35,7 +35,7 @@
 
                 <!-- Subtítulo -->
                 <Label Grid.Row="2"
-                       Text="Sistema de Gestión Médica" 
+                       Text="Sistema de Gestión Médico" 
                        FontSize="16"
                        TextColor="White"
                        Opacity="0.8"
