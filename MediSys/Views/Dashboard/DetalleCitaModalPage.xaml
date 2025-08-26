@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
+             x:Class="MediSys.Views.Dashboard.DetalleCitaModalPage"
+             x:DataType="viewmodels:DetalleCitaViewModel"
+             Title="Detalle de Cita"
+             BackgroundColor="#F5F7FA">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+
+            <!-- HEADER CON INFORMACIÓN BÁSICA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   HasShadow="True" 
+                   Padding="20">
+                <StackLayout Spacing="15">
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0"
+                               Text="{Binding Cita.FechaHora, StringFormat='Cita #{0:D}'}" 
+                               FontSize="20" 
+                               FontAttributes="Bold" 
+                               TextColor="#2C3E50" />
+
+                        <Frame Grid.Column="1"
+                               BackgroundColor="{Binding Cita.EstadoColor}" 
+                               CornerRadius="12" 
+                               Padding="12,6"
+                               HasShadow="False">
+                            <Label Text="{Binding Cita.Estado}" 
+                                   FontSize="12" 
+                                   FontAttributes="Bold" 
+                                   TextColor="White" />
+                        </Frame>
+                    </Grid>
+
+                    <Label Text="{Binding Cita.FechaHora}" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#3498DB" />
+
+                    <StackLayout Spacing="8">
+                        <Label Text="{Binding Cita.DoctorCompleto}" 
+                               FontSize="16" 
+                               FontAttributes="Bold"
+                               TextColor="#2C3E50" />
+
+                        <Label Text="{Binding Cita.EspecialidadNombre}" 
+                               FontSize="14" 
+                               TextColor="#7F8C8D" />
+
+                        <Label Text="{Binding Cita.SucursalNombre}" 
+                               FontSize="14" 
+                               TextColor="#95A5A6" />
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- MOTIVO DE CONSULTA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   HasShadow="True" 
+                   Padding="20"
+                   IsVisible="{Binding Cita.MotivoConsulta, Converter={StaticResource IsNotNullConverter}}">
+                <StackLayout Spacing="10">
+                    <Label Text="Motivo de Consulta" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" />
+
+                    <Frame BackgroundColor="#F8F9FA" 
+                           CornerRadius="10" 
+                           HasShadow="False" 
+                           Padding="15">
+                        <Label Text="{Binding Cita.MotivoConsulta}" 
+                               FontSize="14" 
+                               TextColor="#2C3E50"
+                               LineBreakMode="WordWrap" />
+                    </Frame>
+                </StackLayout>
+            </Frame>
+
+            <!-- TRIAJE -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   HasShadow="True" 
+                   Padding="20"
+                   IsVisible="{Binding Cita.TieneTriaje}">
+                <StackLayout Spacing="15">
+                    <Label Text="Información de Triaje" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#E74C3C" />
+
+                    <Frame BackgroundColor="#FADBD8" 
+                           CornerRadius="8" 
+                           HasShadow="False" 
+                           Padding="12">
+                        <Label Text="{Binding Cita.NivelUrgencia, StringFormat='Nivel de Urgencia: {0}'}" 
+                               FontSize="14" 
+                               FontAttributes="Bold"
+                               TextColor="#E74C3C" />
+                    </Frame>
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="15">
+
+                        <StackLayout Grid.Row="0" Grid.Column="0">
+                            <Label Text="Temperatura" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
+                            <Label Text="{Binding Cita.Temperatura, StringFormat='{0} °C'}" FontSize="14" TextColor="#2C3E50" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Row="0" Grid.Column="1">
+                            <Label Text="Presión Arterial" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
+                            <Label Text="{Binding Cita.PresionArterial}" FontSize="14" TextColor="#2C3E50" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Row="1" Grid.Column="0">
+                            <Label Text="Frecuencia Cardíaca" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
+                            <Label Text="{Binding Cita.FrecuenciaCardiaca, StringFormat='{0} bpm'}" FontSize="14" TextColor="#2C3E50" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Row="1" Grid.Column="1">
+                            <Label Text="Peso" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
+                            <Label Text="{Binding Cita.Peso, StringFormat='{0} kg'}" FontSize="14" TextColor="#2C3E50" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+                            <Label Text="Altura" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
+                            <Label Text="{Binding Cita.Altura, StringFormat='{0} cm'}" FontSize="14" TextColor="#2C3E50" />
+                        </StackLayout>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- CONSULTA MÉDICA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   HasShadow="True" 
+                   Padding="20"
+                   IsVisible="{Binding Cita.TieneConsulta}">
+                <StackLayout Spacing="15">
+
+                    <Label Text="Consulta Médica" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#27AE60" />
+
+                    <!-- Sintomatología -->
+                    <StackLayout Spacing="8" IsVisible="{Binding Cita.Sintomatologia, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Text="Sintomatología" FontSize="14" FontAttributes="Bold" TextColor="#34495E" />
+                        <Frame BackgroundColor="#F0F8FF" CornerRadius="8" HasShadow="False" Padding="12">
+                            <Label Text="{Binding Cita.Sintomatologia}" FontSize="13" TextColor="#2C3E50" LineBreakMode="WordWrap" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- Diagnóstico -->
+                    <StackLayout Spacing="8" IsVisible="{Binding Cita.Diagnostico, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Text="Diagnóstico" FontSize="14" FontAttributes="Bold" TextColor="#E74C3C" />
+                        <Frame BackgroundColor="#FDF2F2" CornerRadius="8" HasShadow="False" Padding="12">
+                            <Label Text="{Binding Cita.Diagnostico}" FontSize="13" TextColor="#2C3E50" LineBreakMode="WordWrap" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- Tratamiento -->
+                    <StackLayout Spacing="8" IsVisible="{Binding Cita.Tratamiento, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Text="Tratamiento Prescrito" FontSize="14" FontAttributes="Bold" TextColor="#F39C12" />
+                        <Frame BackgroundColor="#FFFBF0" CornerRadius="8" HasShadow="False" Padding="12">
+                            <Label Text="{Binding Cita.Tratamiento}" FontSize="13" TextColor="#2C3E50" LineBreakMode="WordWrap" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- Observaciones -->
+                    <StackLayout Spacing="8" IsVisible="{Binding Cita.ConsultaObservaciones, Converter={StaticResource IsNotNullConverter}}">
+                        <Label Text="Observaciones Médicas" FontSize="14" FontAttributes="Bold" TextColor="#9B59B6" />
+                        <Frame BackgroundColor="#F8F4FF" CornerRadius="8" HasShadow="False" Padding="12">
+                            <Label Text="{Binding Cita.ConsultaObservaciones}" FontSize="13" TextColor="#2C3E50" LineBreakMode="WordWrap" />
+                        </Frame>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                <Button Grid.Column="0"
+                        Text="Cerrar"
+                        BackgroundColor="#95A5A6"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Command="{Binding CerrarModalCommand}" />
+
+                <Button Grid.Column="1"
+                        Text="Imprimir"
+                        BackgroundColor="#3498DB"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Command="{Binding ImprimirCitaCommand}" />
+            </Grid>
+
+            <BoxView HeightRequest="20" Color="Transparent" />
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

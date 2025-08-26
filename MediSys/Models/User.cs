@@ -8,7 +8,7 @@ namespace MediSys.Models
 		public int IdUsuario { get; set; }
 
 		[JsonPropertyName("cedula")]
-		public long Cedula { get; set; } // 🔥 CAMBIO: long en lugar de string
+		public int Cedula { get; set; } // 🔥 CAMBIO: long en lugar de string
 
 		[JsonPropertyName("username")]
 		public string Username { get; set; } = string.Empty;

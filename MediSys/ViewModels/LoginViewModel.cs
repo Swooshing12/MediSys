@@ -50,26 +50,24 @@ namespace MediSys.ViewModels
 				ShowErrorMessage("Complete todos los campos requeridos");
 				return;
 			}
-
 			if (!IsValidEmail(Correo))
 			{
 				ShowErrorMessage("Ingrese un formato de correo válido");
 				return;
 			}
-
 			IsLoading = true;
 			ErrorMessage = "";
 			ShowError = false;
-
 			try
 			{
-				// Usar la instancia compartida para mantener cookies
 				var result = await _sharedApiService!.LoginAsync(Correo, Password);
-
 				if (result.Success && result.Data?.Usuario != null)
 				{
 					var user = result.Data.Usuario;
+
+					// PRIMERO: Guardar usuario
 					await _authService.SaveUserAsync(user);
+					System.Diagnostics.Debug.WriteLine("✅ User saved to storage");
 
 					if (user.RequiereCambioPassword)
 					{
@@ -96,13 +94,27 @@ namespace MediSys.ViewModels
 					ErrorMessage = "";
 					ShowError = false;
 
+					// SEGUNDO: Habilitar flyout
 					Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+
+					// TERCERO: Forzar recarga completa del Shell
+					System.Diagnostics.Debug.WriteLine("🔄 Forcing shell reload...");
+					if (Shell.Current.BindingContext is AppShellViewModel shellViewModel)
+					{
+						await shellViewModel.ForceReloadUserDataAsync();
+						System.Diagnostics.Debug.WriteLine("✅ Shell reloaded successfully");
+					}
+					else
+					{
+						System.Diagnostics.Debug.WriteLine("⚠️ Shell BindingContext is not AppShellViewModel");
+					}
+
+					// CUARTO: Navegar al dashboard
 					await Shell.Current.GoToAsync("//dashboard");
 				}
 				else
 				{
 					string errorMessage = result.Message ?? "Error de autenticación";
-
 					if (errorMessage.Contains("bloqueada por múltiples intentos") ||
 						errorMessage.Contains("Cuenta bloqueada"))
 					{

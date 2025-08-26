@@ -2,6 +2,7 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MediSys"
+             xmlns:local2="clr-namespace:MediSys.Converters"
              x:Class="MediSys.App">
     <Application.Resources>
         <ResourceDictionary>
@@ -9,6 +10,9 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <local2:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <local2:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <local2:EqualConverter x:Key="EqualConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

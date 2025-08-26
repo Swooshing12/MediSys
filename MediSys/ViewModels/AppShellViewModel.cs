@@ -21,7 +21,6 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private string userExtraInfo = "";
 
-		// 🔥 ESTAS ERAN LAS QUE FALTABAN
 		[ObservableProperty]
 		private bool isMedico = false;
 
@@ -36,68 +35,112 @@ namespace MediSys.ViewModels
 		public AppShellViewModel()
 		{
 			_authService = new AuthService();
+			// No cargar datos automáticamente al inicio
+			ResetUserData();
 		}
 
-		public async Task LoadUserDataAsync()
+		public async Task ForceReloadUserDataAsync()
 		{
 			try
 			{
-				System.Diagnostics.Debug.WriteLine("🔄 Loading user data...");
+				System.Diagnostics.Debug.WriteLine("🔄 Force reloading user data for shell...");
+
+				// Limpiar datos anteriores primero
+				ResetUserData();
 
 				currentUser = await _authService.GetCurrentUserAsync();
 
 				if (currentUser != null)
 				{
-					UserFullName = currentUser.NombreCompleto;
-					UserInitials = currentUser.Iniciales;
-					UserRoleDisplay = currentUser.RolDisplay;
+					System.Diagnostics.Debug.WriteLine($"📋 Raw user data: Nombres={currentUser.Nombres}, Apellidos={currentUser.Apellidos}");
+					System.Diagnostics.Debug.WriteLine($"📋 Raw user data: Rol={currentUser.Rol}, Cedula={currentUser.Cedula}");
+					System.Diagnostics.Debug.WriteLine($"📋 Raw user data: TipoUsuario={currentUser.TipoUsuario}, Especialidad={currentUser.Especialidad}");
 
-					// Información adicional según el rol
-					if (currentUser.TipoUsuario == "doctor" && !string.IsNullOrEmpty(currentUser.Especialidad))
+					UserFullName = !string.IsNullOrEmpty(currentUser.NombreCompleto)
+						? currentUser.NombreCompleto
+						: $"{currentUser.Nombres} {currentUser.Apellidos}".Trim();
+
+					// Crear iniciales de manera más segura
+					try
 					{
-						UserExtraInfo = currentUser.Especialidad;
+						var nombres = currentUser.Nombres?.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new[] { "Usuario" };
+						var apellidos = currentUser.Apellidos?.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new[] { "Sistema" };
+
+						var inicial1 = nombres[0].Length > 0 ? nombres[0][0].ToString().ToUpper() : "U";
+						var inicial2 = apellidos[0].Length > 0 ? apellidos[0][0].ToString().ToUpper() : "S";
+
+						UserInitials = $"{inicial1}{inicial2}";
+					}
+					catch
+					{
+						UserInitials = "US";
+					}
+
+					UserRoleDisplay = currentUser.Rol ?? "Usuario";
+
+					// Información adicional DETALLADA según el rol
+					if (currentUser.Rol?.ToLower() == "medico" && !string.IsNullOrEmpty(currentUser.Especialidad))
+					{
+						UserExtraInfo = $"Dr. {currentUser.Especialidad}";
+					}
+					else if (currentUser.Rol?.ToLower() == "paciente")
+					{
+						UserExtraInfo = $"Paciente • Cédula: {currentUser.Cedula}";
+					}
+					else if (currentUser.Rol?.ToLower() == "administrador")
+					{
+						UserExtraInfo = $"Administrador • ID: {currentUser.Cedula}";
+					}
+					else if (currentUser.Rol?.ToLower() == "recepcionista")
+					{
+						UserExtraInfo = $"Recepción • ID: {currentUser.Cedula}";
+					}
+					else if (currentUser.Rol?.ToLower() == "enfermero")
+					{
+						UserExtraInfo = $"Enfermería • ID: {currentUser.Cedula}";
 					}
 					else
 					{
-						UserExtraInfo = $"ID: {currentUser.CedulaString}";
+						UserExtraInfo = $"Cédula: {currentUser.Cedula}";
 					}
 
-					// 🔥 CONFIGURAR VISIBILIDAD SEGÚN ROL
-					IsMedico = currentUser.Rol == "Medico";
-					CanViewHistorial = currentUser.Rol != "Paciente";
-					CanViewConsultaCitas = currentUser.Rol != "Paciente";
+					// Configurar visibilidad según rol
+					IsMedico = currentUser.Rol?.ToLower() == "medico";
+					CanViewHistorial = currentUser.Rol?.ToLower() != "paciente";
+					CanViewConsultaCitas = true;
 
-					System.Diagnostics.Debug.WriteLine($"✅ User data loaded: {currentUser.NombreCompleto} ({currentUser.Rol})");
+					System.Diagnostics.Debug.WriteLine($"✅ Shell data updated successfully:");
+					System.Diagnostics.Debug.WriteLine($"   UserFullName: {UserFullName}");
+					System.Diagnostics.Debug.WriteLine($"   UserInitials: {UserInitials}");
+					System.Diagnostics.Debug.WriteLine($"   UserRoleDisplay: {UserRoleDisplay}");
+					System.Diagnostics.Debug.WriteLine($"   UserExtraInfo: {UserExtraInfo}");
 					System.Diagnostics.Debug.WriteLine($"   IsMedico: {IsMedico}");
-					System.Diagnostics.Debug.WriteLine($"   CanViewHistorial: {CanViewHistorial}");
-					System.Diagnostics.Debug.WriteLine($"   CanViewConsultaCitas: {CanViewConsultaCitas}");
 				}
 				else
 				{
-					System.Diagnostics.Debug.WriteLine("❌ No user data found - redirecting to login");
-
-					// Limpiar datos
-					UserFullName = "Usuario";
-					UserInitials = "U";
-					UserRoleDisplay = "Invitado";
-					UserExtraInfo = "";
-					IsMedico = false;
-					CanViewHistorial = false;
-					CanViewConsultaCitas = false;
-
-					await Shell.Current.GoToAsync("//login");
+					System.Diagnostics.Debug.WriteLine("❌ No user data found in storage");
+					ResetUserData();
 				}
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"💥 Error loading user data: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"💥 Error force reloading user data: {ex.Message}");
 				UserFullName = "Error cargando usuario";
 				UserRoleDisplay = "Error";
-				UserExtraInfo = ex.Message;
-				IsMedico = false;
-				CanViewHistorial = false;
-				CanViewConsultaCitas = false;
+				UserExtraInfo = $"Error: {ex.Message}";
+				ResetUserData();
 			}
+		}
+
+		private void ResetUserData()
+		{
+			UserFullName = "Usuario";
+			UserInitials = "U";
+			UserRoleDisplay = "Invitado";
+			UserExtraInfo = "";
+			IsMedico = false;
+			CanViewHistorial = false;
+			CanViewConsultaCitas = false;
 		}
 
 		[RelayCommand]
@@ -112,19 +155,9 @@ namespace MediSys.ViewModels
 			{
 				System.Diagnostics.Debug.WriteLine("🚪 Logging out user...");
 
-				// Limpiar datos
 				await _authService.LogoutAsync();
+				ResetUserData();
 
-				// Resetear propiedades
-				UserFullName = "Usuario";
-				UserInitials = "U";
-				UserRoleDisplay = "Invitado";
-				UserExtraInfo = "";
-				IsMedico = false;
-				CanViewHistorial = false;
-				CanViewConsultaCitas = false;
-
-				// Navegar al login y deshabilitar flyout
 				Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
 				await Shell.Current.GoToAsync("//login");
 

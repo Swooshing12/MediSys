@@ -5,40 +5,205 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:auth="clr-namespace:MediSys.Views.Auth"
     xmlns:dashboard="clr-namespace:MediSys.Views.Dashboard"
+    xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
+    x:DataType="viewmodels:AppShellViewModel"
     Title="MediSys"
-    FlyoutBehavior="Disabled">
+    FlyoutBehavior="Flyout"
+    FlyoutBackgroundColor="#2C3E50">
 
-    <!-- Login Page como página inicial -->
-    <ShellContent
-        Title="Login"
-        ContentTemplate="{DataTemplate auth:LoginPage}"
-        Route="login" />
+    <Shell.BindingContext>
+        <viewmodels:AppShellViewModel />
+    </Shell.BindingContext>
 
-    <!-- Forgot Password Page -->
-    <ShellContent
-        Title="Forgot Password"
-        ContentTemplate="{DataTemplate auth:ForgotPasswordPage}"
-        Route="forgotpassword" />
+    <!-- FLYOUT HEADER RESPONSIVO -->
+    <Shell.FlyoutHeader>
+        <StackLayout>
+            <!-- Contenedor principal con altura mínima pero flexible -->
+            <Grid MinimumHeightRequest="200" Padding="0">
+                <!-- Gradiente de fondo -->
+                <Rectangle>
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#2C3E50" Offset="0.0" />
+                            <GradientStop Color="#3498DB" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
 
-    <!-- Change Password Page -->
-    <ShellContent
-        Title="Change Password"
-        ContentTemplate="{DataTemplate auth:ChangePasswordPage}"
-        Route="changepassword" />
+                <!-- Patrón decorativo -->
+                <Grid Opacity="0.1">
+                    <Path Data="M0,0 L50,50 M50,0 L100,50 M100,0 L150,50"
+                          Stroke="White"
+                          StrokeThickness="2"
+                          HorizontalOptions="Fill"
+                          VerticalOptions="Fill" />
+                </Grid>
 
-    <!-- 🚀 DASHBOARD - Se activa después del login -->
-    <TabBar Route="dashboard">
-        <ShellContent
-            Title="Dashboard"
-            Icon="home"
-            ContentTemplate="{DataTemplate dashboard:DashboardPage}"
-            Route="home" />
+                <!-- Contenido del usuario -->
+                <StackLayout Padding="20,25,20,20" 
+                             VerticalOptions="Fill"
+                             Spacing="12">
 
-        <ShellContent
-            Title="Perfil"
-            Icon="person"
-            ContentTemplate="{DataTemplate dashboard:PerfilPage}"
-            Route="perfil" />
-    </TabBar>
+                    <!-- Avatar compacto -->
+                    <Frame BackgroundColor="White"
+                           CornerRadius="35"
+                           HeightRequest="70"
+                           WidthRequest="70"
+                           HasShadow="True"
+                           Padding="0"
+                           HorizontalOptions="Center">
+                        <Label Text="{Binding UserInitials}"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="#2C3E50"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Frame>
+
+                    <!-- Nombre del usuario - Texto más compacto -->
+                    <Label Text="{Binding UserFullName}"
+                           FontSize="17"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="2" />
+
+                    <!-- Rol del usuario - Más compacto -->
+                    <Border BackgroundColor="White"
+                            Stroke="White"
+                            StrokeThickness="0"
+                            HorizontalOptions="Center"
+                            Padding="10,4">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
+                        <Label Text="{Binding UserRoleDisplay}"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="#2C3E50"
+                               HorizontalOptions="Center" />
+                    </Border>
+
+                    <!-- Información extra - Texto más pequeño -->
+                    <Label Text="{Binding UserExtraInfo}"
+                           FontSize="12"
+                           TextColor="LightGray"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="1" />
+
+                    <!-- Estado en línea - Más compacto -->
+                    <StackLayout Orientation="Horizontal" 
+                                 HorizontalOptions="Center"
+                                 Spacing="6">
+                        <Ellipse Fill="#2ECC71" 
+                                 WidthRequest="8" 
+                                 HeightRequest="8"
+                                 VerticalOptions="Center" />
+                        <Label Text="En línea"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="#2ECC71"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+                </StackLayout>
+            </Grid>
+
+            <!-- Separador visual -->
+            <BoxView BackgroundColor="#34495E" 
+                     HeightRequest="1" />
+        </StackLayout>
+    </Shell.FlyoutHeader>
+
+    <!-- FLYOUT FOOTER CON LOGOUT -->
+    <Shell.FlyoutFooter>
+        <StackLayout BackgroundColor="#34495E" Padding="15">
+            <Button Text="Cerrar Sesión"
+                    BackgroundColor="#E74C3C"
+                    TextColor="White"
+                    CornerRadius="8"
+                    FontAttributes="Bold"
+                    FontSize="14"
+                    HeightRequest="45"
+                    Command="{Binding LogoutCommand}" />
+        </StackLayout>
+    </Shell.FlyoutFooter>
+
+    <!-- MENÚ PRINCIPAL -->
+    <FlyoutItem Title="Dashboard" 
+                FlyoutDisplayOptions="AsMultipleItems">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="🏠" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+        </FlyoutItem.Icon>
+        <ShellContent Title="Dashboard"
+                      ContentTemplate="{DataTemplate dashboard:DashboardPage}"
+                      Route="dashboard" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Consultar Historial" 
+                FlyoutDisplayOptions="AsMultipleItems"
+                IsVisible="{Binding CanViewHistorial}">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="📋" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+        </FlyoutItem.Icon>
+        <ShellContent Title="Historial Médico"
+                      ContentTemplate="{DataTemplate dashboard:HistorialClinicoPage}"
+                      Route="historial" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Consultar Citas" 
+                FlyoutDisplayOptions="AsMultipleItems"
+                IsVisible="{Binding CanViewConsultaCitas}">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="📅" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+        </FlyoutItem.Icon>
+        <ShellContent Title="Consultar Citas"
+                      ContentTemplate="{DataTemplate dashboard:ConsultaCitasPage}"
+                      Route="consulta-citas" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Mi Perfil" 
+                FlyoutDisplayOptions="AsMultipleItems">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="👤" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+        </FlyoutItem.Icon>
+        <ShellContent Title="Mi Perfil"
+                      ContentTemplate="{DataTemplate dashboard:PerfilPage}"
+                      Route="perfil" />
+    </FlyoutItem>
+
+    <!-- MIS CITAS - Solo para médicos -->
+    <FlyoutItem Title="Mis Citas" 
+                FlyoutDisplayOptions="AsMultipleItems"
+                IsVisible="{Binding IsMedico}">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="🩺" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+        </FlyoutItem.Icon>
+        <ShellContent Title="Mis Citas Médicas"
+                      ContentTemplate="{DataTemplate dashboard:MisCitasPage}"
+                      Route="mis-citas" />
+    </FlyoutItem>
+
+    <!-- PÁGINAS OCULTAS -->
+    <ShellContent ContentTemplate="{DataTemplate auth:LoginPage}"
+                  Route="login"
+                  Shell.FlyoutBehavior="Disabled"
+                  Shell.NavBarIsVisible="False"
+                  Shell.TabBarIsVisible="False" />
+
+    <ShellContent ContentTemplate="{DataTemplate auth:ForgotPasswordPage}"
+                  Route="forgotpassword"
+                  Shell.FlyoutBehavior="Disabled"
+                  Shell.NavBarIsVisible="False"
+                  Shell.TabBarIsVisible="False" />
+
+    <ShellContent ContentTemplate="{DataTemplate auth:ChangePasswordPage}"
+                  Route="changepassword"
+                  Shell.FlyoutBehavior="Disabled"
+                  Shell.NavBarIsVisible="False"
+                  Shell.TabBarIsVisible="False" />
 
 </Shell>

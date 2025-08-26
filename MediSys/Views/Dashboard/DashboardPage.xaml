@@ -1,12 +1,353 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
              x:Class="MediSys.Views.Dashboard.DashboardPage"
-             Title="DashboardPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             x:DataType="viewmodels:DashboardViewModel"
+             Title="Dashboard"
+             BackgroundColor="#F5F7FA">
+
+    <ScrollView>
+        <StackLayout Padding="15" Spacing="20">
+
+            <!-- HEADER DE BIENVENIDA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="20"
+                   Margin="5,10,5,0">
+                <StackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <!-- Información del usuario -->
+                        <StackLayout Grid.Column="0" Spacing="5">
+                            <Label Text="{Binding WelcomeMessage}" 
+                                   FontSize="20" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#2C3E50" />
+
+                            <Label Text="{Binding CurrentDateTime}" 
+                                   FontSize="13" 
+                                   TextColor="#7F8C8D" />
+
+                            <!-- Badge del rol -->
+                            <Border BackgroundColor="#3498DB" 
+                                    Stroke="#3498DB"
+                                    StrokeThickness="0"
+                                    HorizontalOptions="Start"
+                                    Padding="10,5"
+                                    Margin="0,8,0,0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="15" />
+                                </Border.StrokeShape>
+                                <Label Text="{Binding UserRole}" 
+                                       TextColor="White" 
+                                       FontSize="11" 
+                                       FontAttributes="Bold" />
+                            </Border>
+                        </StackLayout>
+
+                        <!-- Avatar -->
+                        <Border Grid.Column="1"
+                                BackgroundColor="#ECF0F1" 
+                                StrokeThickness="0"
+                                HeightRequest="55" 
+                                WidthRequest="55"
+                                VerticalOptions="Start">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="27" />
+                            </Border.StrokeShape>
+                            <Label Text="{Binding UserInitials}" 
+                                   FontSize="18" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#2C3E50" 
+                                   HorizontalOptions="Center" 
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- TARJETAS DE ESTADÍSTICAS -->
+            <Grid RowDefinitions="*,*" 
+                  ColumnDefinitions="*,*" 
+                  RowSpacing="12" 
+                  ColumnSpacing="12"
+                  Margin="5,0">
+
+                <!-- Total Citas -->
+                <Border Grid.Row="0" Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E8F6F3"
+                        StrokeThickness="1"
+                        Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <StackLayout Spacing="8" VerticalOptions="Center">
+                        <Label Text="📅" 
+                               FontSize="24" 
+                               HorizontalOptions="Center" />
+                        <Label Text="{Binding TotalCitas}" 
+                               FontSize="22" 
+                               FontAttributes="Bold" 
+                               TextColor="#27AE60" 
+                               HorizontalOptions="Center" />
+                        <Label Text="Total Citas" 
+                               FontSize="11" 
+                               TextColor="#27AE60" 
+                               HorizontalOptions="Center" 
+                               FontAttributes="Bold" />
+                    </StackLayout>
+                </Border>
+
+                <!-- Citas Pendientes -->
+                <Border Grid.Row="0" Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#FEF9E7"
+                        StrokeThickness="1"
+                        Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <StackLayout Spacing="8" VerticalOptions="Center">
+                        <Label Text="⏰" 
+                               FontSize="24" 
+                               HorizontalOptions="Center" />
+                        <Label Text="{Binding CitasPendientes}" 
+                               FontSize="22" 
+                               FontAttributes="Bold" 
+                               TextColor="#F39C12" 
+                               HorizontalOptions="Center" />
+                        <Label Text="Pendientes" 
+                               FontSize="11" 
+                               TextColor="#F39C12" 
+                               HorizontalOptions="Center" 
+                               FontAttributes="Bold" />
+                    </StackLayout>
+                </Border>
+
+                <!-- Historial Consultado -->
+                <Border Grid.Row="1" Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#EBF5FF"
+                        StrokeThickness="1"
+                        Padding="15"
+                        IsVisible="{Binding CanViewHistorial}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <StackLayout Spacing="8" VerticalOptions="Center">
+                        <Label Text="📋" 
+                               FontSize="24" 
+                               HorizontalOptions="Center" />
+                        <Label Text="{Binding HistorialesConsultados}" 
+                               FontSize="22" 
+                               FontAttributes="Bold" 
+                               TextColor="#3498DB" 
+                               HorizontalOptions="Center" />
+                        <Label Text="Historiales" 
+                               FontSize="11" 
+                               TextColor="#3498DB" 
+                               HorizontalOptions="Center" 
+                               FontAttributes="Bold" />
+                    </StackLayout>
+                </Border>
+
+                <!-- Citas de Hoy (Solo médicos) -->
+                <Border Grid.Row="1" Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#F4E8FF"
+                        StrokeThickness="1"
+                        Padding="15"
+                        IsVisible="{Binding IsMedico}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <StackLayout Spacing="8" VerticalOptions="Center">
+                        <Label Text="🩺" 
+                               FontSize="24" 
+                               HorizontalOptions="Center" />
+                        <Label Text="{Binding MisCitasHoy}" 
+                               FontSize="22" 
+                               FontAttributes="Bold" 
+                               TextColor="#9B59B6" 
+                               HorizontalOptions="Center" />
+                        <Label Text="Citas Hoy" 
+                               FontSize="11" 
+                               TextColor="#9B59B6" 
+                               HorizontalOptions="Center" 
+                               FontAttributes="Bold" />
+                    </StackLayout>
+                </Border>
+            </Grid>
+
+            <!-- ACCIONES RÁPIDAS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="20"
+                   Margin="5,0">
+                <StackLayout Spacing="18">
+                    <Label Text="Acciones Rápidas" 
+                           FontSize="17" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" />
+
+                    <Grid RowDefinitions="Auto,Auto" 
+                          ColumnDefinitions="*,*" 
+                          RowSpacing="12" 
+                          ColumnSpacing="12">
+
+                        <!-- Consultar Historial -->
+                        <Border Grid.Row="0" Grid.Column="0"
+                                BackgroundColor="#27AE60"
+                                StrokeThickness="0"
+                                IsVisible="{Binding CanViewHistorial}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateToHistorialCommand}" />
+                            </Border.GestureRecognizers>
+                            <StackLayout Spacing="6" Padding="16" VerticalOptions="Center">
+                                <Label Text="📋" 
+                                       FontSize="22" 
+                                       HorizontalOptions="Center" />
+                                <Label Text="Consultar Historial" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="White" 
+                                       HorizontalOptions="Center" 
+                                       HorizontalTextAlignment="Center" />
+                            </StackLayout>
+                        </Border>
+
+                        <!-- Consultar Citas -->
+                        <Border Grid.Row="0" Grid.Column="1"
+                                BackgroundColor="#3498DB"
+                                StrokeThickness="0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateToCitasCommand}" />
+                            </Border.GestureRecognizers>
+                            <StackLayout Spacing="6" Padding="16" VerticalOptions="Center">
+                                <Label Text="📅" 
+                                       FontSize="22" 
+                                       HorizontalOptions="Center" />
+                                <Label Text="Consultar Citas" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="White" 
+                                       HorizontalOptions="Center" 
+                                       HorizontalTextAlignment="Center" />
+                            </StackLayout>
+                        </Border>
+
+                        <!-- Mi Perfil -->
+                        <Border Grid.Row="1" Grid.Column="0"
+                                BackgroundColor="#9B59B6"
+                                StrokeThickness="0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateToPerfilCommand}" />
+                            </Border.GestureRecognizers>
+                            <StackLayout Spacing="6" Padding="16" VerticalOptions="Center">
+                                <Label Text="👤" 
+                                       FontSize="22" 
+                                       HorizontalOptions="Center" />
+                                <Label Text="Mi Perfil" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="White" 
+                                       HorizontalOptions="Center" 
+                                       HorizontalTextAlignment="Center" />
+                            </StackLayout>
+                        </Border>
+
+                        <!-- Mis Citas (Solo médicos) -->
+                        <Border Grid.Row="1" Grid.Column="1"
+                                BackgroundColor="#E74C3C"
+                                StrokeThickness="0"
+                                IsVisible="{Binding IsMedico}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateToMisCitasCommand}" />
+                            </Border.GestureRecognizers>
+                            <StackLayout Spacing="6" Padding="16" VerticalOptions="Center">
+                                <Label Text="🩺" 
+                                       FontSize="22" 
+                                       HorizontalOptions="Center" />
+                                <Label Text="Mis Citas Médicas" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="White" 
+                                       HorizontalOptions="Center" 
+                                       HorizontalTextAlignment="Center" />
+                            </StackLayout>
+                        </Border>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN DEL SISTEMA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="20"
+                   Margin="5,0,5,10">
+                <StackLayout Spacing="12">
+                    <Label Text="Estado del Sistema" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" />
+
+                    <StackLayout Spacing="8">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Label Grid.Column="0" 
+                                   Text="Estado:" 
+                                   FontSize="13" 
+                                   TextColor="#7F8C8D" />
+                            <Label Grid.Column="1" 
+                                   Text="🟢 Conectado" 
+                                   FontSize="13" 
+                                   TextColor="#27AE60" 
+                                   Margin="10,0,0,0" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Label Grid.Column="0" 
+                                   Text="Versión:" 
+                                   FontSize="13" 
+                                   TextColor="#7F8C8D" />
+                            <Label Grid.Column="1" 
+                                   Text="v1.0.0" 
+                                   FontSize="13" 
+                                   TextColor="#2C3E50" 
+                                   Margin="10,0,0,0" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Label Grid.Column="0" 
+                                   Text="Última sync:" 
+                                   FontSize="13" 
+                                   TextColor="#7F8C8D" />
+                            <Label Grid.Column="1" 
+                                   Text="{Binding LastSyncTime}" 
+                                   FontSize="13" 
+                                   TextColor="#2C3E50" 
+                                   Margin="10,0,0,0" />
+                        </Grid>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+        </StackLayout>
+    </ScrollView>
 </ContentPage>
