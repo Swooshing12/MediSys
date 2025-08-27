@@ -177,10 +177,11 @@
                                    FontSize="14" 
                                    FontAttributes="Bold" 
                                    TextColor="#34495E" />
-                            <Picker ItemsSource="{Binding SexosDisplay}" 
-                                    SelectedIndex="{Binding Sexo, Converter={StaticResource SexoToIndexConverter}}"
+                            <Picker ItemsSource="{Binding SexosDisponibles}" 
+                                    SelectedItem="{Binding Sexo}"
                                     BackgroundColor="White"
                                     TextColor="#2C3E50" />
+
                         </StackLayout>
 
                         <StackLayout Grid.Column="1" Spacing="5">

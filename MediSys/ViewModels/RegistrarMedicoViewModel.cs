@@ -251,6 +251,12 @@ namespace MediSys.ViewModels
 					"OK");
 				return;
 			}
+			// 🔹 Aquí agregamos logs para ver los valores actuales
+			System.Diagnostics.Debug.WriteLine($"DEBUG: Cedula='{Cedula}'");
+			System.Diagnostics.Debug.WriteLine($"DEBUG: Nombres='{Nombres}', Apellidos='{Apellidos}'");
+			System.Diagnostics.Debug.WriteLine($"DEBUG: Username='{GenerarUsername()}'");
+			System.Diagnostics.Debug.WriteLine($"DEBUG: Sexo='{Sexo}', Especialidad='{EspecialidadSeleccionada?.Nombre ?? "null"}'");
+			System.Diagnostics.Debug.WriteLine($"DEBUG: SucursalesSeleccionadas.Count={SucursalesSeleccionadas.Count}, Horarios.Count={Horarios.Count}");
 
 			IsLoading = true;
 
@@ -364,8 +370,14 @@ namespace MediSys.ViewModels
 
 		private string GenerarUsername()
 		{
-			return $"{Nombres.ToLower().Replace(" ", "")}.{Apellidos.ToLower().Replace(" ", "")}".Substring(0, Math.Min(20, $"{Nombres}.{Apellidos}".Length));
+			var baseUsername = $"{Nombres?.ToLower().Replace(" ", "")}.{Apellidos?.ToLower().Replace(" ", "")}".Trim('.');
+
+			if (string.IsNullOrWhiteSpace(baseUsername))
+				baseUsername = $"user{Guid.NewGuid().ToString("N")[..6]}"; // fallback
+
+			return baseUsername.Substring(0, Math.Min(20, baseUsername.Length));
 		}
+
 
 		private void LimpiarFormulario()
 		{
