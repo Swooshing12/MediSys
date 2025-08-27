@@ -1,12 +1,363 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
              x:Class="MediSys.Views.Dashboard.PerfilPage"
-             Title="PerfilPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             x:DataType="viewmodels:PerfilViewModel"
+             Title="Mi Perfil"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+            <!-- HEADER CON AVATAR -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="30,25">
+                <StackLayout Spacing="15">
+
+                    <!-- Avatar circular -->
+                    <Frame BackgroundColor="{Binding AvatarBackgroundColor}"
+                           WidthRequest="120"
+                           HeightRequest="120"
+                           CornerRadius="60"
+                           HasShadow="True"
+                           HorizontalOptions="Center"
+                           Padding="0">
+                        <Label Text="{Binding Usuario.Iniciales}"
+                               FontSize="40"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Frame>
+
+                    <!-- Nombre y rol -->
+                    <StackLayout Spacing="5" HorizontalOptions="Center">
+                        <Label Text="{Binding Usuario.NombreCompleto}"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="#2C3E50"
+                               HorizontalOptions="Center" />
+
+                        <Frame BackgroundColor="{Binding RolBackgroundColor}"
+                               CornerRadius="12"
+                               Padding="12,6"
+                               HasShadow="False"
+                               HorizontalOptions="Center">
+                            <Label Text="{Binding Usuario.RolDisplay}"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White" />
+                        </Frame>
+
+                        <!-- Estado en línea -->
+                        <StackLayout Orientation="Horizontal" 
+                                   HorizontalOptions="Center"
+                                   Spacing="8">
+                            <Frame BackgroundColor="#27AE60"
+                                   WidthRequest="12"
+                                   HeightRequest="12"
+                                   CornerRadius="6"
+                                   Padding="0"
+                                   HasShadow="False" />
+                            <Label Text="En línea"
+                                   FontSize="12"
+                                   TextColor="#7F8C8D" />
+                        </StackLayout>
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN PERSONAL -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="20">
+
+                    <StackLayout Orientation="Horizontal" Spacing="10">
+                        <Label Text="👤" FontSize="20" />
+                        <Label Text="Información Personal"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#2C3E50"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+
+                    <!-- Cédula -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Cédula de Identidad"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#34495E" />
+                        <Frame BackgroundColor="#ECF0F1"
+                               CornerRadius="8"
+                               Padding="12"
+                               HasShadow="False">
+                            <Label Text="{Binding Usuario.CedulaString}"
+                                   FontSize="16"
+                                   TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- Username -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Nombre de Usuario"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#34495E" />
+                        <Frame BackgroundColor="#ECF0F1"
+                               CornerRadius="8"
+                               Padding="12"
+                               HasShadow="False">
+                            <Label Text="{Binding Usuario.Username}"
+                                   FontSize="16"
+                                   TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- Correo -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Correo Electrónico"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#34495E" />
+                        <Frame BackgroundColor="#ECF0F1"
+                               CornerRadius="8"
+                               Padding="12"
+                               HasShadow="False">
+                            <Label Text="{Binding Usuario.Correo}"
+                                   FontSize="16"
+                                   TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- Sexo y Nacionalidad -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                        <StackLayout Grid.Column="0" Spacing="5">
+                            <Label Text="Sexo"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="#34495E" />
+                            <Frame BackgroundColor="#ECF0F1"
+                                   CornerRadius="8"
+                                   Padding="12"
+                                   HasShadow="False">
+                                <Label Text="{Binding SexoDisplay}"
+                                       FontSize="16"
+                                       TextColor="#2C3E50" />
+                            </Frame>
+                        </StackLayout>
+
+                        <StackLayout Grid.Column="1" Spacing="5">
+                            <Label Text="Nacionalidad"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="#34495E" />
+                            <Frame BackgroundColor="#ECF0F1"
+                                   CornerRadius="8"
+                                   Padding="12"
+                                   HasShadow="False">
+                                <Label Text="{Binding Usuario.Nacionalidad}"
+                                       FontSize="16"
+                                       TextColor="#2C3E50" />
+                            </Frame>
+                        </StackLayout>
+                    </Grid>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN PROFESIONAL (Solo si es doctor) -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25"
+                   IsVisible="{Binding MostrarInfoProfesional}">
+                <StackLayout Spacing="20">
+
+                    <StackLayout Orientation="Horizontal" Spacing="10">
+                        <Label Text="👩‍⚕️" FontSize="20" />
+                        <Label Text="Información Profesional"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#2C3E50"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+
+                    <!-- Especialidad -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Especialidad Médica"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#34495E" />
+                        <Frame BackgroundColor="#E8F6F3"
+                               CornerRadius="8"
+                               Padding="12"
+                               HasShadow="False">
+                            <Label Text="{Binding Usuario.Especialidad}"
+                                   FontSize="16"
+                                   TextColor="#16A085"
+                                   FontAttributes="Bold" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- ID Médico -->
+                    <StackLayout Spacing="5">
+                        <Label Text="ID de Médico"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#34495E" />
+                        <Frame BackgroundColor="#ECF0F1"
+                               CornerRadius="8"
+                               Padding="12"
+                               HasShadow="False">
+                            <Label Text="{Binding Usuario.IdDoctor}"
+                                   FontSize="16"
+                                   TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN DEL SISTEMA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="20">
+
+                    <StackLayout Orientation="Horizontal" Spacing="10">
+                        <Label Text="⚙️" FontSize="20" />
+                        <Label Text="Información del Sistema"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#2C3E50"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+
+                    <!-- ID Usuario -->
+                    <StackLayout Spacing="5">
+                        <Label Text="ID de Usuario"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#34495E" />
+                        <Frame BackgroundColor="#ECF0F1"
+                               CornerRadius="8"
+                               Padding="12"
+                               HasShadow="False">
+                            <Label Text="{Binding Usuario.IdUsuario}"
+                                   FontSize="16"
+                                   TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- Fecha de registro -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Fecha de Registro"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#34495E" />
+                        <Frame BackgroundColor="#ECF0F1"
+                               CornerRadius="8"
+                               Padding="12"
+                               HasShadow="False">
+                            <Label Text="{Binding FechaRegistroFormateada}"
+                                   FontSize="16"
+                                   TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- Tipo de usuario -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Tipo de Usuario"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#34495E" />
+                        <Frame BackgroundColor="#ECF0F1"
+                               CornerRadius="8"
+                               Padding="12"
+                               HasShadow="False">
+                            <Label Text="{Binding TipoUsuarioDisplay}"
+                                   FontSize="16"
+                                   TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- ACCIONES RÁPIDAS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="20">
+
+                    <StackLayout Orientation="Horizontal" Spacing="10">
+                        <Label Text="⚡" FontSize="20" />
+                        <Label Text="Acciones Rápidas"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#2C3E50"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+
+                    <!-- Botones de acción -->
+                    <StackLayout Spacing="15">
+
+                        <!-- Cambiar contraseña -->
+                        <Button Text="🔑 Cambiar Contraseña"
+                                BackgroundColor="#3498DB"
+                                TextColor="White"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                CornerRadius="10"
+                                HeightRequest="50"
+                                Command="{Binding CambiarContrasenaCommand}" />
+
+                        <!-- Actualizar información -->
+                        <Button Text="✏️ Editar Perfil"
+                                BackgroundColor="#9B59B6"
+                                TextColor="White"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                CornerRadius="10"
+                                HeightRequest="50"
+                                Command="{Binding EditarPerfilCommand}" />
+
+                        <!-- Cerrar sesión -->
+                        <Button Text="🚪 Cerrar Sesión"
+                                BackgroundColor="#E74C3C"
+                                TextColor="White"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                CornerRadius="10"
+                                HeightRequest="50"
+                                Command="{Binding CerrarSesionCommand}" />
+
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- Información de la app -->
+            <StackLayout Spacing="10" HorizontalOptions="Center">
+                <Label Text="MediSys Mobile v1.0"
+                       FontSize="12"
+                       TextColor="#95A5A6"
+                       HorizontalOptions="Center" />
+                <Label Text="© 2024 - Sistema Médico Integrado"
+                       FontSize="10"
+                       TextColor="#95A5A6"
+                       HorizontalOptions="Center" />
+            </StackLayout>
+
+        </StackLayout>
+    </ScrollView>
+
 </ContentPage>

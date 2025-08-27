@@ -146,22 +146,24 @@ namespace MediSys.ViewModels
 		[RelayCommand]
 		private async Task LogoutAsync()
 		{
-			var confirm = await Shell.Current.DisplayAlert(
-				"Cerrar Sesión",
-				"¿Está seguro que desea salir del sistema?",
-				"Sí", "Cancelar");
-
-			if (confirm)
+			try
 			{
-				System.Diagnostics.Debug.WriteLine("🚪 Logging out user...");
-
+				// Limpiar AuthService
 				await _authService.LogoutAsync();
-				ResetUserData();
 
+				// 🔥 Limpiar también Preferences
+				Preferences.Remove("user_data");
+				Preferences.Remove("is_logged_in");
+
+				// Ocultar flyout y navegar al login
 				Shell.Current.FlyoutBehavior = FlyoutBehavior.Disabled;
 				await Shell.Current.GoToAsync("//login");
 
-				System.Diagnostics.Debug.WriteLine("✅ User logged out successfully");
+				System.Diagnostics.Debug.WriteLine("✅ Logout complete - all data cleared");
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error during logout: {ex.Message}");
 			}
 		}
 	}

@@ -65,9 +65,18 @@ namespace MediSys.ViewModels
 				{
 					var user = result.Data.Usuario;
 
-					// PRIMERO: Guardar usuario
+					// PRIMERO: Guardar usuario en AuthService
 					await _authService.SaveUserAsync(user);
 					System.Diagnostics.Debug.WriteLine("✅ User saved to storage");
+
+					// 🔥 NUEVO: Guardar también en Preferences para el perfil
+					var userJson = System.Text.Json.JsonSerializer.Serialize(user, new System.Text.Json.JsonSerializerOptions
+					{
+						PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+					});
+					Preferences.Set("user_data", userJson);
+					Preferences.Set("is_logged_in", "true");
+					System.Diagnostics.Debug.WriteLine("✅ User data saved to Preferences for profile");
 
 					if (user.RequiereCambioPassword)
 					{
@@ -81,7 +90,6 @@ namespace MediSys.ViewModels
 										$"👤 {user.RolDisplay}\n" +
 										$"📧 {user.Correo}\n" +
 										$"🆔 {user.CedulaString}";
-
 					if (!string.IsNullOrEmpty(user.Especialidad))
 					{
 						welcomeMessage += $"\n🏥 {user.Especialidad}";

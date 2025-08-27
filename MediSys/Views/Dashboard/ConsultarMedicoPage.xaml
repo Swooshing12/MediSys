@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
+             xmlns:models="clr-namespace:MediSys.Models"
+             x:Class="MediSys.Views.Dashboard.ConsultarMedicoPage"
+             x:DataType="viewmodels:ConsultarMedicoViewModel"
+             Title="Consultar Médico"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+            <!-- HEADER -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="10">
+                    <Label Text="🔍 Consultar Médico por Cédula" 
+                           FontSize="24" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" 
+                           HorizontalOptions="Center" />
+
+                    <Label Text="Busque un médico por su cédula para ver y actualizar sus horarios" 
+                           FontSize="14" 
+                           TextColor="#7F8C8D" 
+                           HorizontalOptions="Center" 
+                           HorizontalTextAlignment="Center" />
+                </StackLayout>
+            </Frame>
+
+            <!-- BÚSQUEDA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="20">
+
+                    <Label Text="🆔 Cédula del Médico" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" />
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="15">
+                        <Border Grid.Column="0"
+                                BackgroundColor="White" 
+                                Stroke="#3498DB" 
+                                StrokeThickness="2" 
+                                Padding="15">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Entry Text="{Binding CedulaBusqueda}" 
+                                   Placeholder="Ej: 1234567890"
+                                   Keyboard="Numeric"
+                                   MaxLength="10"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#2C3E50"
+                                   FontSize="16" />
+                        </Border>
+
+                        <Button Grid.Column="1"
+                                Text="🔍"
+                                BackgroundColor="#3498DB"
+                                TextColor="White"
+                                FontSize="18"
+                                WidthRequest="60"
+                                HeightRequest="60"
+                                CornerRadius="30"
+                                Command="{Binding BuscarMedicoCommand}" />
+                    </Grid>
+
+                    <Button Text="🗑️ Limpiar Búsqueda"
+                            BackgroundColor="#E74C3C"
+                            TextColor="White"
+                            FontSize="14"
+                            CornerRadius="8"
+                            HeightRequest="40"
+                            Command="{Binding LimpiarBusquedaCommand}"
+                            IsVisible="{Binding ShowResults}" />
+
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN DEL MÉDICO -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25"
+                   IsVisible="{Binding ShowResults}">
+                <StackLayout Spacing="20">
+
+                    <Label Text="👨‍⚕️ Información del Médico" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" />
+
+                    <!-- Avatar y datos básicos -->
+                    <Grid ColumnDefinitions="80,*" ColumnSpacing="20">
+                        <Frame Grid.Column="0"
+                               BackgroundColor="{Binding MedicoEncontrado.EstadoColor}"
+                               WidthRequest="70"
+                               HeightRequest="70"
+                               CornerRadius="35"
+                               Padding="0">
+                            <Label Text="{Binding MedicoEncontrado.Iniciales}"
+                                   FontSize="24"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Frame>
+
+                        <StackLayout Grid.Column="1" Spacing="8">
+                            <Label Text="{Binding MedicoEncontrado.NombreCompleto}" 
+                                   FontSize="20" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#2C3E50" />
+
+                            <Label Text="{Binding MedicoEncontrado.EspecialidadDisplay}" 
+                                   FontSize="16" 
+                                   TextColor="#3498DB" />
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Label Grid.Column="0" 
+                                       Text="{Binding MedicoEncontrado.CedulaString, StringFormat='CI: {0}'}" 
+                                       FontSize="14" 
+                                       TextColor="#7F8C8D" />
+
+                                <Frame Grid.Column="1" 
+                                       BackgroundColor="{Binding MedicoEncontrado.EstadoColor}"
+                                       CornerRadius="12"
+                                       Padding="8,4"
+                                       HasShadow="False"
+                                       HorizontalOptions="Start">
+                                    <Label Text="{Binding MedicoEncontrado.EstadoTexto}" 
+                                           FontSize="12" 
+                                           FontAttributes="Bold"
+                                           TextColor="White" />
+                                </Frame>
+                            </Grid>
+                        </StackLayout>
+                    </Grid>
+
+                    <!-- Información adicional -->
+                    <StackLayout Spacing="10">
+                        <Label Text="{Binding MedicoEncontrado.Correo, StringFormat='📧 {0}'}" 
+                               FontSize="14" 
+                               TextColor="#34495E" />
+
+                        <Label Text="{Binding MedicoEncontrado.TituloProfesional, StringFormat='🎓 {0}'}" 
+                               FontSize="14" 
+                               TextColor="#34495E"
+                               IsVisible="{Binding MedicoEncontrado.TituloProfesional, Converter={StaticResource StringToBoolConverter}}" />
+
+                        <Label Text="{Binding MedicoEncontrado.SucursalesTexto, StringFormat='🏢 Sucursales: {0}'}" 
+                               FontSize="14" 
+                               TextColor="#34495E" />
+
+                        <Label Text="{Binding MedicoEncontrado.TotalHorarios, StringFormat='⏰ Total horarios: {0}'}" 
+                               FontSize="14" 
+                               TextColor="#27AE60"
+                               FontAttributes="Bold" />
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- ESTADÍSTICAS DE HORARIOS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25"
+                   IsVisible="{Binding ShowHorarios}">
+                <StackLayout Spacing="15">
+
+                    <Label Text="📊 Estadísticas de Horarios" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" />
+
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                        <Frame Grid.Column="0" 
+                               BackgroundColor="#EBF3FD" 
+                               CornerRadius="12" 
+                               Padding="15"
+                               HasShadow="False">
+                            <StackLayout Spacing="5">
+                                <Label Text="{Binding Estadisticas.TotalHorarios}" 
+                                       FontSize="24" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#3498DB"
+                                       HorizontalOptions="Center" />
+                                <Label Text="Horarios" 
+                                       FontSize="12" 
+                                       TextColor="#7F8C8D"
+                                       HorizontalOptions="Center" />
+                            </StackLayout>
+                        </Frame>
+
+                        <Frame Grid.Column="1" 
+                               BackgroundColor="#E8F5E8" 
+                               CornerRadius="12" 
+                               Padding="15"
+                               HasShadow="False">
+                            <StackLayout Spacing="5">
+                                <Label Text="{Binding Estadisticas.TotalHorasSemanales, StringFormat='{0:F1}h'}" 
+                                       FontSize="24" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#27AE60"
+                                       HorizontalOptions="Center" />
+                                <Label Text="Horas/Semana" 
+                                       FontSize="12" 
+                                       TextColor="#7F8C8D"
+                                       HorizontalOptions="Center" />
+                            </StackLayout>
+                        </Frame>
+
+                        <Frame Grid.Column="2" 
+                               BackgroundColor="#FDF2E9" 
+                               CornerRadius="12" 
+                               Padding="15"
+                               HasShadow="False">
+                            <StackLayout Spacing="5">
+                                <Label Text="{Binding Estadisticas.TotalCitasEstimadasSemana}" 
+                                       FontSize="24" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#E67E22"
+                                       HorizontalOptions="Center" />
+                                <Label Text="Citas/Semana" 
+                                       FontSize="12" 
+                                       TextColor="#7F8C8D"
+                                       HorizontalOptions="Center" />
+                            </StackLayout>
+                        </Frame>
+                    </Grid>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- HORARIOS POR SUCURSAL -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25"
+                   IsVisible="{Binding ShowHorarios}">
+                <StackLayout Spacing="20">
+
+                    <StackLayout Orientation="Horizontal" 
+                                 Spacing="15" 
+                                 IsVisible="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}">
+                        <Label Text="🗓️ Horarios por Sucursal" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#2C3E50"
+                               VerticalOptions="Center" />
+
+                        <Button Text="✏️ Editar Horarios"
+                                BackgroundColor="#9B59B6"
+                                TextColor="White"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                CornerRadius="8"
+                                HeightRequest="35"
+                                Command="{Binding IniciarEdicionCommand}" />
+                    </StackLayout>
+
+                    <!-- MODO VISUALIZACIÓN -->
+                    <CollectionView ItemsSource="{Binding HorariosPorSucursal}"
+                                    IsVisible="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:HorariosPorSucursal">
+                                <Frame BackgroundColor="#F8F9FA" 
+                                       CornerRadius="12" 
+                                       Padding="20"
+                                       Margin="0,5"
+                                       HasShadow="False">
+                                    <StackLayout Spacing="15">
+
+                                        <!-- Header de sucursal -->
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackLayout Grid.Column="0">
+                                                <Label Text="{Binding NombreSucursal}" 
+                                                       FontSize="18" 
+                                                       FontAttributes="Bold" 
+                                                       TextColor="#2C3E50" />
+                                                <Label Text="{Binding Estadisticas.TotalHorarios, StringFormat='{0} horarios configurados'}" 
+                                                       FontSize="12" 
+                                                       TextColor="#7F8C8D" />
+                                            </StackLayout>
+
+                                            <Button Grid.Column="1"
+                                                    Text="👁️"
+                                                    BackgroundColor="#3498DB"
+                                                    TextColor="White"
+                                                    FontSize="16"
+                                                    WidthRequest="40"
+                                                    HeightRequest="40"
+                                                    CornerRadius="20"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ConsultarMedicoViewModel}}, Path=VerDetalleSucursalCommand}" 
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+
+                                        <!-- Lista de horarios -->
+                                        <CollectionView ItemsSource="{Binding Horarios}">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:HorarioDoctor">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto" 
+                                                          ColumnSpacing="10"
+                                                          Padding="12"
+                                                          BackgroundColor="White"
+                                                          Margin="0,2">
+                                                        <Grid.GestureRecognizers>
+                                                            <TapGestureRecognizer />
+                                                        </Grid.GestureRecognizers>
+
+                                                        <StackLayout Grid.Column="0">
+                                                            <Label Text="{Binding HorarioDisplay}" 
+                                                                   FontSize="14" 
+                                                                   FontAttributes="Bold"
+                                                                   TextColor="{Binding DiaSemanaColor}" />
+                                                            <Label Text="{Binding DuracionDisplay}" 
+                                                                   FontSize="12" 
+                                                                   TextColor="#7F8C8D" />
+                                                        </StackLayout>
+
+                                                        <Label Grid.Column="1" 
+                                                               Text="{Binding CitasEstimadasDisplay}" 
+                                                               FontSize="12" 
+                                                               TextColor="#E67E22"
+                                                               VerticalOptions="Center" />
+
+                                                        <Frame Grid.Column="2" 
+                                                               BackgroundColor="{Binding DiaSemanaColor}"
+                                                               CornerRadius="10"
+                                                               Padding="6,2"
+                                                               HasShadow="False">
+                                                            <Label Text="{Binding DiaSemanaTexto}" 
+                                                                   FontSize="10" 
+                                                                   FontAttributes="Bold"
+                                                                   TextColor="White" />
+                                                        </Frame>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+
+                                    </StackLayout>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- MODO EDICIÓN -->
+                    <StackLayout IsVisible="{Binding IsEditing}" Spacing="20">
+
+                        <StackLayout Orientation="Horizontal" Spacing="15">
+                            <Label Text="✏️ Editando Horarios" 
+                                   FontSize="18" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#9B59B6"
+                                   VerticalOptions="Center" />
+
+                            <Button Text="➕ Agregar Horario"
+                                    BackgroundColor="#27AE60"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="8"
+                                    HeightRequest="35"
+                                    Command="{Binding AgregarNuevoHorarioCommand}" />
+                        </StackLayout>
+
+                        <!-- Lista de horarios en edición -->
+                        <CollectionView ItemsSource="{Binding NuevosHorarios}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:HorarioCrear">
+                                    <Frame BackgroundColor="#F0E6FF" 
+                                           CornerRadius="12" 
+                                           Padding="15"
+                                           Margin="0,3"
+                                           HasShadow="False">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" 
+                                                   Text="{Binding HorarioDisplay}" 
+                                                   FontSize="14" 
+                                                   TextColor="#2C3E50"
+                                                   VerticalOptions="Center" />
+
+                                            <Button Grid.Column="1"
+                                                    Text="🗑️"
+                                                    BackgroundColor="#E74C3C"
+                                                    TextColor="White"
+                                                    FontSize="14"
+                                                    WidthRequest="35"
+                                                    HeightRequest="35"
+                                                    CornerRadius="17"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ConsultarMedicoViewModel}}, Path=RemoverHorarioCommand}" 
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Botones de edición -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                            <Button Grid.Column="0"
+                                    Text="❌ Cancelar"
+                                    BackgroundColor="#E74C3C"
+                                    TextColor="White"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    CornerRadius="10"
+                                    HeightRequest="50"
+                                    Command="{Binding CancelarEdicionCommand}" />
+
+                            <Button Grid.Column="1"
+                                    Text="💾 Guardar Cambios"
+                                    BackgroundColor="#27AE60"
+                                    TextColor="White"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    CornerRadius="10"
+                                    HeightRequest="50"
+                                    Command="{Binding GuardarHorariosCommand}" />
+                        </Grid>
+
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- MENSAJE SI NO HAY HORARIOS -->
+            <Frame BackgroundColor="#FEF9E7" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25"
+                   IsVisible="{Binding ShowResults}"
+                   Margin="0,0,0,20">
+                <StackLayout Spacing="10" 
+                           IsVisible="{Binding ShowHorarios, Converter={StaticResource InverseBoolConverter}}">
+                    <Label Text="⚠️ Sin Horarios Configurados" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#F39C12"
+                           HorizontalOptions="Center" />
+
+                    <Label Text="Este médico no tiene horarios de atención configurados. Use la opción 'Editar Horarios' para agregar nuevos horarios." 
+                           FontSize="14" 
+                           TextColor="#D68910"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+
+                    <Button Text="✏️ Configurar Horarios"
+                            BackgroundColor="#F39C12"
+                            TextColor="White"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            HeightRequest="40"
+                            HorizontalOptions="Center"
+                            Command="{Binding IniciarEdicionCommand}" />
+                </StackLayout>
+            </Frame>
+
+            <!-- INDICADOR DE CARGA -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}" 
+                             IsRunning="{Binding IsLoading}"
+                             Color="#3498DB"
+                             HeightRequest="50" />
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

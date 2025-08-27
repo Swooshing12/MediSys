@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
+             xmlns:models="clr-namespace:MediSys.Models"
+             x:Class="MediSys.Views.Dashboard.RegistrarMedicoPage"
+             x:DataType="viewmodels:RegistrarMedicoViewModel"
+             Title="Registrar Médico"
+             BackgroundColor="#F8F9FA">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+            <!-- HEADER -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="10">
+                    <Label Text="👩‍⚕️ Registro de Nuevo Médico" 
+                           FontSize="24" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" 
+                           HorizontalOptions="Center" />
+
+                    <Label Text="Complete todos los datos del médico y configure sus horarios de atención" 
+                           FontSize="14" 
+                           TextColor="#7F8C8D" 
+                           HorizontalOptions="Center" 
+                           HorizontalTextAlignment="Center" />
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN PERSONAL -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="20">
+
+                    <Label Text="👤 Información Personal" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" />
+
+                    <!-- Cédula -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Cédula de Identidad *" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#34495E" />
+                        <Border BackgroundColor="White" 
+                                Stroke="#3498DB" 
+                                StrokeThickness="2" 
+                                Padding="12">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Entry Text="{Binding Cedula}" 
+                                   Placeholder="Ej: 1234567890"
+                                   Keyboard="Numeric"
+                                   MaxLength="10"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#2C3E50" />
+                        </Border>
+                    </StackLayout>
+
+                    <!-- Nombres y Apellidos -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                        <StackLayout Grid.Column="0" Spacing="5">
+                            <Label Text="Nombres *" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#34495E" />
+                            <Border BackgroundColor="White" 
+                                    Stroke="#3498DB" 
+                                    StrokeThickness="2" 
+                                    Padding="12">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Entry Text="{Binding Nombres}" 
+                                       Placeholder="Nombres"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50" />
+                            </Border>
+                        </StackLayout>
+
+                        <StackLayout Grid.Column="1" Spacing="5">
+                            <Label Text="Apellidos *" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#34495E" />
+                            <Border BackgroundColor="White" 
+                                    Stroke="#3498DB" 
+                                    StrokeThickness="2" 
+                                    Padding="12">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Entry Text="{Binding Apellidos}" 
+                                       Placeholder="Apellidos"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50" />
+                            </Border>
+                        </StackLayout>
+                    </Grid>
+
+                    <!-- Correo -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Correo Electrónico *" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#34495E" />
+                        <Border BackgroundColor="White" 
+                                Stroke="#3498DB" 
+                                StrokeThickness="2" 
+                                Padding="12">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Entry Text="{Binding Correo}" 
+                                   Placeholder="correo@ejemplo.com"
+                                   Keyboard="Email"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#2C3E50" />
+                        </Border>
+                    </StackLayout>
+
+                    <!-- Contraseñas -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                        <StackLayout Grid.Column="0" Spacing="5">
+                            <Label Text="Contraseña *" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#34495E" />
+                            <Border BackgroundColor="White" 
+                                    Stroke="#3498DB" 
+                                    StrokeThickness="2" 
+                                    Padding="12">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Entry Text="{Binding Password}" 
+                                       Placeholder="Contraseña"
+                                       IsPassword="True"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50" />
+                            </Border>
+                        </StackLayout>
+
+                        <StackLayout Grid.Column="1" Spacing="5">
+                            <Label Text="Confirmar Contraseña *" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#34495E" />
+                            <Border BackgroundColor="White" 
+                                    Stroke="#3498DB" 
+                                    StrokeThickness="2" 
+                                    Padding="12">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Entry Text="{Binding ConfirmarPassword}" 
+                                       Placeholder="Confirmar"
+                                       IsPassword="True"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50" />
+                            </Border>
+                        </StackLayout>
+                    </Grid>
+
+                    <!-- Sexo y Nacionalidad -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                        <StackLayout Grid.Column="0" Spacing="5">
+                            <Label Text="Sexo *" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#34495E" />
+                            <Picker ItemsSource="{Binding SexosDisplay}" 
+                                    SelectedIndex="{Binding Sexo, Converter={StaticResource SexoToIndexConverter}}"
+                                    BackgroundColor="White"
+                                    TextColor="#2C3E50" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Column="1" Spacing="5">
+                            <Label Text="Nacionalidad *" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#34495E" />
+                            <Picker ItemsSource="{Binding NacionalidadesDisponibles}" 
+                                    SelectedItem="{Binding Nacionalidad}"
+                                    BackgroundColor="White"
+                                    TextColor="#2C3E50" />
+                        </StackLayout>
+                    </Grid>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN PROFESIONAL -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="20">
+
+                    <Label Text="🩺 Información Profesional" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" />
+
+                    <!-- Especialidad -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Especialidad Médica *" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#34495E" />
+                        <Picker ItemsSource="{Binding Especialidades}" 
+                                ItemDisplayBinding="{Binding Nombre}"
+                                SelectedItem="{Binding EspecialidadSeleccionada}"
+                                Title="Seleccione una especialidad"
+                                BackgroundColor="White"
+                                TextColor="#2C3E50" />
+                    </StackLayout>
+
+                    <!-- Título Profesional -->
+                    <StackLayout Spacing="5">
+                        <Label Text="Título Profesional" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#34495E" />
+                        <Border BackgroundColor="White" 
+                                Stroke="#3498DB" 
+                                StrokeThickness="2" 
+                                Padding="12">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Entry Text="{Binding TituloProfesional}" 
+                                   Placeholder="Ej: MSc. Cardiólogo"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#2C3E50" />
+                        </Border>
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- SUCURSALES -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="20">
+
+                    <StackLayout Orientation="Horizontal" Spacing="10">
+                        <Label Text="🏢 Sucursales de Trabajo *" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#2C3E50"
+                               VerticalOptions="Center" />
+                        <Label Text="{Binding SucursalesSeleccionadas.Count, StringFormat='({0} seleccionadas)'}" 
+                               FontSize="14" 
+                               TextColor="#7F8C8D"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+
+                    <!-- Lista de sucursales disponibles -->
+                    <CollectionView ItemsSource="{Binding Sucursales}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Sucursal">
+                                <Grid ColumnDefinitions="*,Auto" 
+                                      Padding="15" 
+                                      BackgroundColor="#ECF0F1">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:RegistrarMedicoViewModel}}, Path=AgregarSucursalCommand}" 
+                                                            CommandParameter="{Binding}" />
+                                    </Grid.GestureRecognizers>
+
+                                    <StackLayout Grid.Column="0">
+                                        <Label Text="{Binding Nombre}" 
+                                               FontSize="16" 
+                                               FontAttributes="Bold" 
+                                               TextColor="#2C3E50" />
+                                        <Label Text="{Binding Direccion}" 
+                                               FontSize="12" 
+                                               TextColor="#7F8C8D" />
+                                    </StackLayout>
+
+                                    <Button Grid.Column="1"
+                                            Text="➕"
+                                            BackgroundColor="#27AE60"
+                                            TextColor="White"
+                                            FontSize="16"
+                                            WidthRequest="40"
+                                            HeightRequest="40"
+                                            CornerRadius="20"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:RegistrarMedicoViewModel}}, Path=AgregarSucursalCommand}" 
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Sucursales seleccionadas -->
+                    <StackLayout IsVisible="{Binding SucursalesSeleccionadas.Count, Converter={StaticResource IntToBoolConverter}}">
+                        <Label Text="✅ Sucursales Seleccionadas:" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#27AE60" />
+
+                        <CollectionView ItemsSource="{Binding SucursalesSeleccionadas}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:Sucursal">
+                                    <Grid ColumnDefinitions="*,Auto" 
+                                          Padding="10" 
+                                          BackgroundColor="#E8F5E8"
+                                          Margin="0,2">
+                                        <Label Grid.Column="0" 
+                                               Text="{Binding Nombre}" 
+                                               FontSize="14" 
+                                               TextColor="#27AE60"
+                                               VerticalOptions="Center" />
+
+                                        <Button Grid.Column="1"
+                                                Text="❌"
+                                                BackgroundColor="#E74C3C"
+                                                TextColor="White"
+                                                FontSize="12"
+                                                WidthRequest="30"
+                                                HeightRequest="30"
+                                                CornerRadius="15"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:RegistrarMedicoViewModel}}, Path=RemoverSucursalCommand}" 
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- HORARIOS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="16" 
+                   HasShadow="True" 
+                   Padding="25">
+                <StackLayout Spacing="20">
+
+                    <StackLayout Orientation="Horizontal" Spacing="15">
+                        <Label Text="⏰ Horarios de Atención *" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#2C3E50"
+                               VerticalOptions="Center" />
+
+                        <Button Text="➕ Agregar Horario"
+                                BackgroundColor="#3498DB"
+                                TextColor="White"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                CornerRadius="8"
+                                HeightRequest="40"
+                                Command="{Binding AgregarHorarioCommand}"
+                                IsEnabled="{Binding SucursalesSeleccionadas.Count, Converter={StaticResource IntToBoolConverter}}" />
+                    </StackLayout>
+
+                    <!-- Lista de horarios -->
+                    <CollectionView ItemsSource="{Binding Horarios}"
+                                    IsVisible="{Binding ShowHorarios}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:HorarioCrear">
+                                <Frame BackgroundColor="#EBF3FD" 
+                                       CornerRadius="12" 
+                                       Padding="15"
+                                       Margin="0,5">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" 
+                                               Text="{Binding HorarioDisplay}" 
+                                               FontSize="14" 
+                                               TextColor="#2C3E50"
+                                               VerticalOptions="Center" />
+
+                                        <Button Grid.Column="1"
+                                                Text="🗑️"
+                                                BackgroundColor="#E74C3C"
+                                                TextColor="White"
+                                                FontSize="14"
+                                                WidthRequest="35"
+                                                HeightRequest="35"
+                                                CornerRadius="17"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:RegistrarMedicoViewModel}}, Path=RemoverHorarioCommand}" 
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Mensaje si no hay horarios -->
+                    <Label Text="⚠️ Agregue al menos un horario de atención para el médico" 
+                           FontSize="14" 
+                           TextColor="#E67E22" 
+                           HorizontalOptions="Center"
+                           IsVisible="{Binding ShowHorarios, Converter={StaticResource InverseBoolConverter}}" />
+
+                </StackLayout>
+            </Frame>
+
+            <!-- BOTÓN GUARDAR -->
+            <Button Text="💾 Registrar Médico"
+                    BackgroundColor="#27AE60"
+                    TextColor="White"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    CornerRadius="12"
+                    HeightRequest="60"
+                    Command="{Binding GuardarMedicoCommand}"
+                    IsEnabled="{Binding CanSave}" />
+
+            <!-- INDICADOR DE CARGA -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}" 
+                             IsRunning="{Binding IsLoading}"
+                             Color="#3498DB"
+                             HeightRequest="50" />
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

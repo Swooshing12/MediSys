@@ -684,7 +684,314 @@ namespace MediSys.Services
 				};
 			}
 		}
-		public class NullableStringConverter : JsonConverter<string>
+
+		/// <summary>
+		/// Buscar médico por cédula - MÉTODO CORREGIDO
+		/// </summary>
+		public async Task<ApiResponse<MedicoCompleto>> BuscarMedicoPorCedulaAsync(string cedula)
+		{
+			try
+			{
+				if (string.IsNullOrWhiteSpace(cedula))
+				{
+					return new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = "Cédula es requerida"
+					};
+				}
+
+				// 🔥 USAR EL NUEVO ENDPOINT buscarPorCedula
+				var url = $"{_baseUrl}/doctores-api?action=buscarPorCedula&cedula={cedula}";
+
+				System.Diagnostics.Debug.WriteLine($"🔍 Buscando médico por cédula: {cedula}");
+				System.Diagnostics.Debug.WriteLine($"🔗 URL: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<MedicoCompleto>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Médico no encontrado"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error buscando médico: {ex.Message}");
+				return new ApiResponse<MedicoCompleto>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+
+
+
+		/// <summary>
+		/// Listar médicos con filtros y paginación
+		/// </summary>
+		public async Task<ApiResponse<MedicosResponse>> ListarMedicosAsync(int page = 1, int limit = 10, string search = "", int especialidad = 0)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/doctores-api?action=listar&page={page}&limit={limit}";
+
+				if (!string.IsNullOrEmpty(search))
+					url += $"&search={Uri.EscapeDataString(search)}";
+
+				if (especialidad > 0)
+					url += $"&especialidad={especialidad}";
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<MedicosResponse>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<MedicosResponse>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<MedicosResponse>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error obteniendo médicos"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<MedicosResponse>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		// 🔥 TAMBIÉN AGREGAR MÉTODO PARA CREAR MÉDICO (que faltaba)
+		public async Task<ApiResponse<MedicoCompleto>> CrearMedicoAsync(CrearMedicoRequest medico)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/doctores-api?action=crear";
+				var json = JsonSerializer.Serialize(medico, new JsonSerializerOptions
+				{
+					PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+				});
+
+				System.Diagnostics.Debug.WriteLine($"📤 Creando médico: {json}");
+
+				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<MedicoCompleto>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error creando médico"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<MedicoCompleto>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		// ===== HORARIOS =====
+
+		/// <summary>
+		/// Obtener horarios de un médico
+		/// </summary>
+		public async Task<ApiResponse<HorariosResponse>> ObtenerHorariosAsync(int idDoctor, int idSucursal = 0)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/doctores-api?action=obtenerHorarios&id_doctor={idDoctor}";
+
+				if (idSucursal > 0)
+					url += $"&id_sucursal={idSucursal}";
+
+				System.Diagnostics.Debug.WriteLine($"🕐 Obteniendo horarios: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Horarios response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<HorariosResponse>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<HorariosResponse>
+					{
+						Success = false,
+						Message = "Error procesando respuesta de horarios"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<HorariosResponse>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error obteniendo horarios"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<HorariosResponse>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// Guardar/actualizar horarios de un médico
+		/// </summary>
+		public async Task<ApiResponse<object>> GuardarHorariosAsync(GuardarHorariosRequest request)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/doctores-api?action=guardarHorarios";
+				var json = JsonSerializer.Serialize(request, new JsonSerializerOptions
+				{
+					PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+				});
+
+				System.Diagnostics.Debug.WriteLine($"💾 Guardando horarios: {json}");
+
+				var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+				httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(httpRequest);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Guardar horarios response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error guardando horarios"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<object>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		
+
+
+
+	public class NullableStringConverter : JsonConverter<string>
 		{
 			public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 			{

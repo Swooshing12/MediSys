@@ -13,6 +13,9 @@
             <local2:InvertedBoolConverter x:Key="InvertedBoolConverter" />
             <local2:IsNotNullConverter x:Key="IsNotNullConverter" />
             <local2:EqualConverter x:Key="EqualConverter" />
+            <local2:SexoToIndexConverter x:Key="SexoToIndexConverter" />
+            <local2:IntToBoolConverter x:Key="IntToBoolConverter" />
+            <local2:InverseBoolConverter x:Key="InverseBoolConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -2,20 +2,19 @@ using MediSys.ViewModels;
 
 namespace MediSys.Views.Dashboard;
 
-public partial class PerfilPage : ContentPage
+public partial class RegistrarMedicoPage : ContentPage
 {
-	private PerfilViewModel _viewModel;
+	private RegistrarMedicoViewModel _viewModel;
 
-	public PerfilPage()
+	public RegistrarMedicoPage()
 	{
 		InitializeComponent();
-		_viewModel = new PerfilViewModel();
+		_viewModel = new RegistrarMedicoViewModel();
 		BindingContext = _viewModel;
 	}
 
 	protected override void OnAppearing()
 	{
 		base.OnAppearing();
-		_viewModel.CargarPerfilCommand.Execute(null);
 	}
 }

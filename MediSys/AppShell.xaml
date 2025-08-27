@@ -174,6 +174,21 @@
                       ContentTemplate="{DataTemplate dashboard:PerfilPage}"
                       Route="perfil" />
     </FlyoutItem>
+    <!-- Gestión de Médicos -->
+    <FlyoutItem Title="Gestión Médicos" 
+            FlyoutDisplayOptions="AsMultipleItems">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="👩‍⚕️" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+        </FlyoutItem.Icon>
+
+        <ShellContent Title="Registrar Médico"
+                  ContentTemplate="{DataTemplate dashboard:RegistrarMedicoPage}"
+                  Route="registrarmedico" />
+
+        <ShellContent Title="Consultar Médico"
+                  ContentTemplate="{DataTemplate dashboard:ConsultarMedicoPage}"
+                  Route="consultarmedico" />
+    </FlyoutItem>
 
     <!-- MIS CITAS - Solo para médicos -->
     <FlyoutItem Title="Mis Citas" 
