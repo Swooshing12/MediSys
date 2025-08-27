@@ -209,6 +209,60 @@ namespace MediSys.ViewModels
 
 			await Shell.Current.Navigation.PushModalAsync(modalPage);
 		}
+		[RelayCommand]
+		private async Task EditarHorarioAsync(HorarioDoctor horario)
+		{
+			// Abrir modal con datos existentes
+			var modalPage = new Views.Modals.EditarHorarioMedicoModalPage(
+				MedicoEncontrado.Sucursales.Select(s => new Sucursal
+				{
+					IdSucursal = s.IdSucursal,
+					Nombre = s.NombreSucursal
+				}).ToList(),
+				horario); // Pasar el horario a editar
+
+			modalPage.HorarioGuardado += async (sender, horarioEditado) =>
+			{
+				MainThread.BeginInvokeOnMainThread(async () =>
+				{
+					IsLoading = true;
+					try
+					{
+						var request = new EditarHorarioRequest
+						{
+							IdHorario = horario.IdHorario,
+							IdSucursal = horarioEditado.IdSucursal,
+							DiaSemana = horarioEditado.DiaSemana,
+							HoraInicio = horarioEditado.HoraInicio,
+							HoraFin = horarioEditado.HoraFin,
+							DuracionCita = horarioEditado.DuracionCita
+						};
+
+						var result = await ApiService.EditarHorarioAsync(request);
+
+						if (result.Success)
+						{
+							await Shell.Current.DisplayAlert("Actualizado", "Horario actualizado exitosamente", "OK");
+							await CargarHorariosAsync();
+						}
+						else
+						{
+							await Shell.Current.DisplayAlert("Error", result.Message ?? "Error actualizando", "OK");
+						}
+					}
+					catch (Exception ex)
+					{
+						await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
+					}
+					finally
+					{
+						IsLoading = false;
+					}
+				});
+			};
+
+			await Shell.Current.Navigation.PushModalAsync(modalPage);
+		}
 
 		[RelayCommand]
 		private void RemoverHorario(HorarioCrear horario)
@@ -241,7 +295,7 @@ namespace MediSys.ViewModels
 					}).ToList()
 				};
 
-				var result = await ApiService.GuardarHorariosAsync(request);
+				var result = await ApiService.GuardarHorariosAsync2(request);
 
 				if (result.Success)
 				{

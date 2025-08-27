@@ -1344,5 +1344,34 @@ namespace MediSys.Models
 			[JsonPropertyName("tiene_citas")]
 			public bool TieneCitas { get; set; }
 		}
+
+		// En CitaModels.cs, actualizar HorarioCrear para incluir ID existente:
+		public class HorarioCrear2
+		{
+			public int IdSucursal { get; set; }
+			public string NombreSucursal { get; set; } = "";
+			public int DiaSemana { get; set; }
+			public string HoraInicio { get; set; } = "";
+			public string HoraFin { get; set; } = "";
+			public int DuracionCita { get; set; } = 30;
+
+			// ✅ PARA MODO EDICIÓN
+			public int? IdHorarioExistente { get; set; }
+
+			public string DiaSemanaTexto => DiaSemana switch
+			{
+				1 => "Lunes",
+				2 => "Martes",
+				3 => "Miércoles",
+				4 => "Jueves",
+				5 => "Viernes",
+				6 => "Sábado",
+				7 => "Domingo",
+				_ => "Desconocido"
+			};
+
+			public string HorarioDisplay => $"🏢 {NombreSucursal} - {DiaSemanaTexto}: {HoraInicio} a {HoraFin} ({DuracionCita} min)";
+		}
+
 	}
 }

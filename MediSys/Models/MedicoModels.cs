@@ -300,6 +300,27 @@ namespace MediSys.Models
 		public string Cedula { get; set; } = "";
 	}
 
+	public class EditarHorarioRequest
+	{
+		[JsonPropertyName("id_horario")]
+		public int IdHorario { get; set; }
+
+		[JsonPropertyName("id_sucursal")]
+		public int IdSucursal { get; set; }
+
+		[JsonPropertyName("dia_semana")]
+		public int DiaSemana { get; set; }
+
+		[JsonPropertyName("hora_inicio")]
+		public string HoraInicio { get; set; } = "";
+
+		[JsonPropertyName("hora_fin")]
+		public string HoraFin { get; set; } = "";
+
+		[JsonPropertyName("duracion_cita")]
+		public int DuracionCita { get; set; }
+	}
+
 	// ===== PAGINACIÓN =====
 	public class PaginationInfo
 	{

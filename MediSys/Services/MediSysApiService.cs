@@ -1391,6 +1391,79 @@ namespace MediSys.Services
 			}
 		}
 
+		// En MediSysApiService.cs agregar:
+		public async Task<ApiResponse<object>> GuardarHorariosAsync2(GuardarHorariosRequest request)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/doctores/horarios";
+
+				var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+				httpRequest.Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(httpRequest);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+				{
+					PropertyNameCaseInsensitive = true
+				});
+
+				return apiResponse ?? new ApiResponse<object> { Success = false, Message = "Error" };
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<object> { Success = false, Message = ex.Message };
+			}
+		}
+
+		public async Task<ApiResponse<object>> EditarHorarioAsync(EditarHorarioRequest request)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/horarios";
+
+				var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+				httpRequest.Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(httpRequest);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+				{
+					PropertyNameCaseInsensitive = true
+				});
+
+				return apiResponse ?? new ApiResponse<object> { Success = false, Message = "Error" };
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<object> { Success = false, Message = ex.Message };
+			}
+		}
+
+		public async Task<ApiResponse<object>> EliminarHorarioAsync(int idHorario)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/horarios?id={idHorario}";
+
+				var request = new HttpRequestMessage(HttpMethod.Delete, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+				{
+					PropertyNameCaseInsensitive = true
+				});
+
+				return apiResponse ?? new ApiResponse<object> { Success = false, Message = "Error" };
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<object> { Success = false, Message = ex.Message };
+			}
+		}
 
 
 		public class NullableStringConverter : JsonConverter<string>

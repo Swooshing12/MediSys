@@ -103,6 +103,9 @@
 	  <MauiXaml Update="Views\Modals\AgregarHorarioModalPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Modals\EditarHorarioMedicoModalPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 </Project>

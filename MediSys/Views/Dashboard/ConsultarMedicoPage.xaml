@@ -247,28 +247,26 @@
                    IsVisible="{Binding ShowHorarios}">
                 <StackLayout Spacing="20">
 
-                    <StackLayout Orientation="Horizontal" 
-                                 Spacing="15" 
-                                 IsVisible="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}">
+                    <StackLayout Orientation="Horizontal" Spacing="15">
                         <Label Text="🗓️ Horarios por Sucursal" 
                                FontSize="18" 
                                FontAttributes="Bold" 
                                TextColor="#2C3E50"
                                VerticalOptions="Center" />
 
-                        <Button Text="✏️ Editar Horarios"
-                                BackgroundColor="#9B59B6"
+                        <!-- BOTÓN AGREGAR HORARIO SIEMPRE VISIBLE -->
+                        <Button Text="➕ Agregar Horario"
+                                BackgroundColor="#27AE60"
                                 TextColor="White"
                                 FontSize="14"
                                 FontAttributes="Bold"
                                 CornerRadius="8"
                                 HeightRequest="35"
-                                Command="{Binding IniciarEdicionCommand}" />
+                                Command="{Binding AgregarNuevoHorarioCommand}" />
                     </StackLayout>
 
-                    <!-- MODO VISUALIZACIÓN -->
-                    <CollectionView ItemsSource="{Binding HorariosPorSucursal}"
-                                    IsVisible="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}">
+                    <!-- LISTA DE HORARIOS CON BOTONES INDIVIDUALES -->
+                    <CollectionView ItemsSource="{Binding HorariosPorSucursal}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:HorariosPorSucursal">
                                 <Frame BackgroundColor="#F8F9FA" 
@@ -302,46 +300,69 @@
                                                     CommandParameter="{Binding}" />
                                         </Grid>
 
-                                        <!-- Lista de horarios -->
+                                        <!-- Lista de horarios CON BOTONES EDITAR Y ELIMINAR -->
                                         <CollectionView ItemsSource="{Binding Horarios}">
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="models:HorarioDoctor">
-                                                    <Grid ColumnDefinitions="*,Auto,Auto" 
-                                                          ColumnSpacing="10"
-                                                          Padding="12"
-                                                          BackgroundColor="White"
-                                                          Margin="0,2">
-                                                        <Grid.GestureRecognizers>
-                                                            <TapGestureRecognizer />
-                                                        </Grid.GestureRecognizers>
+                                                    <Frame BackgroundColor="White"
+                                                           CornerRadius="8"
+                                                           Padding="15"
+                                                           Margin="0,3"
+                                                           HasShadow="False">
+                                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" 
+                                                              ColumnSpacing="10">
 
-                                                        <StackLayout Grid.Column="0">
-                                                            <Label Text="{Binding HorarioDisplay}" 
-                                                                   FontSize="14" 
-                                                                   FontAttributes="Bold"
-                                                                   TextColor="{Binding DiaSemanaColor}" />
-                                                            <Label Text="{Binding DuracionDisplay}" 
-                                                                   FontSize="12" 
-                                                                   TextColor="#7F8C8D" />
-                                                        </StackLayout>
+                                                            <!-- INFO DEL HORARIO -->
+                                                            <StackLayout Grid.Column="0">
+                                                                <Label Text="{Binding HorarioDisplay}" 
+                                                                       FontSize="14" 
+                                                                       FontAttributes="Bold"
+                                                                       TextColor="{Binding DiaSemanaColor}" />
+                                                                <Label Text="{Binding DuracionDisplay}" 
+                                                                       FontSize="12" 
+                                                                       TextColor="#7F8C8D" />
+                                                                <Label Text="{Binding CitasEstimadasDisplay}" 
+                                                                       FontSize="12" 
+                                                                       TextColor="#E67E22" />
+                                                            </StackLayout>
 
-                                                        <Label Grid.Column="1" 
-                                                               Text="{Binding CitasEstimadasDisplay}" 
-                                                               FontSize="12" 
-                                                               TextColor="#E67E22"
-                                                               VerticalOptions="Center" />
+                                                            <!-- BOTÓN EDITAR -->
+                                                            <Button Grid.Column="1"
+                                                                    Text="✏️"
+                                                                    BackgroundColor="#9B59B6"
+                                                                    TextColor="White"
+                                                                    FontSize="14"
+                                                                    WidthRequest="40"
+                                                                    HeightRequest="40"
+                                                                    CornerRadius="20"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ConsultarMedicoViewModel}}, Path=EditarHorarioCommand}"
+                                                                    CommandParameter="{Binding}" />
 
-                                                        <Frame Grid.Column="2" 
-                                                               BackgroundColor="{Binding DiaSemanaColor}"
-                                                               CornerRadius="10"
-                                                               Padding="6,2"
-                                                               HasShadow="False">
-                                                            <Label Text="{Binding DiaSemanaTexto}" 
-                                                                   FontSize="10" 
-                                                                   FontAttributes="Bold"
-                                                                   TextColor="White" />
-                                                        </Frame>
-                                                    </Grid>
+                                                            <!-- BOTÓN ELIMINAR -->
+                                                            <Button Grid.Column="2"
+                                                                    Text="🗑️"
+                                                                    BackgroundColor="#E74C3C"
+                                                                    TextColor="White"
+                                                                    FontSize="14"
+                                                                    WidthRequest="40"
+                                                                    HeightRequest="40"
+                                                                    CornerRadius="20"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ConsultarMedicoViewModel}}, Path=EliminarHorarioCommand}"
+                                                                    CommandParameter="{Binding}" />
+
+                                                            <!-- DÍA DE LA SEMANA -->
+                                                            <Frame Grid.Column="3" 
+                                                                   BackgroundColor="{Binding DiaSemanaColor}"
+                                                                   CornerRadius="10"
+                                                                   Padding="6,2"
+                                                                   HasShadow="False">
+                                                                <Label Text="{Binding DiaSemanaTexto}" 
+                                                                       FontSize="10" 
+                                                                       FontAttributes="Bold"
+                                                                       TextColor="White" />
+                                                            </Frame>
+                                                        </Grid>
+                                                    </Frame>
                                                 </DataTemplate>
                                             </CollectionView.ItemTemplate>
                                         </CollectionView>
@@ -351,83 +372,6 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-
-                    <!-- MODO EDICIÓN -->
-                    <StackLayout IsVisible="{Binding IsEditing}" Spacing="20">
-
-                        <StackLayout Orientation="Horizontal" Spacing="15">
-                            <Label Text="✏️ Editando Horarios" 
-                                   FontSize="18" 
-                                   FontAttributes="Bold" 
-                                   TextColor="#9B59B6"
-                                   VerticalOptions="Center" />
-
-                            <Button Text="➕ Agregar Horario"
-                                    BackgroundColor="#27AE60"
-                                    TextColor="White"
-                                    FontSize="14"
-                                    FontAttributes="Bold"
-                                    CornerRadius="8"
-                                    HeightRequest="35"
-                                    Command="{Binding AgregarNuevoHorarioCommand}" />
-                        </StackLayout>
-
-                        <!-- Lista de horarios en edición -->
-                        <CollectionView ItemsSource="{Binding NuevosHorarios}">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="viewmodels:HorarioCrear">
-                                    <Frame BackgroundColor="#F0E6FF" 
-                                           CornerRadius="12" 
-                                           Padding="15"
-                                           Margin="0,3"
-                                           HasShadow="False">
-                                        <Grid ColumnDefinitions="*,Auto">
-                                            <Label Grid.Column="0" 
-                                                   Text="{Binding HorarioDisplay}" 
-                                                   FontSize="14" 
-                                                   TextColor="#2C3E50"
-                                                   VerticalOptions="Center" />
-
-                                            <Button Grid.Column="1"
-                                                    Text="🗑️"
-                                                    BackgroundColor="#E74C3C"
-                                                    TextColor="White"
-                                                    FontSize="14"
-                                                    WidthRequest="35"
-                                                    HeightRequest="35"
-                                                    CornerRadius="17"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:ConsultarMedicoViewModel}}, Path=RemoverHorarioCommand}" 
-                                                    CommandParameter="{Binding}" />
-                                        </Grid>
-                                    </Frame>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-
-                        <!-- Botones de edición -->
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-                            <Button Grid.Column="0"
-                                    Text="❌ Cancelar"
-                                    BackgroundColor="#E74C3C"
-                                    TextColor="White"
-                                    FontSize="16"
-                                    FontAttributes="Bold"
-                                    CornerRadius="10"
-                                    HeightRequest="50"
-                                    Command="{Binding CancelarEdicionCommand}" />
-
-                            <Button Grid.Column="1"
-                                    Text="💾 Guardar Cambios"
-                                    BackgroundColor="#27AE60"
-                                    TextColor="White"
-                                    FontSize="16"
-                                    FontAttributes="Bold"
-                                    CornerRadius="10"
-                                    HeightRequest="50"
-                                    Command="{Binding GuardarHorariosCommand}" />
-                        </Grid>
-
-                    </StackLayout>
 
                 </StackLayout>
             </Frame>
@@ -447,21 +391,21 @@
                            TextColor="#F39C12"
                            HorizontalOptions="Center" />
 
-                    <Label Text="Este médico no tiene horarios de atención configurados. Use la opción 'Editar Horarios' para agregar nuevos horarios." 
+                    <Label Text="Este médico no tiene horarios de atención configurados." 
                            FontSize="14" 
                            TextColor="#D68910"
                            HorizontalOptions="Center"
                            HorizontalTextAlignment="Center" />
 
-                    <Button Text="✏️ Configurar Horarios"
-                            BackgroundColor="#F39C12"
+                    <Button Text="➕ Agregar Primer Horario"
+                            BackgroundColor="#27AE60"
                             TextColor="White"
                             FontSize="14"
                             FontAttributes="Bold"
                             CornerRadius="8"
                             HeightRequest="40"
                             HorizontalOptions="Center"
-                            Command="{Binding IniciarEdicionCommand}" />
+                            Command="{Binding AgregarNuevoHorarioCommand}" />
                 </StackLayout>
             </Frame>
 

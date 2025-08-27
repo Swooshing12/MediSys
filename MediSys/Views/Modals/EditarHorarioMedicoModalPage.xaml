@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediSys.Views.Modals.EditarHorarioMedicoModalPage"
+             Title="Gestionar Horario"
+             BackgroundColor="#80000000">
+
+    <Frame BackgroundColor="White" 
+           CornerRadius="20" 
+           Margin="20"
+           VerticalOptions="Center"
+           HasShadow="True">
+
+        <ScrollView>
+            <StackLayout Spacing="20" Padding="25">
+
+                <!-- HEADER DEL MODAL -->
+                <StackLayout Spacing="10">
+                    <Label x:Name="TituloModal"
+                           Text="Configurar Horario de Atención" 
+                           FontSize="20" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" 
+                           HorizontalOptions="Center" />
+
+                    <Label Text="Configure los días y horarios de trabajo del médico" 
+                           FontSize="14" 
+                           TextColor="#7F8C8D" 
+                           HorizontalOptions="Center" 
+                           HorizontalTextAlignment="Center" />
+                </StackLayout>
+
+                <!-- SELECCIÓN DE SUCURSAL -->
+                <StackLayout Spacing="8">
+                    <Label Text="Sucursal *" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#34495E" />
+
+                    <Frame BackgroundColor="#ECF0F1" 
+                           CornerRadius="10" 
+                           Padding="0" 
+                           HasShadow="False">
+                        <Picker x:Name="SucursalPicker"
+                                Title="Seleccione una sucursal"
+                                FontSize="16"
+                                TextColor="#2C3E50" />
+                    </Frame>
+                </StackLayout>
+
+                <!-- SELECCIÓN DE DÍA -->
+                <StackLayout Spacing="8">
+                    <Label Text="Día de la Semana *" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#34495E" />
+
+                    <Frame BackgroundColor="#ECF0F1" 
+                           CornerRadius="10" 
+                           Padding="0" 
+                           HasShadow="False">
+                        <Picker x:Name="DiaPicker"
+                                Title="Seleccione un día"
+                                FontSize="16"
+                                TextColor="#2C3E50" />
+                    </Frame>
+                </StackLayout>
+
+                <!-- SELECCIÓN DE HORAS -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                    <StackLayout Grid.Column="0" Spacing="8">
+                        <Label Text="Hora Inicio *" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="#34495E" />
+
+                        <Frame BackgroundColor="#ECF0F1" 
+                               CornerRadius="10" 
+                               Padding="10" 
+                               HasShadow="False">
+                            <TimePicker x:Name="HoraInicioPicker"
+                                        FontSize="16"
+                                        TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+
+                    <StackLayout Grid.Column="1" Spacing="8">
+                        <Label Text="Hora Fin *" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="#34495E" />
+
+                        <Frame BackgroundColor="#ECF0F1" 
+                               CornerRadius="10" 
+                               Padding="10" 
+                               HasShadow="False">
+                            <TimePicker x:Name="HoraFinPicker"
+                                        FontSize="16"
+                                        TextColor="#2C3E50" />
+                        </Frame>
+                    </StackLayout>
+                </Grid>
+
+                <!-- DURACIÓN DE CITAS -->
+                <StackLayout Spacing="8">
+                    <Label Text="Duración por Cita *" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#34495E" />
+
+                    <Frame BackgroundColor="#ECF0F1" 
+                           CornerRadius="10" 
+                           Padding="0" 
+                           HasShadow="False">
+                        <Picker x:Name="DuracionPicker"
+                                Title="Duración de cada cita"
+                                FontSize="16"
+                                TextColor="#2C3E50" />
+                    </Frame>
+                </StackLayout>
+
+                <!-- VISTA PREVIA -->
+                <Frame BackgroundColor="#E8F8F5" 
+                       CornerRadius="12" 
+                       Padding="15"
+                       HasShadow="False">
+                    <StackLayout Spacing="8">
+                        <Label Text="Vista Previa" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#27AE60" />
+
+                        <Label x:Name="VistaPrevia"
+                               Text="Complete los campos para ver la vista previa"
+                               FontSize="14" 
+                               TextColor="#2C3E50"
+                               LineBreakMode="WordWrap" />
+
+                        <Label x:Name="CitasEstimadas"
+                               Text="Citas estimadas: --"
+                               FontSize="12" 
+                               TextColor="#7F8C8D" />
+                    </StackLayout>
+                </Frame>
+
+                <!-- BOTONES -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                    <Button Grid.Column="0"
+                            Text="Cancelar"
+                            BackgroundColor="#E74C3C"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="25"
+                            HeightRequest="50"
+                            Clicked="OnCancelarClicked" />
+
+                    <Button Grid.Column="1"
+                            x:Name="BtnGuardar"
+                            Text="Guardar"
+                            BackgroundColor="#27AE60"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="25"
+                            HeightRequest="50"
+                            Clicked="OnGuardarClicked" />
+                </Grid>
+
+            </StackLayout>
+        </ScrollView>
+    </Frame>
+
+</ContentPage>

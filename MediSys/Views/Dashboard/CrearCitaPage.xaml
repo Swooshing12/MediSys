@@ -448,7 +448,7 @@
                             </Border.StrokeShape>
                             <Picker ItemsSource="{Binding Sucursales}" 
                                     SelectedItem="{Binding SucursalSeleccionada}"
-                                    ItemDisplayBinding="{Binding NombreSucursal}"
+                                    ItemDisplayBinding="{Binding Nombre}"
                                     Title="Seleccione una sucursal"
                                     BackgroundColor="Transparent"
                                     TextColor="#333"
@@ -465,7 +465,7 @@
                             </Border.StrokeShape>
                             <Picker ItemsSource="{Binding Especialidades}" 
                                     SelectedItem="{Binding EspecialidadSeleccionada}"
-                                    ItemDisplayBinding="{Binding NombreEspecialidad}"
+                                    ItemDisplayBinding="{Binding Nombre}"
                                     Title="Seleccione una especialidad"
                                     BackgroundColor="Transparent"
                                     TextColor="#333"
