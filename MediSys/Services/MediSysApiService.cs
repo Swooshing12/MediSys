@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using static MediSys.Models.CitaExtensions;
 
 namespace MediSys.Services
 {
@@ -1039,6 +1040,9 @@ namespace MediSys.Services
 		/// <summary>
 		/// 2. Buscar paciente por cédula
 		/// </summary>
+		/// <summary>
+		/// 2. Buscar paciente por cédula - CORREGIDO
+		/// </summary>
 		public async Task<ApiResponse<PacienteBusqueda>> BuscarPacientePorCedulaAsync(string cedula)
 		{
 			try
@@ -1055,15 +1059,38 @@ namespace MediSys.Services
 
 				if (response.IsSuccessStatusCode)
 				{
-					var apiResponse = JsonSerializer.Deserialize<ApiResponse<PacienteBusqueda>>(responseContent, new JsonSerializerOptions
+					// ✅ PARSEAR LA RESPUESTA ANIDADA CORRECTAMENTE
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<BuscarPacienteResponse>>(responseContent, new JsonSerializerOptions
 					{
 						PropertyNameCaseInsensitive = true
 					});
 
-					return apiResponse ?? new ApiResponse<PacienteBusqueda>
+					if (apiResponse?.Success == true && apiResponse.Data?.Paciente != null)
+					{
+						// ✅ DEVOLVER SOLO EL PACIENTE
+						return new ApiResponse<PacienteBusqueda>
+						{
+							Success = true,
+							Message = apiResponse.Message ?? "Paciente encontrado",
+							Data = apiResponse.Data.Paciente
+						};
+					}
+					else
+					{
+						return new ApiResponse<PacienteBusqueda>
+						{
+							Success = false,
+							Message = apiResponse?.Message ?? "Error procesando respuesta"
+						};
+					}
+				}
+				else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					// ✅ PACIENTE NO ENCONTRADO
+					return new ApiResponse<PacienteBusqueda>
 					{
 						Success = false,
-						Message = "Error procesando respuesta"
+						Message = "Paciente no encontrado"
 					};
 				}
 				else
@@ -1076,12 +1103,13 @@ namespace MediSys.Services
 					return new ApiResponse<PacienteBusqueda>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Paciente no encontrado"
+						Message = errorResponse?.Message ?? "Error buscando paciente"
 					};
 				}
 			}
 			catch (Exception ex)
 			{
+				System.Diagnostics.Debug.WriteLine($"❌ Exception buscando paciente: {ex.Message}");
 				return new ApiResponse<PacienteBusqueda>
 				{
 					Success = false,
@@ -1092,6 +1120,9 @@ namespace MediSys.Services
 
 		/// <summary>
 		/// 3. Crear nuevo paciente
+		/// </summary>
+		/// <summary>
+		/// 3. Crear nuevo paciente - CORREGIDO
 		/// </summary>
 		public async Task<ApiResponse<PacienteBusqueda>> CrearPacienteAsync(CrearPacienteRequest pacienteData)
 		{
@@ -1112,16 +1143,24 @@ namespace MediSys.Services
 
 				if (response.IsSuccessStatusCode)
 				{
+					// ✅ EL ENDPOINT DE CREAR PACIENTE DEVUELVE EL PACIENTE DIRECTAMENTE EN DATA
 					var apiResponse = JsonSerializer.Deserialize<ApiResponse<PacienteBusqueda>>(responseContent, new JsonSerializerOptions
 					{
 						PropertyNameCaseInsensitive = true
 					});
 
-					return apiResponse ?? new ApiResponse<PacienteBusqueda>
+					if (apiResponse?.Success == true && apiResponse.Data != null)
 					{
-						Success = false,
-						Message = "Error procesando respuesta"
-					};
+						return apiResponse;
+					}
+					else
+					{
+						return new ApiResponse<PacienteBusqueda>
+						{
+							Success = false,
+							Message = apiResponse?.Message ?? "Error procesando respuesta"
+						};
+					}
 				}
 				else
 				{
@@ -1139,6 +1178,7 @@ namespace MediSys.Services
 			}
 			catch (Exception ex)
 			{
+				System.Diagnostics.Debug.WriteLine($"❌ Exception creando paciente: {ex.Message}");
 				return new ApiResponse<PacienteBusqueda>
 				{
 					Success = false,

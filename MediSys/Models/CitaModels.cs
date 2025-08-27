@@ -13,7 +13,7 @@ namespace MediSys.Models
 		public int IdUsuario { get; set; }
 
 		[JsonPropertyName("cedula")]
-		public string Cedula { get; set; } = "";
+		public int Cedula { get; set; }
 
 		[JsonPropertyName("nombres")]
 		public string Nombres { get; set; } = "";
@@ -1308,6 +1308,44 @@ namespace MediSys.Models
 			}
 
 			return acciones;
+		}
+
+		// Agregar al final de CitaModels.cs:
+
+		public class BuscarPacienteResponse
+		{
+			[JsonPropertyName("paciente")]
+			public PacienteBusqueda Paciente { get; set; } = new();
+
+			[JsonPropertyName("historial_clinico")]
+			public HistorialClinico HistorialClinico { get; set; } = new();
+
+			[JsonPropertyName("estadisticas_rapidas")]
+			public EstadisticasRapidas EstadisticasRapidas { get; set; } = new();
+		}
+
+		public class HistorialClinico
+		{
+			[JsonPropertyName("id_historial")]
+			public int? IdHistorial { get; set; }
+
+			[JsonPropertyName("fecha_creacion")]
+			public string FechaCreacion { get; set; } = "";
+
+			[JsonPropertyName("ultima_actualizacion")]
+			public string UltimaActualizacion { get; set; } = "";
+
+			[JsonPropertyName("existe_historial")]
+			public bool ExisteHistorial { get; set; }
+		}
+
+		public class EstadisticasRapidas
+		{
+			[JsonPropertyName("total_citas")]
+			public int TotalCitas { get; set; }
+
+			[JsonPropertyName("tiene_citas")]
+			public bool TieneCitas { get; set; }
 		}
 	}
 }

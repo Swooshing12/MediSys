@@ -261,6 +261,8 @@ namespace MediSys.ViewModels
 
 		// ===== PASO 2: BUSCAR/CREAR PACIENTE =====
 
+		// En CrearCitaViewModel.cs, actualizar el método BuscarPacienteAsync:
+
 		[RelayCommand]
 		private async Task BuscarPacienteAsync()
 		{
@@ -275,12 +277,18 @@ namespace MediSys.ViewModels
 				IsLoading = true;
 				var result = await ApiService.BuscarPacientePorCedulaAsync(CedulaBusqueda.Trim());
 
+				// ✅ AGREGAR LOGS PARA DEPURAR
+				System.Diagnostics.Debug.WriteLine($"🔍 BuscarPaciente Result: Success={result.Success}, Message={result.Message}");
+				System.Diagnostics.Debug.WriteLine($"🔍 PacienteData: {(result.Data != null ? $"ID={result.Data.IdPaciente}, Nombre={result.Data.NombreCompleto}" : "null")}");
+
 				if (result.Success && result.Data != null)
 				{
 					// Paciente encontrado
 					PacienteSeleccionado = result.Data;
 					PacienteEncontrado = true;
 					MostrarFormularioPaciente = false;
+
+					System.Diagnostics.Debug.WriteLine($"✅ Paciente asignado: ID={PacienteSeleccionado.IdPaciente}, Nombre={PacienteSeleccionado.NombreCompleto}");
 
 					await Shell.Current.DisplayAlert("Paciente Encontrado",
 						$"✅ {result.Data.NombreCompleto}\n📧 {result.Data.Correo}\n📱 {result.Data.Telefono}", "OK");
@@ -299,6 +307,7 @@ namespace MediSys.ViewModels
 			}
 			catch (Exception ex)
 			{
+				System.Diagnostics.Debug.WriteLine($"❌ Exception en BuscarPacienteAsync: {ex.Message}");
 				await Shell.Current.DisplayAlert("Error", $"Error buscando paciente: {ex.Message}", "OK");
 			}
 			finally
