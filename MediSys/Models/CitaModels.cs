@@ -261,11 +261,8 @@ namespace MediSys.Models
 		[JsonPropertyName("id_tipo_cita")]
 		public int IdTipoCita { get; set; }
 
-		[JsonPropertyName("tipo_cita")]
-		public string NombreTipoCita { get; set; } = "";
 
-		[JsonPropertyName("tipo_cita")]
-		public string TipoCitaNombre { get; set; } = "";
+
 
 
 		// Consulta médica
