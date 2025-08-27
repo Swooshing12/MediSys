@@ -50,13 +50,6 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private SucursalAsignada? sucursalSeleccionada;
 
-		// ===== EDICIÓN =====
-		[ObservableProperty]
-		private bool isEditing = false;
-
-		[ObservableProperty]
-		private ObservableCollection<HorarioCrear> nuevosHorarios = new();
-
 		[RelayCommand]
 		private async Task BuscarMedicoAsync()
 		{
@@ -153,40 +146,6 @@ namespace MediSys.ViewModels
 		}
 
 		[RelayCommand]
-		private void IniciarEdicion()
-		{
-			if (MedicoEncontrado == null) return;
-
-			IsEditing = true;
-			NuevosHorarios.Clear();
-
-			// Copiar horarios existentes para edición
-			foreach (var horario in Horarios)
-			{
-				var sucursal = MedicoEncontrado.Sucursales.FirstOrDefault(s => s.IdSucursal == horario.IdSucursal);
-				if (sucursal != null)
-				{
-					NuevosHorarios.Add(new HorarioCrear
-					{
-						IdSucursal = horario.IdSucursal,
-						NombreSucursal = sucursal.NombreSucursal,
-						DiaSemana = horario.DiaSemana,
-						HoraInicio = horario.HoraInicio,
-						HoraFin = horario.HoraFin,
-						DuracionCita = horario.DuracionCita
-					});
-				}
-			}
-		}
-
-		[RelayCommand]
-		private void CancelarEdicion()
-		{
-			IsEditing = false;
-			NuevosHorarios.Clear();
-		}
-
-		[RelayCommand]
 		private async Task AgregarNuevoHorarioAsync()
 		{
 			if (MedicoEncontrado?.Sucursales == null || MedicoEncontrado.Sucursales.Count == 0)
@@ -195,20 +154,69 @@ namespace MediSys.ViewModels
 				return;
 			}
 
-			var modalPage = new Views.Modals.AgregarHorarioModalPage(
+			// CAPTURAR EL ID ANTES DE ABRIR EL MODAL
+			var idDoctor = MedicoEncontrado.IdDoctor;
+
+			var modalPage = new Views.Modals.EditarHorarioMedicoModalPage(
 				MedicoEncontrado.Sucursales.Select(s => new Sucursal
 				{
 					IdSucursal = s.IdSucursal,
 					Nombre = s.NombreSucursal
 				}).ToList());
 
-			modalPage.HorarioGuardado += (sender, horario) =>
+			modalPage.HorarioGuardado += async (sender, horario) =>
 			{
-				NuevosHorarios.Add(horario);
+				System.Diagnostics.Debug.WriteLine($"EVENTO RECIBIDO: Agregar horario");
+
+				MainThread.BeginInvokeOnMainThread(async () =>
+				{
+					IsLoading = true;
+					try
+					{
+						var request = new GuardarHorariosRequest
+						{
+							IdDoctor = idDoctor, // USAR LA VARIABLE CAPTURADA
+							Horarios = new List<CrearHorarioRequest>
+					{
+						new CrearHorarioRequest
+						{
+							IdSucursal = horario.IdSucursal,
+							DiaSemana = horario.DiaSemana,
+							HoraInicio = horario.HoraInicio,
+							HoraFin = horario.HoraFin,
+							DuracionCita = horario.DuracionCita
+						}
+					}
+						};
+
+						var result = await ApiService.GuardarHorariosAsync2(request);
+
+						if (result.Success)
+						{
+							await Shell.Current.DisplayAlert("Horario Agregado",
+								"El horario se agregó exitosamente", "OK");
+							await CargarHorariosAsync();
+						}
+						else
+						{
+							await Shell.Current.DisplayAlert("Error",
+								result.Message ?? "Error guardando horario", "OK");
+						}
+					}
+					catch (Exception ex)
+					{
+						await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
+					}
+					finally
+					{
+						IsLoading = false;
+					}
+				});
 			};
 
 			await Shell.Current.Navigation.PushModalAsync(modalPage);
 		}
+
 		[RelayCommand]
 		private async Task EditarHorarioAsync(HorarioDoctor horario)
 		{
@@ -265,60 +273,42 @@ namespace MediSys.ViewModels
 		}
 
 		[RelayCommand]
-		private void RemoverHorario(HorarioCrear horario)
+		private async Task EliminarHorarioAsync(HorarioDoctor horario)
 		{
-			if (horario != null && NuevosHorarios.Contains(horario))
-			{
-				NuevosHorarios.Remove(horario);
-			}
-		}
+			if (horario == null || MedicoEncontrado == null) return;
 
-		[RelayCommand]
-		private async Task GuardarHorariosAsync()
-		{
-			if (MedicoEncontrado == null) return;
+			System.Diagnostics.Debug.WriteLine($"Iniciando eliminación de horario ID: {horario.IdHorario}");
 
-			IsLoading = true;
+			var confirmar = await Shell.Current.DisplayAlert(
+				"Confirmar Eliminación",
+				$"¿Eliminar este horario?\n\n{horario.NombreSucursal}\n{horario.DiaSemanaTexto}: {horario.HoraInicio} - {horario.HoraFin}",
+				"Sí, eliminar",
+				"Cancelar");
+
+			if (!confirmar) return;
 
 			try
 			{
-				var request = new GuardarHorariosRequest
-				{
-					IdDoctor = MedicoEncontrado.IdDoctor,
-					Horarios = NuevosHorarios.Select(h => new CrearHorarioRequest
-					{
-						IdSucursal = h.IdSucursal,
-						DiaSemana = h.DiaSemana,
-						HoraInicio = h.HoraInicio,
-						HoraFin = h.HoraFin,
-						DuracionCita = h.DuracionCita
-					}).ToList()
-				};
+				IsLoading = true;
 
-				var result = await ApiService.GuardarHorariosAsync2(request);
+				var result = await ApiService.EliminarHorarioAsync(horario.IdHorario);
 
 				if (result.Success)
 				{
-					await Shell.Current.DisplayAlert("✅ Horarios Actualizados",
-						$"Los horarios del Dr. {MedicoEncontrado.NombreCompleto} han sido actualizados exitosamente",
-						"OK");
-
-					IsEditing = false;
-					NuevosHorarios.Clear();
-
-					// Recargar horarios
+					await Shell.Current.DisplayAlert("Eliminado",
+						"Horario eliminado exitosamente", "OK");
 					await CargarHorariosAsync();
 				}
 				else
 				{
 					await Shell.Current.DisplayAlert("Error",
-						result.Message ?? "Error actualizando horarios",
-						"OK");
+						result.Message ?? "Error eliminando horario", "OK");
 				}
 			}
 			catch (Exception ex)
 			{
-				await Shell.Current.DisplayAlert("Error", $"Error inesperado: {ex.Message}", "OK");
+				System.Diagnostics.Debug.WriteLine($"Error eliminando: {ex.Message}");
+				await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
 			}
 			finally
 			{
@@ -331,12 +321,12 @@ namespace MediSys.ViewModels
 		{
 			if (sucursal == null) return;
 
-			var mensaje = $"🏢 {sucursal.NombreSucursal}\n\n";
-			mensaje += $"📊 Estadísticas:\n";
+			var mensaje = $"{sucursal.NombreSucursal}\n\n";
+			mensaje += $"Estadísticas:\n";
 			mensaje += $"• Total horarios: {sucursal.Estadisticas.TotalHorarios}\n";
 			mensaje += $"• Horas semanales: {sucursal.Estadisticas.HorasSemanales:F1}h\n";
 			mensaje += $"• Citas estimadas/semana: ~{sucursal.Estadisticas.CitasEstimadasSemana}\n\n";
-			mensaje += $"⏰ Horarios:\n";
+			mensaje += $"Horarios:\n";
 
 			foreach (var horario in sucursal.Horarios.OrderBy(h => h.DiaSemana).ThenBy(h => h.HoraInicio))
 			{
@@ -353,10 +343,8 @@ namespace MediSys.ViewModels
 			MedicoEncontrado = null;
 			ShowResults = false;
 			ShowHorarios = false;
-			IsEditing = false;
 			Horarios.Clear();
 			HorariosPorSucursal.Clear();
-			NuevosHorarios.Clear();
 		}
 	}
 }
