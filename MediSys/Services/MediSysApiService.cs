@@ -987,11 +987,373 @@ namespace MediSys.Services
 			}
 		}
 
-		
+		/// <summary>
+		/// 1. Obtener tipos de cita disponibles
+		/// </summary>
+		public async Task<ApiResponse<List<TipoCita>>> ObtenerTiposCitaAsync()
+		{
+			try
+			{
+				var url = $"{_baseUrl}/tipos-cita";
+
+				System.Diagnostics.Debug.WriteLine($"📋 Obteniendo tipos de cita: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Tipos cita response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<TipoCita>>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<List<TipoCita>>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					return new ApiResponse<List<TipoCita>>
+					{
+						Success = false,
+						Message = "Error obteniendo tipos de cita"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<List<TipoCita>>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// 2. Buscar paciente por cédula
+		/// </summary>
+		public async Task<ApiResponse<PacienteBusqueda>> BuscarPacientePorCedulaAsync(string cedula)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/pacientes/buscar/{cedula}";
+
+				System.Diagnostics.Debug.WriteLine($"🔍 Buscando paciente: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Paciente response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<PacienteBusqueda>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<PacienteBusqueda>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<PacienteBusqueda>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Paciente no encontrado"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<PacienteBusqueda>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// 3. Crear nuevo paciente
+		/// </summary>
+		public async Task<ApiResponse<PacienteBusqueda>> CrearPacienteAsync(CrearPacienteRequest pacienteData)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/pacientes/crear";
+
+				System.Diagnostics.Debug.WriteLine($"👤 Creando paciente: {url}");
+				System.Diagnostics.Debug.WriteLine($"📤 Datos: {JsonSerializer.Serialize(pacienteData)}");
+
+				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				request.Content = new StringContent(JsonSerializer.Serialize(pacienteData), Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Crear paciente response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<PacienteBusqueda>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<PacienteBusqueda>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<PacienteBusqueda>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error creando paciente"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<PacienteBusqueda>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// 4. Obtener especialidades disponibles en una sucursal
+		/// </summary>
+		public async Task<ApiResponse<List<Especialidad>>> ObtenerEspecialidadesPorSucursalAsync(int idSucursal)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/especialidades/sucursal/{idSucursal}";
+
+				System.Diagnostics.Debug.WriteLine($"🏥 Obteniendo especialidades por sucursal: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Especialidades por sucursal response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<Especialidad>>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					return new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Error obteniendo especialidades"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<List<Especialidad>>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// 5. Obtener doctores de una especialidad en una sucursal específica
+		/// </summary>
+		public async Task<ApiResponse<List<Doctor>>> ObtenerDoctoresPorEspecialidadYSucursalAsync(int idEspecialidad, int idSucursal)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/doctores/especialidad/{idEspecialidad}/sucursal/{idSucursal}";
+
+				System.Diagnostics.Debug.WriteLine($"👨‍⚕️ Obteniendo doctores: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Doctores response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<Doctor>>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					return new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Error obteniendo doctores"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<List<Doctor>>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// 6. Obtener horarios disponibles de un doctor en una semana específica
+		/// </summary>
+		public async Task<ApiResponse<HorariosDisponiblesResponse>> ObtenerHorariosDisponiblesAsync(int idDoctor, int idSucursal, string semana)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/horarios/disponibles?id_doctor={idDoctor}&id_sucursal={idSucursal}&semana={semana}";
+
+				System.Diagnostics.Debug.WriteLine($"🕐 Obteniendo horarios disponibles: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Horarios disponibles response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<HorariosDisponiblesResponse>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<HorariosDisponiblesResponse>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					return new ApiResponse<HorariosDisponiblesResponse>
+					{
+						Success = false,
+						Message = "Error obteniendo horarios"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<HorariosDisponiblesResponse>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// 7. Crear nueva cita médica
+		/// </summary>
+		public async Task<ApiResponse<CitaMedica2>> CrearCitaAsync(CrearCitaRequest citaData)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/citas/crear";
+
+				System.Diagnostics.Debug.WriteLine($"📅 Creando cita: {url}");
+				System.Diagnostics.Debug.WriteLine($"📤 Datos: {JsonSerializer.Serialize(citaData)}");
+
+				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				request.Content = new StringContent(JsonSerializer.Serialize(citaData), Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Crear cita response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<CitaMedica2>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<CitaMedica2>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<CitaMedica2>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error creando cita"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<CitaMedica2>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
 
 
 
-	public class NullableStringConverter : JsonConverter<string>
+		public class NullableStringConverter : JsonConverter<string>
 		{
 			public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 			{

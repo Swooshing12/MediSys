@@ -188,6 +188,11 @@
         <ShellContent Title="Consultar Médico"
                   ContentTemplate="{DataTemplate dashboard:ConsultarMedicoPage}"
                   Route="consultarmedico" />
+        <!-- En MediSys/AppShell.xaml, agregar esta ruta: -->
+        <ShellContent Title="Crear Cita" 
+              Icon="calendar_add"
+              Route="crear_cita"
+              ContentTemplate="{DataTemplate dashboard:CrearCitaPage}" />
     </FlyoutItem>
 
     <!-- MIS CITAS - Solo para médicos -->
