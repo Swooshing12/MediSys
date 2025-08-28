@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediSys.Views.Modals.CrearPacienteModalPage"
+             Title="Registrar Nuevo Paciente"
+             BackgroundColor="#F5F6FA">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+            <!-- Header del Modal -->
+            <Frame BackgroundColor="White" CornerRadius="12" HasShadow="True" Padding="20">
+                <StackLayout Spacing="8">
+                    <Label Text="👤 Registrar Nuevo Paciente" 
+                           FontSize="20" 
+                           FontAttributes="Bold" 
+                           TextColor="#2C3E50" 
+                           HorizontalOptions="Center"/>
+                    <Label Text="Complete la información del paciente" 
+                           FontSize="14" 
+                           TextColor="#7F8C8D" 
+                           HorizontalOptions="Center"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Formulario de Registro -->
+            <Frame BackgroundColor="White" CornerRadius="12" HasShadow="True" Padding="20">
+                <StackLayout Spacing="16">
+
+                    <!-- Datos Básicos -->
+                    <Label Text="📋 Información Personal" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#34495E"/>
+
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" 
+                          ColumnDefinitions="*,*" 
+                          RowSpacing="16" 
+                          ColumnSpacing="12">
+
+                        <!-- Nombres -->
+                        <StackLayout Grid.Row="0" Grid.Column="0" Spacing="4">
+                            <Label Text="Nombres *" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Entry Text="{Binding NombresPaciente}"
+                                       Placeholder="Ej: Juan Carlos"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Apellidos -->
+                        <StackLayout Grid.Row="0" Grid.Column="1" Spacing="4">
+                            <Label Text="Apellidos *" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Entry Text="{Binding ApellidosPaciente}"
+                                       Placeholder="Ej: Pérez González"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Correo -->
+                        <StackLayout Grid.Row="1" Grid.ColumnSpan="2" Spacing="4">
+                            <Label Text="Correo Electrónico" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Entry Text="{Binding CorreoPaciente}"
+                                       Placeholder="correo@ejemplo.com"
+                                       Keyboard="Email"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Teléfono -->
+                        <StackLayout Grid.Row="2" Grid.Column="0" Spacing="4">
+                            <Label Text="Teléfono *" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Entry Text="{Binding TelefonoPaciente}"
+                                       Placeholder="0987654321"
+                                       Keyboard="Telephone"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Fecha de Nacimiento -->
+                        <StackLayout Grid.Row="2" Grid.Column="1" Spacing="4">
+                            <Label Text="Fecha de Nacimiento *" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <DatePicker Date="{Binding FechaNacimientoPaciente}"
+                                           BackgroundColor="Transparent"
+                                           TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Sexo -->
+                        <StackLayout Grid.Row="3" Grid.Column="0" Spacing="4">
+                            <Label Text="Sexo *" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Picker ItemsSource="{Binding SexosDisponibles}"
+                                       SelectedItem="{Binding SexoPaciente}"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Tipo de Sangre -->
+                        <StackLayout Grid.Row="3" Grid.Column="1" Spacing="4">
+                            <Label Text="Tipo de Sangre" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Picker ItemsSource="{Binding TiposSangre}"
+                                       SelectedItem="{Binding TipoSangrePaciente}"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Nacionalidad -->
+                        <StackLayout Grid.Row="4" Grid.ColumnSpan="2" Spacing="4">
+                            <Label Text="Nacionalidad" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Picker ItemsSource="{Binding NacionalidadesDisponibles}"
+                                       SelectedItem="{Binding NacionalidadPaciente}"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+                    </Grid>
+
+                    <!-- Información de Emergencia -->
+                    <Label Text="🚨 Contacto de Emergencia" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#34495E"
+                           Margin="0,20,0,0"/>
+
+                    <Grid RowDefinitions="Auto,Auto" 
+                          ColumnDefinitions="*,*" 
+                          RowSpacing="16" 
+                          ColumnSpacing="12">
+
+                        <!-- Contacto de Emergencia -->
+                        <StackLayout Grid.Row="0" Grid.Column="0" Spacing="4">
+                            <Label Text="Nombre Contacto" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Entry Text="{Binding ContactoEmergenciaPaciente}"
+                                       Placeholder="Nombre del familiar"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Teléfono de Emergencia -->
+                        <StackLayout Grid.Row="0" Grid.Column="1" Spacing="4">
+                            <Label Text="Teléfono Emergencia" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Entry Text="{Binding TelefonoEmergenciaPaciente}"
+                                       Placeholder="0987654321"
+                                       Keyboard="Telephone"
+                                       BackgroundColor="Transparent"
+                                       TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+                    </Grid>
+
+                    <!-- Loading Indicator -->
+                    <ActivityIndicator IsVisible="{Binding IsLoading}" 
+                                       IsRunning="{Binding IsLoading}" 
+                                       Color="#3498DB" 
+                                       HeightRequest="40"
+                                       Margin="0,20,0,0"/>
+
+                    <!-- Botones de Acción -->
+                    <Grid ColumnDefinitions="*,*" 
+                          ColumnSpacing="16" 
+                          Margin="0,20,0,0">
+
+                        <Button Grid.Column="0" 
+                                Text="❌ Cancelar" 
+                                Command="{Binding CancelarCommand}"
+                                BackgroundColor="#95A5A6" 
+                                TextColor="White" 
+                                CornerRadius="8"
+                                FontAttributes="Bold"/>
+
+                        <Button Grid.Column="1" 
+                                Text="✅ Registrar" 
+                                Command="{Binding CrearPacienteCommand}"
+                                BackgroundColor="#27AE60" 
+                                TextColor="White" 
+                                CornerRadius="8"
+                                FontAttributes="Bold"
+                                IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"/>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

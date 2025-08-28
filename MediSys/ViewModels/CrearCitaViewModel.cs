@@ -53,37 +53,7 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private PacienteBusqueda? pacienteSeleccionado;
 
-		// Campos para crear paciente
-		[ObservableProperty]
-		private string nombresPaciente = "";
-
-		[ObservableProperty]
-		private string apellidosPaciente = "";
-
-		[ObservableProperty]
-		private string correoPaciente = "";
-
-		[ObservableProperty]
-		private string telefonoPaciente = "";
-
-		[ObservableProperty]
-		private DateTime fechaNacimientoPaciente = DateTime.Now.AddYears(-30);
-
-		[ObservableProperty]
-		private string sexoPaciente = "M";
-
-		[ObservableProperty]
-		private string tipoSangrePaciente = "";
-
-		[ObservableProperty]
-		private string nacionalidadPaciente = "Ecuatoriana";
-
-		[ObservableProperty]
-		private string contactoEmergenciaPaciente = "";
-
-		[ObservableProperty]
-		private string telefonoEmergenciaPaciente = "";
-
+		
 		// ===== PASO 3: MÉDICO =====
 		[ObservableProperty]
 		private ObservableCollection<Sucursal> sucursales = new();
@@ -299,7 +269,6 @@ namespace MediSys.ViewModels
 					PacienteEncontrado = false;
 					MostrarFormularioPaciente = true;
 					PacienteSeleccionado = null;
-					LimpiarFormularioPaciente();
 
 					await Shell.Current.DisplayAlert("Paciente No Encontrado",
 						"El paciente no está registrado. Complete los datos para crearlo automáticamente.", "OK");
@@ -316,58 +285,7 @@ namespace MediSys.ViewModels
 			}
 		}
 
-		[RelayCommand]
-		private async Task CrearPacienteAsync()
-		{
-			if (!ValidarDatosPaciente())
-				return;
-
-			try
-			{
-				IsLoading = true;
-
-				var pacienteData = new CrearPacienteRequest
-				{
-					Cedula = CedulaBusqueda.Trim(),
-					Nombres = NombresPaciente.Trim(),
-					Apellidos = ApellidosPaciente.Trim(),
-					Correo = CorreoPaciente.Trim(),
-					Telefono = TelefonoPaciente.Trim(),
-					FechaNacimiento = FechaNacimientoPaciente.ToString("yyyy-MM-dd"),
-					Sexo = SexoPaciente,
-					Nacionalidad = NacionalidadPaciente,
-					TipoSangre = TipoSangrePaciente,
-					ContactoEmergencia = ContactoEmergenciaPaciente.Trim(),
-					TelefonoEmergencia = TelefonoEmergenciaPaciente.Trim()
-				};
-
-				var result = await ApiService.CrearPacienteAsync(pacienteData);
-
-				if (result.Success && result.Data != null)
-				{
-					PacienteSeleccionado = result.Data;
-					PacienteEncontrado = true;
-					MostrarFormularioPaciente = false;
-
-					await Shell.Current.DisplayAlert("Paciente Creado",
-						$"✅ Paciente {result.Data.NombreCompleto} registrado exitosamente", "OK");
-				}
-				else
-				{
-					await Shell.Current.DisplayAlert("Error",
-						result.Message ?? "Error creando el paciente", "OK");
-				}
-			}
-			catch (Exception ex)
-			{
-				await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
-			}
-			finally
-			{
-				IsLoading = false;
-			}
-		}
-
+		
 		[RelayCommand]
 		private void ContinuarPaso2()
 		{
@@ -526,17 +444,38 @@ namespace MediSys.ViewModels
 		[RelayCommand]
 		private async Task CrearCitaAsync()
 		{
-			if (!CanCrearCita || SlotSeleccionado == null || PacienteSeleccionado == null ||
-				DoctorSeleccionado == null || SucursalSeleccionada == null || TipoCitaSeleccionado == null)
+			// ✅ VALIDACIÓN MEJORADA
+			if (PacienteSeleccionado == null || PacienteSeleccionado.IdPaciente <= 0)
+			{
+				await Shell.Current.DisplayAlert("Error",
+					"⚠️ No hay un paciente seleccionado válido. Por favor, busque o registre un paciente.", "OK");
 				return;
+			}
+
+			if (DoctorSeleccionado == null || SucursalSeleccionada == null ||
+				TipoCitaSeleccionado == null || SlotSeleccionado == null)
+			{
+				await Shell.Current.DisplayAlert("Error",
+					"⚠️ Complete todos los datos requeridos para crear la cita", "OK");
+				return;
+			}
+
+			if (string.IsNullOrWhiteSpace(MotivoCita))
+			{
+				await Shell.Current.DisplayAlert("Error",
+					"⚠️ El motivo de la cita es obligatorio", "OK");
+				return;
+			}
 
 			try
 			{
 				IsLoading = true;
 
+				System.Diagnostics.Debug.WriteLine($"🏥 Creando cita con PacienteID={PacienteSeleccionado.IdPaciente}");
+
 				var citaData = new CrearCitaRequest
 				{
-					IdPaciente = PacienteSeleccionado.IdPaciente,
+					IdPaciente = PacienteSeleccionado.IdPaciente, // ✅ ESTE YA DEBE ESTAR BIEN ASIGNADO
 					IdDoctor = DoctorSeleccionado.IdDoctor,
 					IdSucursal = SucursalSeleccionada.IdSucursal,
 					IdTipoCita = TipoCitaSeleccionado.IdTipoCita,
@@ -546,29 +485,32 @@ namespace MediSys.ViewModels
 					Notas = NotasCita?.Trim() ?? ""
 				};
 
+				System.Diagnostics.Debug.WriteLine($"📤 Datos de cita: {System.Text.Json.JsonSerializer.Serialize(citaData)}");
+
 				var result = await ApiService.CrearCitaAsync(citaData);
 
 				if (result.Success && result.Data != null)
 				{
-					await Shell.Current.DisplayAlert("Cita Creada",
-						$"✅ Cita programada exitosamente\n" +
+					await Shell.Current.DisplayAlert("¡Cita Creada!",
+						$"✅ Cita programada exitosamente\n\n" +
 						$"📅 {SlotSeleccionado.FechaHora:dd/MM/yyyy HH:mm}\n" +
 						$"👤 {PacienteSeleccionado.NombreCompleto}\n" +
-						$"👨‍⚕️ Dr. {DoctorSeleccionado.Nombres} {DoctorSeleccionado.Apellidos}",
+						$"👨‍⚕️ Dr. {DoctorSeleccionado.Nombres} {DoctorSeleccionado.Apellidos}\n" +
+						$"🏥 {SucursalSeleccionada.Nombre}",
 						"OK");
 
-					// Volver al dashboard
 					await Shell.Current.GoToAsync("..");
 				}
 				else
 				{
 					await Shell.Current.DisplayAlert("Error",
-						result.Message ?? "Error creando la cita", "OK");
+						result.Message ?? "Error creando la cita médica", "OK");
 				}
 			}
 			catch (Exception ex)
 			{
-				await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
+				System.Diagnostics.Debug.WriteLine($"❌ Error creando cita: {ex.Message}");
+				await Shell.Current.DisplayAlert("Error", $"Error inesperado: {ex.Message}", "OK");
 			}
 			finally
 			{
@@ -644,31 +586,76 @@ namespace MediSys.ViewModels
 			}
 		}
 
-		private bool ValidarDatosPaciente()
+
+		// ===== AGREGAR ESTOS NUEVOS COMANDOS =====
+
+		[RelayCommand]
+		private async Task AbrirModalCrearPacienteAsync()
 		{
-			var errores = new List<string>();
-
-			if (string.IsNullOrWhiteSpace(NombresPaciente))
-				errores.Add("Los nombres son requeridos");
-
-			if (string.IsNullOrWhiteSpace(ApellidosPaciente))
-				errores.Add("Los apellidos son requeridos");
-
-			if (string.IsNullOrWhiteSpace(CorreoPaciente) || !CorreoPaciente.Contains("@"))
-				errores.Add("Ingrese un correo válido");
-
-			if (string.IsNullOrWhiteSpace(TelefonoPaciente) || TelefonoPaciente.Length < 10)
-				errores.Add("Ingrese un teléfono válido");
-
-			if (errores.Any())
+			if (string.IsNullOrWhiteSpace(CedulaBusqueda))
 			{
-				Shell.Current.DisplayAlert("Datos Incompletos",
-					"Complete los siguientes campos:\n• " + string.Join("\n• ", errores), "OK");
-				return false;
+				await Shell.Current.DisplayAlert("Error", "Ingrese una cédula válida", "OK");
+				return;
 			}
 
-			return true;
+			try
+			{
+				var modalPage = new Views.Modals.CrearPacienteModalPage(CedulaBusqueda.Trim());
+
+				// ✅ SUSCRIBIRSE AL EVENTO DE PACIENTE CREADO
+				modalPage.PacienteCreado += OnPacienteCreado;
+
+				await Shell.Current.Navigation.PushModalAsync(modalPage);
+			}
+			catch (Exception ex)
+			{
+				await Shell.Current.DisplayAlert("Error", $"Error abriendo modal: {ex.Message}", "OK");
+			}
 		}
+
+		// ✅ MANEJAR CUANDO SE CREA UN PACIENTE DESDE EL MODAL
+		private void OnPacienteCreado(object? sender, PacienteBusqueda paciente)
+		{
+			System.Diagnostics.Debug.WriteLine($"🎉 Paciente creado recibido: ID={paciente.IdPaciente}, Nombre={paciente.NombreCompleto}");
+
+			// ✅ ASIGNAR EL PACIENTE RECIÉN CREADO
+			PacienteSeleccionado = paciente;
+			PacienteEncontrado = true;
+			MostrarFormularioPaciente = false;
+
+			System.Diagnostics.Debug.WriteLine($"✅ Estado actualizado: PacienteSeleccionado.IdPaciente = {PacienteSeleccionado?.IdPaciente}");
+
+			// ✅ ACTUALIZAR EL TÍTULO PARA REFLEJAR EL PROGRESO
+			TituloModal = $"Crear Nueva Cita - Paso 2 de 4 (Paciente: {paciente.NombreCompleto})";
+
+			// Limpiar suscripción
+			if (sender is Views.Modals.CrearPacienteModalPage modalPage)
+			{
+				modalPage.PacienteCreado -= OnPacienteCreado;
+			}
+		}
+
+		[RelayCommand]
+		private void RegresarPaso1()
+		{
+			PasoActual = 1;
+			TituloModal = "Crear Nueva Cita - Paso 1 de 4";
+		}
+
+		[RelayCommand]
+		private async Task CancelarAsync()
+		{
+			var confirmacion = await Shell.Current.DisplayAlert("Cancelar",
+				"¿Está seguro que desea cancelar la creación de la cita?", "Sí", "No");
+
+			if (confirmacion)
+			{
+				await Shell.Current.GoToAsync("..");
+			}
+		}
+
+		
+
 
 		private void ValidarPuedeCrearCita()
 		{
@@ -680,18 +667,6 @@ namespace MediSys.ViewModels
 						  TipoCitaSeleccionado != null;
 		}
 
-		private void LimpiarFormularioPaciente()
-		{
-			NombresPaciente = "";
-			ApellidosPaciente = "";
-			CorreoPaciente = "";
-			TelefonoPaciente = "";
-			FechaNacimientoPaciente = DateTime.Now.AddYears(-30);
-			SexoPaciente = "M";
-			TipoSangrePaciente = "";
-			NacionalidadPaciente = "Ecuatoriana";
-			ContactoEmergenciaPaciente = "";
-			TelefonoEmergenciaPaciente = "";
-		}
+		
 	}
 }

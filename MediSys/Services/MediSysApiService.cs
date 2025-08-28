@@ -1043,10 +1043,14 @@ namespace MediSys.Services
 		/// <summary>
 		/// 2. Buscar paciente por cédula - CORREGIDO
 		/// </summary>
+		/// <summary>
+		/// 2. Buscar paciente por cédula - CORREGIDO
+		/// </summary>
 		public async Task<ApiResponse<PacienteBusqueda>> BuscarPacientePorCedulaAsync(string cedula)
 		{
 			try
 			{
+				// ✅ LA URL SIGUE USANDO STRING PORQUE ASÍ LO ESPERA LA API
 				var url = $"{_baseUrl}/pacientes/buscar/{cedula}";
 
 				System.Diagnostics.Debug.WriteLine($"🔍 Buscando paciente: {url}");
@@ -1059,7 +1063,6 @@ namespace MediSys.Services
 
 				if (response.IsSuccessStatusCode)
 				{
-					// ✅ PARSEAR LA RESPUESTA ANIDADA CORRECTAMENTE
 					var apiResponse = JsonSerializer.Deserialize<ApiResponse<BuscarPacienteResponse>>(responseContent, new JsonSerializerOptions
 					{
 						PropertyNameCaseInsensitive = true
@@ -1067,7 +1070,6 @@ namespace MediSys.Services
 
 					if (apiResponse?.Success == true && apiResponse.Data?.Paciente != null)
 					{
-						// ✅ DEVOLVER SOLO EL PACIENTE
 						return new ApiResponse<PacienteBusqueda>
 						{
 							Success = true,
@@ -1086,7 +1088,6 @@ namespace MediSys.Services
 				}
 				else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
-					// ✅ PACIENTE NO ENCONTRADO
 					return new ApiResponse<PacienteBusqueda>
 					{
 						Success = false,
@@ -1128,7 +1129,7 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/pacientes/crear";
+				var url = $"{_baseUrl}/pacientes/crear2";
 
 				System.Diagnostics.Debug.WriteLine($"👤 Creando paciente: {url}");
 				System.Diagnostics.Debug.WriteLine($"📤 Datos: {JsonSerializer.Serialize(pacienteData)}");

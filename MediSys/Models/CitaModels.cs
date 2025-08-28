@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 namespace MediSys.Models
 {
 	// ===== PACIENTE SEARCH =====
+	// ===== PACIENTE SEARCH - CORREGIDO =====
+	// ===== PACIENTE SEARCH - CORREGIDO CON CEDULA INT =====
 	public class PacienteBusqueda
 	{
 		[JsonPropertyName("id_paciente")]
@@ -13,7 +15,7 @@ namespace MediSys.Models
 		public int IdUsuario { get; set; }
 
 		[JsonPropertyName("cedula")]
-		public int Cedula { get; set; }
+		public long Cedula { get; set; } // ✅ USAR LONG PARA CÉDULAS ECUATORIANAS (10 dígitos)
 
 		[JsonPropertyName("nombres")]
 		public string Nombres { get; set; } = "";
@@ -54,20 +56,33 @@ namespace MediSys.Models
 		[JsonPropertyName("numero_seguro")]
 		public string NumeroSeguro { get; set; } = "";
 
+		[JsonPropertyName("edad")]
+		public int Edad { get; set; }
+
+		[JsonPropertyName("username")]
+		public string Username { get; set; } = "";
+
+		// ✅ PROPIEDADES CALCULADAS
 		public string NombreCompleto => $"{Nombres} {Apellidos}".Trim();
+		public string CedulaString => Cedula.ToString(); // ✅ Para mostrar en UI
+
 		public string EdadDisplay
 		{
 			get
 			{
+				if (Edad > 0)
+					return $"{Edad}";
+
 				if (DateTime.TryParse(FechaNacimiento, out DateTime fechaNac))
 				{
 					var edad = DateTime.Now.Year - fechaNac.Year;
 					if (DateTime.Now < fechaNac.AddYears(edad)) edad--;
-					return $"{edad} años";
+					return $"{edad}";
 				}
 				return "N/A";
 			}
 		}
+
 		public string SexoDisplay => Sexo switch
 		{
 			"M" => "👨 Masculino",
@@ -75,7 +90,6 @@ namespace MediSys.Models
 			_ => Sexo
 		};
 	}
-
 	public class PacienteData
 	{
 		[JsonPropertyName("paciente")]
@@ -89,10 +103,11 @@ namespace MediSys.Models
 	}
 
 	// ===== CREAR PACIENTE REQUEST =====
+	// ===== CREAR PACIENTE REQUEST - CORREGIDO =====
 	public class CrearPacienteRequest
 	{
 		[JsonPropertyName("cedula")]
-		public string Cedula { get; set; } = "";
+		public long Cedula { get; set; } // ✅ USAR LONG
 
 		[JsonPropertyName("nombres")]
 		public string Nombres { get; set; } = "";
