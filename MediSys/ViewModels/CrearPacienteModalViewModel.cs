@@ -57,6 +57,16 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private string telefonoEmergenciaPaciente = "";
 
+		// ===== AGREGAR ESTAS PROPIEDADES FALTANTES =====
+		[ObservableProperty]
+		private string alergiasPaciente = "";
+
+		[ObservableProperty]
+		private string antecedentesMedicosPaciente = "";
+
+		[ObservableProperty]
+		private string numeroSeguroPaciente = "";
+
 		[ObservableProperty]
 		private bool isLoading = false;
 
@@ -105,8 +115,11 @@ namespace MediSys.ViewModels
 					Sexo = SexoPaciente,
 					Nacionalidad = NacionalidadPaciente,
 					TipoSangre = TipoSangrePaciente,
+					Alergias = AlergiasPaciente.Trim(),                           // ✅ NUEVO
+					AntecedentesMedicos = AntecedentesMedicosPaciente.Trim(),     // ✅ NUEVO
 					ContactoEmergencia = ContactoEmergenciaPaciente.Trim(),
-					TelefonoEmergencia = TelefonoEmergenciaPaciente.Trim()
+					TelefonoEmergencia = TelefonoEmergenciaPaciente.Trim(),
+					NumeroSeguro = NumeroSeguroPaciente.Trim()                   // ✅ NUEVO
 				};
 
 				System.Diagnostics.Debug.WriteLine($"Enviando datos del paciente: {System.Text.Json.JsonSerializer.Serialize(pacienteData)}");
@@ -165,6 +178,13 @@ namespace MediSys.ViewModels
 
 			if (FechaNacimientoPaciente > DateTime.Now.AddYears(-1))
 				errores.Add("• La fecha de nacimiento no es válida");
+
+			// ✅ VALIDACIONES OPCIONALES PARA LOS NUEVOS CAMPOS
+			if (TelefonoPaciente.Length < 10)
+				errores.Add("• El teléfono debe tener al menos 10 dígitos");
+
+			if (!string.IsNullOrWhiteSpace(TelefonoEmergenciaPaciente) && TelefonoEmergenciaPaciente.Length < 10)
+				errores.Add("• El teléfono de emergencia debe tener al menos 10 dígitos");
 
 			if (errores.Any())
 			{

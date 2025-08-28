@@ -164,6 +164,53 @@
                         </StackLayout>
                     </Grid>
 
+                    <!-- Información Médica Adicional -->
+                    <Label Text="🩺 Información Médica" 
+       FontSize="16" 
+       FontAttributes="Bold" 
+       TextColor="#34495E"
+       Margin="0,20,0,0"/>
+
+                    <Grid RowDefinitions="Auto,Auto,Auto" 
+      ColumnDefinitions="*" 
+      RowSpacing="16">
+
+                        <!-- Alergias -->
+                        <StackLayout Grid.Row="0" Spacing="4">
+                            <Label Text="Alergias Conocidas" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Editor Text="{Binding AlergiasPaciente}"
+                   Placeholder="Especifique alergias conocidas o escriba 'NINGUNA'"
+                   BackgroundColor="Transparent"
+                   TextColor="#2C3E50"
+                   HeightRequest="60"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Antecedentes Médicos -->
+                        <StackLayout Grid.Row="1" Spacing="4">
+                            <Label Text="Antecedentes Médicos" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Editor Text="{Binding AntecedentesMedicosPaciente}"
+                   Placeholder="Historial médico relevante o escriba 'NINGUNO'"
+                   BackgroundColor="Transparent"
+                   TextColor="#2C3E50"
+                   HeightRequest="60"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Número de Seguro -->
+                        <StackLayout Grid.Row="2" Spacing="4">
+                            <Label Text="Número de Seguro" FontSize="13" FontAttributes="Bold" TextColor="#2C3E50"/>
+                            <Frame BackgroundColor="#F8F9FA" BorderColor="#BDC3C7" CornerRadius="6" Padding="0" HasShadow="False">
+                                <Entry Text="{Binding NumeroSeguroPaciente}"
+                   Placeholder="Número de seguro médico (opcional)"
+                   BackgroundColor="Transparent"
+                   TextColor="#2C3E50"/>
+                            </Frame>
+                        </StackLayout>
+                    </Grid>
+
                     <!-- Loading Indicator -->
                     <ActivityIndicator IsVisible="{Binding IsLoading}" 
                                        IsRunning="{Binding IsLoading}" 
