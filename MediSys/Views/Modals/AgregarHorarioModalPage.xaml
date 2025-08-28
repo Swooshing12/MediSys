@@ -128,15 +128,20 @@
                            Padding="0" 
                            HasShadow="False">
                         <Picker x:Name="DuracionPicker"
-                                SelectedIndex="2"
-                                FontSize="16"
-                                TextColor="#3498DB">
+                        SelectedIndex="2"
+                        FontSize="16"
+                        TextColor="#3498DB">
                             <Picker.ItemsSource>
                                 <x:Array Type="{x:Type x:String}">
+                                    <x:String>15 minutos</x:String>
+                                    <x:String>20 minutos</x:String>
                                     <x:String>30 minutos</x:String>
+                                    <x:String>45 minutos</x:String>
+                                    <x:String>60 minutos</x:String>
                                 </x:Array>
                             </Picker.ItemsSource>
                         </Picker>
+
                     </Frame>
                 </StackLayout>
 

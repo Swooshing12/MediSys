@@ -33,11 +33,6 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private string correo = "";
 
-		[ObservableProperty]
-		private string password = "";
-
-		[ObservableProperty]
-		private string confirmarPassword = "";
 
 		[ObservableProperty]
 		private string sexo = "M";
@@ -232,10 +227,6 @@ namespace MediSys.ViewModels
 					erroresList.Add("- Apellidos");
 				if (string.IsNullOrWhiteSpace(Correo) || !Correo.Contains("@"))
 					erroresList.Add("- Correo válido");
-				if (string.IsNullOrWhiteSpace(Password) || Password.Length < 6)
-					erroresList.Add("- Contraseña (mínimo 6 caracteres)");
-				if (Password != ConfirmarPassword)
-					erroresList.Add("- Confirmar contraseña");
 				if (EspecialidadSeleccionada == null)
 					erroresList.Add("- Especialidad");
 				if (SucursalesSeleccionadas.Count == 0)
@@ -269,7 +260,6 @@ namespace MediSys.ViewModels
 					Nombres = Nombres,
 					Apellidos = Apellidos,
 					Correo = Correo,
-					Password = Password,
 					Sexo = Sexo,
 					Nacionalidad = Nacionalidad,
 					IdEspecialidad = EspecialidadSeleccionada?.IdEspecialidad ?? 0,
@@ -331,11 +321,6 @@ namespace MediSys.ViewModels
 			if (string.IsNullOrWhiteSpace(Correo) || !Correo.Contains("@"))
 				errores.Add("Correo electrónico válido es requerido");
 
-			if (string.IsNullOrWhiteSpace(Password) || Password.Length < 6)
-				errores.Add("Contraseña debe tener al menos 6 caracteres");
-
-			if (Password != ConfirmarPassword)
-				errores.Add("Las contraseñas no coinciden");
 
 			if (string.IsNullOrWhiteSpace(Sexo))
 				errores.Add("Debe seleccionar el sexo");
@@ -385,8 +370,6 @@ namespace MediSys.ViewModels
 			Nombres = "";
 			Apellidos = "";
 			Correo = "";
-			Password = "";
-			ConfirmarPassword = "";
 			Sexo = "M";
 			Nacionalidad = "Ecuatoriana";
 			TituloProfesional = "";

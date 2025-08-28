@@ -127,50 +127,6 @@
                         </Border>
                     </StackLayout>
 
-                    <!-- Contraseñas -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-                        <StackLayout Grid.Column="0" Spacing="5">
-                            <Label Text="Contraseña *" 
-                                   FontSize="14" 
-                                   FontAttributes="Bold" 
-                                   TextColor="#34495E" />
-                            <Border BackgroundColor="White" 
-                                    Stroke="#3498DB" 
-                                    StrokeThickness="2" 
-                                    Padding="12">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <Entry Text="{Binding Password}" 
-                                       Placeholder="Contraseña"
-                                       IsPassword="True"
-                                       BackgroundColor="Transparent"
-                                       TextColor="#2C3E50" />
-                            </Border>
-                        </StackLayout>
-
-                        <StackLayout Grid.Column="1" Spacing="5">
-                            <Label Text="Confirmar Contraseña *" 
-                                   FontSize="14" 
-                                   FontAttributes="Bold" 
-                                   TextColor="#34495E" />
-                            <Border BackgroundColor="White" 
-                                    Stroke="#3498DB" 
-                                    StrokeThickness="2" 
-                                    Padding="12">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="8" />
-                                </Border.StrokeShape>
-                                <Entry Text="{Binding ConfirmarPassword}" 
-                                       Placeholder="Confirmar"
-                                       IsPassword="True"
-                                       BackgroundColor="Transparent"
-                                       TextColor="#2C3E50" />
-                            </Border>
-                        </StackLayout>
-                    </Grid>
-
-                    <!-- Sexo y Nacionalidad -->
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
                         <StackLayout Grid.Column="0" Spacing="5">
                             <Label Text="Sexo *" 

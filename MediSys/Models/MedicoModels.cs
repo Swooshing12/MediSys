@@ -241,9 +241,6 @@ namespace MediSys.Models
 		[JsonPropertyName("correo")]
 		public string Correo { get; set; } = "";
 
-		[JsonPropertyName("password")]
-		public string Password { get; set; } = "";
-
 		[JsonPropertyName("sexo")]
 		public string Sexo { get; set; } = "";
 
