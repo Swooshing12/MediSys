@@ -101,7 +101,25 @@ namespace MediSys.ViewModels
 					System.Diagnostics.Debug.WriteLine($"Error especialidades: {especialidadesResult.Message}");
 				}
 
-				// Similar para sucursales...
+
+				System.Diagnostics.Debug.WriteLine("Cargando sucursales...");
+				var sucursalesResult = await ApiService.ObtenerSucursalesAsync();
+
+				System.Diagnostics.Debug.WriteLine($"Sucursales result: Success={sucursalesResult.Success}, Count={sucursalesResult.Data?.Count ?? 0}");
+
+				if (sucursalesResult.Success && sucursalesResult.Data != null)
+				{
+					Sucursales.Clear();
+					foreach (var sucursales in sucursalesResult.Data)
+					{
+						System.Diagnostics.Debug.WriteLine($"Adding sucursal: {sucursales.Nombre}");
+						Sucursales.Add(sucursales);
+					}
+				}
+				else
+				{
+					System.Diagnostics.Debug.WriteLine($"Error sucursales: {sucursalesResult.Message}");
+				}
 			}
 			catch (Exception ex)
 			{

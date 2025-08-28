@@ -77,7 +77,7 @@ namespace MediSys.ViewModels
 		// ===== NACIONALIDADES =====
 		public List<string> NacionalidadesDisponibles { get; } = new()
 		{
-			"Ecuatoriana", "Colombiana", "Peruana", "Venezolana", "Argentina",
+			"Ecuadorean", "Colombiana", "Peruavian", "Venezolana", "Argentina",
 			"Chilena", "Brasileña", "Mexicana", "Española", "Estadounidense", "Otra"
 		};
 
