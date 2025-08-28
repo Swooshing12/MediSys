@@ -20,7 +20,29 @@ namespace MediSys.ViewModels
 			}
 		}
 
-		// ===== CONTROL DE PASOS =====
+		// ===== PROPIEDADES PARA LA NUEVA UI - DEFINIDAS MANUALMENTE =====
+		private string _progresoTexto = "Seleccione el tipo de cita";
+		public string ProgresoTexto
+		{
+			get => _progresoTexto;
+			set => SetProperty(ref _progresoTexto, value);
+		}
+
+		private bool _puedeCrearCita = false;
+		public bool PuedeCrearCita
+		{
+			get => _puedeCrearCita;
+			set => SetProperty(ref _puedeCrearCita, value);
+		}
+
+		private string _estadoTipoCita = "";
+		public string EstadoTipoCita
+		{
+			get => _estadoTipoCita;
+			set => SetProperty(ref _estadoTipoCita, value);
+		}
+
+		// ===== PROPIEDADES EXISTENTES CON [ObservableProperty] =====
 		[ObservableProperty]
 		private int pasoActual = 1;
 
@@ -33,14 +55,12 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private bool canCrearCita = false;
 
-		// ===== PASO 1: TIPOS DE CITA =====
 		[ObservableProperty]
 		private ObservableCollection<TipoCita> tiposCita = new();
 
 		[ObservableProperty]
 		private TipoCita? tipoCitaSeleccionado;
 
-		// ===== PASO 2: PACIENTE =====
 		[ObservableProperty]
 		private string cedulaBusqueda = "";
 
@@ -53,8 +73,6 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private PacienteBusqueda? pacienteSeleccionado;
 
-		
-		// ===== PASO 3: MÉDICO =====
 		[ObservableProperty]
 		private ObservableCollection<Sucursal> sucursales = new();
 
@@ -73,7 +91,6 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private Doctor? doctorSeleccionado;
 
-		// ===== PASO 4: HORARIOS =====
 		[ObservableProperty]
 		private ObservableCollection<SlotHorario> slotsDisponibles = new();
 
@@ -96,17 +113,15 @@ namespace MediSys.ViewModels
 		public List<string> SexosDisponibles { get; } = new() { "M", "F" };
 		public List<string> TiposSangre { get; } = new() { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Desconocido" };
 		public List<string> NacionalidadesDisponibles { get; } = new()
-	   {
-		   "Ecuatoriana", "Colombiana", "Peruana", "Venezolana", "Argentina",
-		   "Chilena", "Brasileña", "Mexicana", "Española", "Estadounidense", "Otra"
-	   };
+		{
+			"Ecuatoriana", "Colombiana", "Peruana", "Venezolana", "Argentina",
+			"Chilena", "Brasileña", "Mexicana", "Española", "Estadounidense", "Otra"
+		};
 
 		public CrearCitaViewModel()
 		{
 			ActualizarTituloSemana();
 			_ = InicializarAsync();
-
-			// Suscripciones a cambios
 			PropertyChanged += OnPropertyChanged;
 		}
 
@@ -114,8 +129,35 @@ namespace MediSys.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case nameof(PasoActual):
-					ActualizarTitulo();
+				case nameof(TipoCitaSeleccionado):
+					if (TipoCitaSeleccionado != null)
+					{
+						EstadoTipoCita = "Completado";
+						ProgresoTexto = "Busque al paciente por su cédula";
+					}
+					break;
+				case nameof(PacienteSeleccionado):
+					if (PacienteSeleccionado != null)
+					{
+						ProgresoTexto = "Seleccione médico y sucursal";
+					}
+					break;
+				case nameof(DoctorSeleccionado):
+					if (DoctorSeleccionado != null)
+					{
+						ProgresoTexto = "Elija fecha y hora disponible";
+						_ = CargarHorariosDisponiblesAsync();
+					}
+					break;
+				case nameof(SlotSeleccionado):
+					if (SlotSeleccionado != null)
+					{
+						ProgresoTexto = "Complete los detalles de la cita";
+					}
+					ValidarPuedeCrearCita();
+					break;
+				case nameof(MotivoCita):
+					ValidarPuedeCrearCita();
 					break;
 				case nameof(SucursalSeleccionada):
 					_ = CargarEspecialidadesPorSucursalAsync();
@@ -123,12 +165,8 @@ namespace MediSys.ViewModels
 				case nameof(EspecialidadSeleccionada):
 					_ = CargarDoctoresPorEspecialidadAsync();
 					break;
-				case nameof(DoctorSeleccionado):
-					_ = CargarHorariosDisponiblesAsync();
-					break;
-				case nameof(SlotSeleccionado):
-				case nameof(MotivoCita):
-					ValidarPuedeCrearCita();
+				case nameof(PasoActual):
+					ActualizarTitulo();
 					break;
 			}
 		}
@@ -151,8 +189,6 @@ namespace MediSys.ViewModels
 			TituloSemana = $"{inicioSemana:dd/MM} - {finSemana:dd/MM/yyyy}";
 		}
 
-		// ===== PASO 1: TIPOS DE CITA =====
-
 		[RelayCommand]
 		private async Task CargarTiposCitaAsync()
 		{
@@ -169,7 +205,6 @@ namespace MediSys.ViewModels
 						TiposCita.Add(tipo);
 					}
 
-					// Seleccionar presencial por defecto
 					TipoCitaSeleccionado = TiposCita.FirstOrDefault(t => t.NombreTipo.ToLower() == "presencial");
 				}
 				else
@@ -221,19 +256,6 @@ namespace MediSys.ViewModels
 		}
 
 		[RelayCommand]
-		private void ContinuarPaso1()
-		{
-			if (TipoCitaSeleccionado != null)
-			{
-				PasoActual = 2;
-			}
-		}
-
-		// ===== PASO 2: BUSCAR/CREAR PACIENTE =====
-
-		// En CrearCitaViewModel.cs, actualizar el método BuscarPacienteAsync:
-
-		[RelayCommand]
 		private async Task BuscarPacienteAsync()
 		{
 			if (string.IsNullOrWhiteSpace(CedulaBusqueda) || CedulaBusqueda.Length != 10)
@@ -247,36 +269,21 @@ namespace MediSys.ViewModels
 				IsLoading = true;
 				var result = await ApiService.BuscarPacientePorCedulaAsync(CedulaBusqueda.Trim());
 
-				// ✅ AGREGAR LOGS PARA DEPURAR
-				System.Diagnostics.Debug.WriteLine($"🔍 BuscarPaciente Result: Success={result.Success}, Message={result.Message}");
-				System.Diagnostics.Debug.WriteLine($"🔍 PacienteData: {(result.Data != null ? $"ID={result.Data.IdPaciente}, Nombre={result.Data.NombreCompleto}" : "null")}");
-
 				if (result.Success && result.Data != null)
 				{
-					// Paciente encontrado
 					PacienteSeleccionado = result.Data;
 					PacienteEncontrado = true;
 					MostrarFormularioPaciente = false;
-
-					System.Diagnostics.Debug.WriteLine($"✅ Paciente asignado: ID={PacienteSeleccionado.IdPaciente}, Nombre={PacienteSeleccionado.NombreCompleto}");
-
-					await Shell.Current.DisplayAlert("Paciente Encontrado",
-						$"✅ {result.Data.NombreCompleto}\n📧 {result.Data.Correo}\n📱 {result.Data.Telefono}", "OK");
 				}
 				else
 				{
-					// Paciente no encontrado
 					PacienteEncontrado = false;
 					MostrarFormularioPaciente = true;
 					PacienteSeleccionado = null;
-
-					await Shell.Current.DisplayAlert("Paciente No Encontrado",
-						"El paciente no está registrado. Complete los datos para crearlo automáticamente.", "OK");
 				}
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"❌ Exception en BuscarPacienteAsync: {ex.Message}");
 				await Shell.Current.DisplayAlert("Error", $"Error buscando paciente: {ex.Message}", "OK");
 			}
 			finally
@@ -285,17 +292,38 @@ namespace MediSys.ViewModels
 			}
 		}
 
-		
 		[RelayCommand]
-		private void ContinuarPaso2()
+		private async Task AbrirModalCrearPacienteAsync()
 		{
-			if (PacienteSeleccionado != null)
+			if (string.IsNullOrWhiteSpace(CedulaBusqueda))
 			{
-				PasoActual = 3;
+				await Shell.Current.DisplayAlert("Error", "Ingrese una cédula válida", "OK");
+				return;
+			}
+
+			try
+			{
+				var modalPage = new Views.Modals.CrearPacienteModalPage(CedulaBusqueda.Trim());
+				modalPage.PacienteCreado += OnPacienteCreado;
+				await Shell.Current.Navigation.PushModalAsync(modalPage);
+			}
+			catch (Exception ex)
+			{
+				await Shell.Current.DisplayAlert("Error", $"Error abriendo modal: {ex.Message}", "OK");
 			}
 		}
 
-		// ===== PASO 3: SELECCIÓN DE MÉDICO =====
+		private void OnPacienteCreado(object? sender, PacienteBusqueda paciente)
+		{
+			PacienteSeleccionado = paciente;
+			PacienteEncontrado = true;
+			MostrarFormularioPaciente = false;
+
+			if (sender is Views.Modals.CrearPacienteModalPage modalPage)
+			{
+				modalPage.PacienteCreado -= OnPacienteCreado;
+			}
+		}
 
 		[RelayCommand]
 		private async Task CargarEspecialidadesPorSucursalAsync()
@@ -316,16 +344,10 @@ namespace MediSys.ViewModels
 						Especialidades.Add(especialidad);
 					}
 
-					// Limpiar selecciones dependientes
 					EspecialidadSeleccionada = null;
 					DoctorSeleccionado = null;
 					Doctores.Clear();
 					SlotsDisponibles.Clear();
-				}
-				else
-				{
-					await Shell.Current.DisplayAlert("Error",
-						result.Message ?? "Error cargando especialidades", "OK");
 				}
 			}
 			catch (Exception ex)
@@ -359,14 +381,8 @@ namespace MediSys.ViewModels
 						Doctores.Add(doctor);
 					}
 
-					// Limpiar selecciones dependientes
 					DoctorSeleccionado = null;
 					SlotsDisponibles.Clear();
-				}
-				else
-				{
-					await Shell.Current.DisplayAlert("Error",
-						result.Message ?? "Error cargando doctores", "OK");
 				}
 			}
 			catch (Exception ex)
@@ -378,17 +394,6 @@ namespace MediSys.ViewModels
 				IsLoading = false;
 			}
 		}
-
-		[RelayCommand]
-		private void ContinuarPaso3()
-		{
-			if (DoctorSeleccionado != null)
-			{
-				PasoActual = 4;
-			}
-		}
-
-		// ===== PASO 4: HORARIOS =====
 
 		[RelayCommand]
 		private async Task CargarHorariosDisponiblesAsync()
@@ -408,11 +413,6 @@ namespace MediSys.ViewModels
 				if (result.Success && result.Data != null)
 				{
 					GenerarSlotsDisponibles(result.Data);
-				}
-				else
-				{
-					await Shell.Current.DisplayAlert("Error",
-						result.Message ?? "Error cargando horarios", "OK");
 				}
 			}
 			catch (Exception ex)
@@ -444,11 +444,10 @@ namespace MediSys.ViewModels
 		[RelayCommand]
 		private async Task CrearCitaAsync()
 		{
-			// ✅ VALIDACIÓN MEJORADA
 			if (PacienteSeleccionado == null || PacienteSeleccionado.IdPaciente <= 0)
 			{
 				await Shell.Current.DisplayAlert("Error",
-					"⚠️ No hay un paciente seleccionado válido. Por favor, busque o registre un paciente.", "OK");
+					"No hay un paciente seleccionado válido.", "OK");
 				return;
 			}
 
@@ -456,14 +455,14 @@ namespace MediSys.ViewModels
 				TipoCitaSeleccionado == null || SlotSeleccionado == null)
 			{
 				await Shell.Current.DisplayAlert("Error",
-					"⚠️ Complete todos los datos requeridos para crear la cita", "OK");
+					"Complete todos los datos requeridos.", "OK");
 				return;
 			}
 
 			if (string.IsNullOrWhiteSpace(MotivoCita))
 			{
 				await Shell.Current.DisplayAlert("Error",
-					"⚠️ El motivo de la cita es obligatorio", "OK");
+					"El motivo de la cita es obligatorio", "OK");
 				return;
 			}
 
@@ -471,11 +470,9 @@ namespace MediSys.ViewModels
 			{
 				IsLoading = true;
 
-				System.Diagnostics.Debug.WriteLine($"🏥 Creando cita con PacienteID={PacienteSeleccionado.IdPaciente}");
-
 				var citaData = new CrearCitaRequest
 				{
-					IdPaciente = PacienteSeleccionado.IdPaciente, // ✅ ESTE YA DEBE ESTAR BIEN ASIGNADO
+					IdPaciente = PacienteSeleccionado.IdPaciente,
 					IdDoctor = DoctorSeleccionado.IdDoctor,
 					IdSucursal = SucursalSeleccionada.IdSucursal,
 					IdTipoCita = TipoCitaSeleccionado.IdTipoCita,
@@ -485,32 +482,34 @@ namespace MediSys.ViewModels
 					Notas = NotasCita?.Trim() ?? ""
 				};
 
-				System.Diagnostics.Debug.WriteLine($"📤 Datos de cita: {System.Text.Json.JsonSerializer.Serialize(citaData)}");
-
 				var result = await ApiService.CrearCitaAsync(citaData);
 
 				if (result.Success && result.Data != null)
 				{
-					await Shell.Current.DisplayAlert("¡Cita Creada!",
-						$"✅ Cita programada exitosamente\n\n" +
-						$"📅 {SlotSeleccionado.FechaHora:dd/MM/yyyy HH:mm}\n" +
-						$"👤 {PacienteSeleccionado.NombreCompleto}\n" +
-						$"👨‍⚕️ Dr. {DoctorSeleccionado.Nombres} {DoctorSeleccionado.Apellidos}\n" +
-						$"🏥 {SucursalSeleccionada.Nombre}",
-						"OK");
+					await Shell.Current.DisplayAlert(
+						"✅ Cita Creada Exitosamente",
+						$"Su cita ha sido programada correctamente.\n\n" +
+						$"📅 **Fecha y hora:** {SlotSeleccionado.FechaHora:dddd, dd 'de' MMMM yyyy - hh:mm tt}\n" +
+						$"👤 **Paciente:** {PacienteSeleccionado.NombreCompleto}\n" +
+						$"🩺 **Doctor:** Dr. {DoctorSeleccionado.Nombres} {DoctorSeleccionado.Apellidos}\n" +
+						$"🏥 **Sucursal:** {SucursalSeleccionada.Nombre}\n" +
+						$"📌 **Tipo de cita:** {TipoCitaSeleccionado.NombreTipo}\n\n" +
+						$"Gracias por confiar en nuestro servicio médico.",
+						"Aceptar"
+					);
 
 					await Shell.Current.GoToAsync("..");
 				}
+
 				else
 				{
 					await Shell.Current.DisplayAlert("Error",
-						result.Message ?? "Error creando la cita médica", "OK");
+						result.Message ?? "Error creando la cita", "OK");
 				}
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"❌ Error creando cita: {ex.Message}");
-				await Shell.Current.DisplayAlert("Error", $"Error inesperado: {ex.Message}", "OK");
+				await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
 			}
 			finally
 			{
@@ -519,12 +518,31 @@ namespace MediSys.ViewModels
 		}
 
 		[RelayCommand]
-		private async Task VolverAsync()
+		private void SeleccionarDoctor(Doctor doctor)
 		{
-			await Shell.Current.GoToAsync("..");
+			DoctorSeleccionado = doctor;
 		}
 
-		// ===== MÉTODOS AUXILIARES =====
+		[RelayCommand]
+		private void SeleccionarTipoCita(object parametro)
+		{
+			if (int.TryParse(parametro.ToString(), out int tipoId))
+			{
+				TipoCitaSeleccionado = TiposCita?.FirstOrDefault(t => t.IdTipoCita == tipoId);
+			}
+		}
+
+		[RelayCommand]
+		private async Task CancelarAsync()
+		{
+			var confirmacion = await Shell.Current.DisplayAlert("Cancelar",
+				"¿Desea cancelar la creación de la cita?", "Sí", "No");
+
+			if (confirmacion)
+			{
+				await Shell.Current.GoToAsync("..");
+			}
+		}
 
 		private void GenerarSlotsDisponibles(HorariosDisponiblesResponse horarios)
 		{
@@ -539,9 +557,8 @@ namespace MediSys.ViewModels
 			{
 				var fechaActual = inicioSemana.AddDays(dia);
 				var diaSemana = (int)fechaActual.DayOfWeek;
-				if (diaSemana == 0) diaSemana = 7; // Domingo = 7
+				if (diaSemana == 0) diaSemana = 7;
 
-				// Buscar horarios para este día
 				var horariosDelDia = horarios.Horarios.Where(h => h.DiaSemana == diaSemana).ToList();
 
 				foreach (var horario in horariosDelDia)
@@ -555,17 +572,14 @@ namespace MediSys.ViewModels
 					{
 						var fechaHoraSlot = fechaActual.Date + horaActual;
 
-						// Verificar si está disponible
 						var estaOcupado = horarios.CitasOcupadas?.Any(c =>
 							c.Fecha == fechaActual.ToString("yyyy-MM-dd") &&
 							c.Hora == horaActual.ToString(@"hh\:mm\:ss")) ?? false;
 
-						// Verificar excepciones
 						var tieneExcepcion = horarios.Excepciones?.Any(e =>
 							e.Fecha == fechaActual.ToString("yyyy-MM-dd") &&
 							(e.Tipo == "no_laborable" || e.Tipo == "vacaciones" || e.Tipo == "feriado")) ?? false;
 
-						// Solo agregar slots futuros
 						if (fechaHoraSlot > DateTime.Now)
 						{
 							var slot = new SlotHorario
@@ -586,87 +600,14 @@ namespace MediSys.ViewModels
 			}
 		}
 
-
-		// ===== AGREGAR ESTOS NUEVOS COMANDOS =====
-
-		[RelayCommand]
-		private async Task AbrirModalCrearPacienteAsync()
-		{
-			if (string.IsNullOrWhiteSpace(CedulaBusqueda))
-			{
-				await Shell.Current.DisplayAlert("Error", "Ingrese una cédula válida", "OK");
-				return;
-			}
-
-			try
-			{
-				var modalPage = new Views.Modals.CrearPacienteModalPage(CedulaBusqueda.Trim());
-
-				// ✅ SUSCRIBIRSE AL EVENTO DE PACIENTE CREADO
-				modalPage.PacienteCreado += OnPacienteCreado;
-
-				await Shell.Current.Navigation.PushModalAsync(modalPage);
-			}
-			catch (Exception ex)
-			{
-				await Shell.Current.DisplayAlert("Error", $"Error abriendo modal: {ex.Message}", "OK");
-			}
-		}
-
-		// ✅ MANEJAR CUANDO SE CREA UN PACIENTE DESDE EL MODAL
-		private void OnPacienteCreado(object? sender, PacienteBusqueda paciente)
-		{
-			System.Diagnostics.Debug.WriteLine($"🎉 Paciente creado recibido: ID={paciente.IdPaciente}, Nombre={paciente.NombreCompleto}");
-
-			// ✅ ASIGNAR EL PACIENTE RECIÉN CREADO
-			PacienteSeleccionado = paciente;
-			PacienteEncontrado = true;
-			MostrarFormularioPaciente = false;
-
-			System.Diagnostics.Debug.WriteLine($"✅ Estado actualizado: PacienteSeleccionado.IdPaciente = {PacienteSeleccionado?.IdPaciente}");
-
-			// ✅ ACTUALIZAR EL TÍTULO PARA REFLEJAR EL PROGRESO
-			TituloModal = $"Crear Nueva Cita - Paso 2 de 4 (Paciente: {paciente.NombreCompleto})";
-
-			// Limpiar suscripción
-			if (sender is Views.Modals.CrearPacienteModalPage modalPage)
-			{
-				modalPage.PacienteCreado -= OnPacienteCreado;
-			}
-		}
-
-		[RelayCommand]
-		private void RegresarPaso1()
-		{
-			PasoActual = 1;
-			TituloModal = "Crear Nueva Cita - Paso 1 de 4";
-		}
-
-		[RelayCommand]
-		private async Task CancelarAsync()
-		{
-			var confirmacion = await Shell.Current.DisplayAlert("Cancelar",
-				"¿Está seguro que desea cancelar la creación de la cita?", "Sí", "No");
-
-			if (confirmacion)
-			{
-				await Shell.Current.GoToAsync("..");
-			}
-		}
-
-		
-
-
 		private void ValidarPuedeCrearCita()
 		{
-			CanCrearCita = SlotSeleccionado != null &&
-						  !string.IsNullOrWhiteSpace(MotivoCita) &&
-						  PacienteSeleccionado != null &&
-						  DoctorSeleccionado != null &&
-						  SucursalSeleccionada != null &&
-						  TipoCitaSeleccionado != null;
+			PuedeCrearCita = TipoCitaSeleccionado != null &&
+							 PacienteSeleccionado != null &&
+							 DoctorSeleccionado != null &&
+							 SucursalSeleccionada != null &&
+							 SlotSeleccionado != null &&
+							 !string.IsNullOrWhiteSpace(MotivoCita);
 		}
-
-		
 	}
 }

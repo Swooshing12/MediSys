@@ -320,16 +320,7 @@
                                 HeightRequest="50"
                                 Command="{Binding CambiarContrasenaCommand}" />
 
-                        <!-- Actualizar información -->
-                        <Button Text="✏️ Editar Perfil"
-                                BackgroundColor="#9B59B6"
-                                TextColor="White"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                CornerRadius="10"
-                                HeightRequest="50"
-                                Command="{Binding EditarPerfilCommand}" />
-
+              
                         <!-- Cerrar sesión -->
                         <Button Text="🚪 Cerrar Sesión"
                                 BackgroundColor="#E74C3C"

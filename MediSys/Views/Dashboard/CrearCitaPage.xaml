@@ -21,75 +21,22 @@
                 </Border.Shadow>
 
                 <StackLayout Padding="20" Spacing="15">
-                    <Label Text="{Binding TituloModal}" 
+                    <Label Text="Nueva Cita Médica" 
                            FontSize="22" 
-                           FontFamily="Bold" 
+                           FontAttributes="Bold" 
                            HorizontalOptions="Center" 
                            TextColor="#1565C0"/>
 
-                    <!-- Indicador de pasos mejorado -->
-                    <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="8">
-
-                        <!-- Paso 1 -->
-                        <Border BackgroundColor="{Binding PasoActual, Converter={StaticResource PasoToColorConverter}, ConverterParameter=1}" 
-                                WidthRequest="32" HeightRequest="32" StrokeThickness="0">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="16"/>
-                            </Border.StrokeShape>
-                            <Label Text="1" HorizontalOptions="Center" VerticalOptions="Center" 
-                                   TextColor="White" FontFamily="Bold" FontSize="14"/>
-                        </Border>
-
-                        <BoxView BackgroundColor="#E0E0E0" WidthRequest="24" HeightRequest="2" VerticalOptions="Center"/>
-
-                        <!-- Paso 2 -->
-                        <Border BackgroundColor="{Binding PasoActual, Converter={StaticResource PasoToColorConverter}, ConverterParameter=2}" 
-                                WidthRequest="32" HeightRequest="32" StrokeThickness="0">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="16"/>
-                            </Border.StrokeShape>
-                            <Label Text="2" HorizontalOptions="Center" VerticalOptions="Center" 
-                                   TextColor="White" FontFamily="Bold" FontSize="14"/>
-                        </Border>
-
-                        <BoxView BackgroundColor="#E0E0E0" WidthRequest="24" HeightRequest="2" VerticalOptions="Center"/>
-
-                        <!-- Paso 3 -->
-                        <Border BackgroundColor="{Binding PasoActual, Converter={StaticResource PasoToColorConverter}, ConverterParameter=3}" 
-                                WidthRequest="32" HeightRequest="32" StrokeThickness="0">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="16"/>
-                            </Border.StrokeShape>
-                            <Label Text="3" HorizontalOptions="Center" VerticalOptions="Center" 
-                                   TextColor="White" FontFamily="Bold" FontSize="14"/>
-                        </Border>
-
-                        <BoxView BackgroundColor="#E0E0E0" WidthRequest="24" HeightRequest="2" VerticalOptions="Center"/>
-
-                        <!-- Paso 4 -->
-                        <Border BackgroundColor="{Binding PasoActual, Converter={StaticResource PasoToColorConverter}, ConverterParameter=4}" 
-                                WidthRequest="32" HeightRequest="32" StrokeThickness="0">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="16"/>
-                            </Border.StrokeShape>
-                            <Label Text="4" HorizontalOptions="Center" VerticalOptions="Center" 
-                                   TextColor="White" FontFamily="Bold" FontSize="14"/>
-                        </Border>
-                    </StackLayout>
-
-                    <!-- Etiquetas de pasos -->
-                    <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="24">
-                        <Label Text="Tipo" FontSize="11" HorizontalOptions="Center" TextColor="#666"/>
-                        <Label Text="Paciente" FontSize="11" HorizontalOptions="Center" TextColor="#666"/>
-                        <Label Text="Médico" FontSize="11" HorizontalOptions="Center" TextColor="#666"/>
-                        <Label Text="Horario" FontSize="11" HorizontalOptions="Center" TextColor="#666"/>
-                    </StackLayout>
+                    <!-- Progreso automático -->
+                    <Label Text="{Binding ProgresoTexto}" 
+                           FontSize="14" 
+                           HorizontalOptions="Center" 
+                           TextColor="#666"/>
                 </StackLayout>
             </Border>
 
             <!-- ===== PASO 1: TIPO DE CITA ===== -->
-            <Border IsVisible="{Binding PasoActual, Converter={StaticResource IntToBoolConverter}, ConverterParameter=1}" 
-                    BackgroundColor="White" Stroke="Transparent" StrokeThickness="0">
+            <Border BackgroundColor="White" Stroke="Transparent" StrokeThickness="0">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="12"/>
                 </Border.StrokeShape>
@@ -100,13 +47,12 @@
                 <StackLayout Padding="20" Spacing="16">
                     <Label Text="📋 Paso 1: Seleccionar Tipo de Cita" 
                            FontSize="18" 
-                           FontFamily="Bold" 
+                           FontAttributes="Bold" 
                            TextColor="#333"/>
 
                     <CollectionView ItemsSource="{Binding TiposCita}" 
                                     SelectedItem="{Binding TipoCitaSeleccionado}" 
-                                    SelectionMode="Single"
-                                    >
+                                    SelectionMode="Single">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,4" BackgroundColor="#F8F9FA" 
@@ -114,8 +60,11 @@
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="8"/>
                                     </Border.StrokeShape>
+                                    <!-- ✅ ARREGLADO: Triggers para mostrar selección visual -->
                                     <Border.Triggers>
-                                        <DataTrigger TargetType="Border" Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem}" Value="{Binding .}">
+                                        <DataTrigger TargetType="Border" 
+                                                   Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem.IdTipoCita}" 
+                                                   Value="{Binding IdTipoCita}">
                                             <Setter Property="BackgroundColor" Value="#E3F2FD"/>
                                             <Setter Property="Stroke" Value="#1976D2"/>
                                             <Setter Property="StrokeThickness" Value="2"/>
@@ -127,7 +76,7 @@
                                             <Label Text="{Binding IconoTipo}" FontSize="24" VerticalOptions="Center"/>
                                             <Label Text="{Binding NombreTipo}" 
                                                    FontSize="16" 
-                                                   FontFamily="Bold" 
+                                                   FontAttributes="Bold" 
                                                    VerticalOptions="Center" 
                                                    TextColor="#333"/>
                                         </StackLayout>
@@ -139,31 +88,11 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-
-                    <Button Text="Continuar" 
-                            Command="{Binding ContinuarPaso1Command}"
-                            BackgroundColor="#1976D2" 
-                            TextColor="White" 
-                            FontSize="16"
-                            FontFamily="Bold"
-                            HeightRequest="48"
-                            IsEnabled="{Binding TipoCitaSeleccionado, Converter={StaticResource ObjectToBoolConverter}}">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#1976D2"/>
-                                <Style.Triggers>
-                                    <Trigger TargetType="Button" Property="IsEnabled" Value="False">
-                                        <Setter Property="BackgroundColor" Value="#BDBDBD"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
                 </StackLayout>
             </Border>
 
             <!-- ===== PASO 2: BUSCAR/CREAR PACIENTE ===== -->
-            <Border IsVisible="{Binding PasoActual, Converter={StaticResource IntToBoolConverter}, ConverterParameter=2}" 
+            <Border IsVisible="{Binding TipoCitaSeleccionado, Converter={StaticResource ObjectToBoolConverter}}"
                     BackgroundColor="White" Stroke="Transparent" StrokeThickness="0">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="12"/>
@@ -175,12 +104,12 @@
                 <StackLayout Padding="20" Spacing="16">
                     <Label Text="👤 Paso 2: Identificar Paciente" 
                            FontSize="18" 
-                           FontFamily="Bold" 
+                           FontAttributes="Bold" 
                            TextColor="#333"/>
 
                     <!-- Búsqueda por cédula -->
                     <StackLayout Spacing="8">
-                        <Label Text="Cédula del Paciente:" FontSize="14" FontFamily="Bold" TextColor="#444"/>
+                        <Label Text="Cédula del Paciente:" FontSize="14" FontAttributes="Bold" TextColor="#444"/>
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <Border Grid.Column="0" BackgroundColor="#F8F9FA" 
                                     Stroke="#E0E0E0" StrokeThickness="1">
@@ -216,69 +145,47 @@
                         </Border.StrokeShape>
                         <StackLayout IsVisible="{Binding PacienteSeleccionado, Converter={StaticResource ObjectToBoolConverter}}" 
                                      Spacing="4">
-                            <Label Text="✅ Paciente Encontrado" FontSize="14" FontFamily="Bold" TextColor="#2E7D32"/>
-                            <Label Text="{Binding PacienteSeleccionado.NombreCompleto}" FontSize="16" FontFamily="Bold" TextColor="#333"/>
+                            <Label Text="✅ Paciente Encontrado" FontSize="14" FontAttributes="Bold" TextColor="#2E7D32"/>
+                            <Label Text="{Binding PacienteSeleccionado.NombreCompleto}" FontSize="16" FontAttributes="Bold" TextColor="#333"/>
                             <Label Text="{Binding PacienteSeleccionado.Correo, StringFormat='📧 {0}'}" TextColor="#666" FontSize="13"/>
                             <Label Text="{Binding PacienteSeleccionado.Telefono, StringFormat='📱 {0}'}" TextColor="#666" FontSize="13"/>
-                            <Label Text="{Binding PacienteSeleccionado.EdadDisplay, StringFormat='🎂 {0}'}" TextColor="#666" FontSize="13"/>
+                            <!-- ✅ ARREGLADO: Calculamos la edad en el ViewModel -->
+                            <Label Text="{Binding PacienteSeleccionado.FechaNacimiento, StringFormat='🎂 Fecha de Nacimiento: {0:yyyy}'}" TextColor="#666" FontSize="13"/>
                         </StackLayout>
                     </Border>
 
-                    <!-- Paciente no encontrado - Mostrar botón para abrir modal -->
+                    <!-- Paciente no encontrado -->
                     <Border IsVisible="{Binding MostrarFormularioPaciente}" 
-        BackgroundColor="#FCE4EC" 
-        Stroke="#E91E63" 
-        StrokeThickness="1"
-        Padding="16">
+                            BackgroundColor="#FCE4EC" 
+                            Stroke="#E91E63" 
+                            StrokeThickness="1"
+                            Padding="16">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="8"/>
                         </Border.StrokeShape>
                         <StackLayout Spacing="12">
                             <Label Text="❌ Paciente No Encontrado" 
-               FontSize="14" 
-               FontFamily="Bold" 
-               TextColor="#E91E63"/>
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#E91E63"/>
                             <Label Text="El paciente no está registrado en el sistema." 
-               FontSize="13" 
-               TextColor="#7F8C8D"/>
+                                   FontSize="13" 
+                                   TextColor="#7F8C8D"/>
 
                             <Button Text="➕ Registrar Nuevo Paciente" 
-                Command="{Binding AbrirModalCrearPacienteCommand}"
-                BackgroundColor="#E91E63" 
-                TextColor="White" 
-                FontSize="16"
-                FontFamily="Bold"
-                HeightRequest="48"
-                CornerRadius="8"/>
+                                    Command="{Binding AbrirModalCrearPacienteCommand}"
+                                    BackgroundColor="#E91E63" 
+                                    TextColor="White" 
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    HeightRequest="48"/>
                         </StackLayout>
                     </Border>
-
-                    <!-- Botón continuar -->
-                    <Button Text="Continuar" 
-                            Command="{Binding ContinuarPaso2Command}"
-                            BackgroundColor="#1976D2" 
-                            TextColor="White" 
-                            FontSize="16"
-                            FontFamily="Bold"
-                            HeightRequest="48"
-                            IsVisible="{Binding PacienteEncontrado}"
-                            IsEnabled="{Binding PacienteSeleccionado, Converter={StaticResource ObjectToBoolConverter}}">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#1976D2"/>
-                                <Style.Triggers>
-                                    <Trigger TargetType="Button" Property="IsEnabled" Value="False">
-                                        <Setter Property="BackgroundColor" Value="#BDBDBD"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
                 </StackLayout>
             </Border>
 
             <!-- ===== PASO 3: SELECCIÓN DE MÉDICO ===== -->
-            <Border IsVisible="{Binding PasoActual, Converter={StaticResource IntToBoolConverter}, ConverterParameter=3}" 
+            <Border IsVisible="{Binding PacienteSeleccionado, Converter={StaticResource ObjectToBoolConverter}}"
                     BackgroundColor="White" Stroke="Transparent" StrokeThickness="0">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="12"/>
@@ -290,12 +197,12 @@
                 <StackLayout Padding="20" Spacing="16">
                     <Label Text="👨‍⚕️ Paso 3: Seleccionar Médico" 
                            FontSize="18" 
-                           FontFamily="Bold" 
+                           FontAttributes="Bold" 
                            TextColor="#333"/>
 
                     <!-- Selección de Sucursal -->
                     <StackLayout Spacing="8">
-                        <Label Text="🏥 Sucursal:" FontSize="14" FontFamily="Bold" TextColor="#444"/>
+                        <Label Text="🏥 Sucursal:" FontSize="14" FontAttributes="Bold" TextColor="#444"/>
                         <Border BackgroundColor="#F8F9FA" Stroke="#E0E0E0" StrokeThickness="1">
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="6"/>
@@ -312,7 +219,7 @@
 
                     <!-- Selección de Especialidad -->
                     <StackLayout Spacing="8">
-                        <Label Text="🩺 Especialidad:" FontSize="14" FontFamily="Bold" TextColor="#444"/>
+                        <Label Text="🩺 Especialidad:" FontSize="14" FontAttributes="Bold" TextColor="#444"/>
                         <Border BackgroundColor="#F8F9FA" Stroke="#E0E0E0" StrokeThickness="1">
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="6"/>
@@ -330,7 +237,7 @@
 
                     <!-- Selección de Doctor -->
                     <StackLayout Spacing="8">
-                        <Label Text="👨‍⚕️ Doctor:" FontSize="14" FontFamily="Bold" TextColor="#444"/>
+                        <Label Text="👨‍⚕️ Doctor:" FontSize="14" FontAttributes="Bold" TextColor="#444"/>
                         <CollectionView ItemsSource="{Binding Doctores}" 
                                         SelectedItem="{Binding DoctorSeleccionado}" 
                                         SelectionMode="Single"
@@ -342,8 +249,11 @@
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="8"/>
                                         </Border.StrokeShape>
+                                        <!-- ✅ ARREGLADO: Triggers para mostrar selección visual -->
                                         <Border.Triggers>
-                                            <DataTrigger TargetType="Border" Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem}" Value="{Binding .}">
+                                            <DataTrigger TargetType="Border" 
+                                                       Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem.IdDoctor}" 
+                                                       Value="{Binding IdDoctor}">
                                                 <Setter Property="BackgroundColor" Value="#E3F2FD"/>
                                                 <Setter Property="Stroke" Value="#1976D2"/>
                                                 <Setter Property="StrokeThickness" Value="2"/>
@@ -366,7 +276,7 @@
                                             <StackLayout VerticalOptions="Center" Spacing="2">
                                                 <Label Text="{Binding Nombres, StringFormat='Dr. {0}'}" 
                                                        FontSize="16" 
-                                                       FontFamily="Bold" 
+                                                       FontAttributes="Bold" 
                                                        TextColor="#333"/>
                                                 <Label Text="{Binding Apellidos}" 
                                                        FontSize="14" 
@@ -389,31 +299,11 @@
                            HorizontalOptions="Center" 
                            Margin="0,20"
                            IsVisible="{Binding Doctores.Count, Converter={StaticResource CountToInverseBoolConverter}}"/>
-
-                    <Button Text="Continuar" 
-                            Command="{Binding ContinuarPaso3Command}"
-                            BackgroundColor="#1976D2" 
-                            TextColor="White" 
-                            FontSize="16"
-                            FontFamily="Bold"
-                            HeightRequest="48"
-                            IsEnabled="{Binding DoctorSeleccionado, Converter={StaticResource ObjectToBoolConverter}}">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#1976D2"/>
-                                <Style.Triggers>
-                                    <Trigger TargetType="Button" Property="IsEnabled" Value="False">
-                                        <Setter Property="BackgroundColor" Value="#BDBDBD"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
                 </StackLayout>
             </Border>
 
             <!-- ===== PASO 4: CALENDARIO Y HORARIOS ===== -->
-            <Border IsVisible="{Binding PasoActual, Converter={StaticResource IntToBoolConverter}, ConverterParameter=4}" 
+            <Border IsVisible="{Binding DoctorSeleccionado, Converter={StaticResource ObjectToBoolConverter}}"
                     BackgroundColor="White" Stroke="Transparent" StrokeThickness="0">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="12"/>
@@ -425,7 +315,7 @@
                 <StackLayout Padding="20" Spacing="16">
                     <Label Text="📅 Paso 4: Seleccionar Fecha y Hora" 
                            FontSize="18" 
-                           FontFamily="Bold"
+                           FontAttributes="Bold"
                            TextColor="#333"/>
 
                     <!-- Navegación de semana -->
@@ -443,7 +333,7 @@
                                    FontSize="16"/>
                             <Label Grid.Column="1" Text="{Binding TituloSemana}" 
                                   FontSize="16" 
-                                  FontFamily="Bold" 
+                                  FontAttributes="Bold" 
                                   VerticalOptions="Center" 
                                   HorizontalOptions="Center"
                                   TextColor="#333"/>
@@ -459,7 +349,7 @@
 
                     <!-- Calendario de horarios disponibles -->
                     <StackLayout Spacing="8">
-                        <Label Text="Horarios Disponibles:" FontSize="14" FontFamily="Bold" TextColor="#444"/>
+                        <Label Text="Horarios Disponibles:" FontSize="14" FontAttributes="Bold" TextColor="#444"/>
                         <CollectionView ItemsSource="{Binding SlotsDisponibles}" 
                                        SelectedItem="{Binding SlotSeleccionado}" 
                                        SelectionMode="Single">
@@ -478,8 +368,11 @@
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="6"/>
                                         </Border.StrokeShape>
+                                        <!-- ✅ ARREGLADO: Triggers para mostrar selección visual -->
                                         <Border.Triggers>
-                                            <DataTrigger TargetType="Border" Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem}" Value="{Binding .}">
+                                            <DataTrigger TargetType="Border" 
+                                                       Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem.FechaHora}" 
+                                                       Value="{Binding FechaHora}">
                                                 <Setter Property="BackgroundColor" Value="#1976D2"/>
                                                 <Setter Property="Stroke" Value="#1976D2"/>
                                                 <Setter Property="StrokeThickness" Value="2"/>
@@ -487,24 +380,49 @@
                                             <DataTrigger TargetType="Border" Binding="{Binding Disponible}" Value="False">
                                                 <Setter Property="BackgroundColor" Value="#FFEBEE"/>
                                                 <Setter Property="Stroke" Value="#F44336"/>
+                                                <Setter Property="Opacity" Value="0.6"/>
                                             </DataTrigger>
                                         </Border.Triggers>
 
                                         <StackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="2">
                                             <Label Text="{Binding Fecha, StringFormat='{0:dd/MM}'}" 
                                                   FontSize="11" 
-                                                  FontFamily="Bold" 
+                                                  FontAttributes="Bold" 
                                                   HorizontalOptions="Center"
-                                                  TextColor="#333"/>
-                                            <Label Text="{Binding Hora, StringFormat='{0:HH:mm}'}" 
+                                                  TextColor="#333">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" 
+                                                               Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem.FechaHora}" 
+                                                               Value="{Binding FechaHora}">
+                                                        <Setter Property="TextColor" Value="White"/>
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Label Text="{Binding Hora}" 
                                                   FontSize="13" 
-                                                  FontFamily="Bold" 
+                                                  FontAttributes="Bold" 
                                                   HorizontalOptions="Center"
-                                                  TextColor="#333"/>
+                                                  TextColor="#333">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" 
+                                                               Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem.FechaHora}" 
+                                                               Value="{Binding FechaHora}">
+                                                        <Setter Property="TextColor" Value="White"/>
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
                                             <Label Text="{Binding Disponible, Converter={StaticResource BoolToDisponibleTextConverter}}" 
                                                   FontSize="10" 
                                                   HorizontalOptions="Center"
-                                                  TextColor="#666"/>
+                                                  TextColor="#666">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" 
+                                                               Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem.FechaHora}" 
+                                                               Value="{Binding FechaHora}">
+                                                        <Setter Property="TextColor" Value="White"/>
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
                                         </StackLayout>
                                     </Border>
                                 </DataTemplate>
@@ -514,10 +432,10 @@
 
                     <!-- Detalles de la cita -->
                     <StackLayout IsVisible="{Binding SlotSeleccionado, Converter={StaticResource ObjectToBoolConverter}}" Spacing="12">
-                        <Label Text="📝 Detalles de la Cita" FontSize="16" FontFamily="Bold" TextColor="#333"/>
+                        <Label Text="📝 Detalles de la Cita" FontSize="16" FontAttributes="Bold" TextColor="#333"/>
 
                         <StackLayout Spacing="4">
-                            <Label Text="Motivo de la consulta *:" FontSize="13" FontFamily="Bold" TextColor="#444"/>
+                            <Label Text="Motivo de la consulta *:" FontSize="13" FontAttributes="Bold" TextColor="#444"/>
                             <Border BackgroundColor="#F8F9FA" Stroke="#E0E0E0" StrokeThickness="1">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="6"/>
@@ -532,7 +450,7 @@
                         </StackLayout>
 
                         <StackLayout Spacing="4">
-                            <Label Text="Notas adicionales:" FontSize="13" FontFamily="Bold" TextColor="#444"/>
+                            <Label Text="Notas adicionales:" FontSize="13" FontAttributes="Bold" TextColor="#444"/>
                             <Border BackgroundColor="#F8F9FA" Stroke="#E0E0E0" StrokeThickness="1">
                                 <Border.StrokeShape>
                                     <RoundRectangle CornerRadius="6"/>
@@ -557,12 +475,12 @@
                             <RoundRectangle CornerRadius="8"/>
                         </Border.StrokeShape>
                         <StackLayout Spacing="6">
-                            <Label Text="📋 Resumen de la Cita" FontSize="15" FontFamily="Bold" TextColor="#2E7D32"/>
+                            <Label Text="📋 Resumen de la Cita" FontSize="15" FontAttributes="Bold" TextColor="#2E7D32"/>
                             <Label Text="{Binding PacienteSeleccionado.NombreCompleto, StringFormat='👤 Paciente: {0}'}" 
                                   TextColor="#333" FontSize="13"/>
                             <Label Text="{Binding DoctorSeleccionado.NombreCompleto, StringFormat='👨‍⚕️ Doctor: Dr. {0}'}" 
                                   TextColor="#333" FontSize="13"/>
-                            <Label Text="{Binding SucursalSeleccionada.NombreSucursal, StringFormat='🏥 Sucursal: {0}'}" 
+                            <Label Text="{Binding SucursalSeleccionada.Nombre, StringFormat='🏥 Sucursal: {0}'}" 
                                   TextColor="#333" FontSize="13"/>
                             <Label Text="{Binding SlotSeleccionado.FechaHora, StringFormat='📅 Fecha: {0:dd/MM/yyyy HH:mm}'}" 
                                   TextColor="#333" FontSize="13"/>
@@ -576,9 +494,9 @@
                            BackgroundColor="#4CAF50" 
                            TextColor="White" 
                            FontSize="18"
-                           FontFamily="Bold"
+                           FontAttributes="Bold"
                            HeightRequest="50"
-                           IsEnabled="{Binding CanCrearCita}">
+                           IsEnabled="{Binding PuedeCrearCita}">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="BackgroundColor" Value="#4CAF50"/>
@@ -608,26 +526,14 @@
                       HorizontalOptions="Center"/>
             </StackLayout>
 
-            <!-- Botones de navegación -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,20">
-                <!-- Botón Volver -->
-                <Button Grid.Column="0" 
-                       Text="⬅️ Volver" 
-                       Command="{Binding VolverCommand}"
-                       BackgroundColor="#757575" 
-                       TextColor="White" 
-                       FontSize="15"
-                       HeightRequest="44"/>
-
-                <!-- Botón Cancelar -->
-                <Button Grid.Column="1" 
-                       Text="❌ Cancelar" 
-                       Command="{Binding CancelarCommand}"
-                       BackgroundColor="#F44336" 
-                       TextColor="White" 
-                       FontSize="15"
-                       HeightRequest="44"/>
-            </Grid>
+            <!-- Botón Cancelar -->
+            <Button Text="❌ Cancelar" 
+                   Command="{Binding CancelarCommand}"
+                   BackgroundColor="#F44336" 
+                   TextColor="White" 
+                   FontSize="15"
+                   HeightRequest="44"
+                   Margin="0,8,0,20"/>
 
         </StackLayout>
     </ScrollView>

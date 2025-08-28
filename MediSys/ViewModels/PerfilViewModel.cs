@@ -125,21 +125,7 @@ namespace MediSys.ViewModels
 			}
 		}
 
-		[RelayCommand]
-		private async Task EditarPerfilAsync()
-		{
-			try
-			{
-				await Shell.Current.DisplayAlert("Editar Perfil", "Esta funcionalidad estará disponible pronto", "OK");
-				// TODO: Implementar navegación a página de edición de perfil
-				// await Shell.Current.GoToAsync("//editarperfil");
-			}
-			catch (Exception ex)
-			{
-				await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
-			}
-		}
-
+		
 		[RelayCommand]
 		private async Task CerrarSesionAsync()
 		{
