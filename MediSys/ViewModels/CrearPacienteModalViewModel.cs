@@ -9,6 +9,7 @@ namespace MediSys.ViewModels
 	public partial class CrearPacienteModalViewModel : ObservableObject
 	{
 		private static MediSysApiService? _sharedApiService;
+		private readonly CedulaValidationService _cedulaService;
 
 		private MediSysApiService ApiService
 		{
@@ -70,6 +71,8 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private bool isLoading = false;
 
+
+
 		// ===== LISTAS ESTÁTICAS =====
 		public List<string> SexosDisponibles { get; } = new() { "M", "F" };
 		public List<string> TiposSangre { get; } = new()
@@ -84,6 +87,8 @@ namespace MediSys.ViewModels
 
 		public CrearPacienteModalViewModel(string cedula)
 		{
+			_cedulaService = new CedulaValidationService();
+
 			CedulaPaciente = cedula;
 		}
 
@@ -158,6 +163,69 @@ namespace MediSys.ViewModels
 		private void Cancelar()
 		{
 			CerrarModal?.Invoke(this, EventArgs.Empty);
+		}
+
+		// Comando de validación
+		[RelayCommand]
+		private async Task ValidarCedulaAsync()
+		{
+			if (string.IsNullOrWhiteSpace(CedulaPaciente) || CedulaPaciente.Length != 10)
+			{
+				await Shell.Current.DisplayAlert("Error", "Ingrese una cédula válida de 10 dígitos", "OK");
+				return;
+			}
+
+			try
+			{
+				IsLoading = true;
+
+				var result = await _cedulaService.ValidarCedulaAsync(CedulaPaciente);
+
+				if (result.Success && result.Data != null)
+				{
+					// Llenar campos automáticamente
+					NombresPaciente = result.Data.Nombres;
+					ApellidosPaciente = result.Data.Apellidos;
+
+					// Generar correo
+					var nombreLimpio = result.Data.Nombres.ToLower().Replace(" ", ".");
+					var apellidoLimpio = result.Data.Apellidos.ToLower().Replace(" ", ".");
+					CorreoPaciente = $"{nombreLimpio}.{apellidoLimpio}@gmail.com";
+
+					// Asignar fecha de nacimiento si está disponible
+					if (result.Data.FechaNacimiento.HasValue)
+					{
+						FechaNacimientoPaciente = result.Data.FechaNacimiento.Value;
+					}
+
+					// Determinar sexo básico por nombre
+					var primerNombre = result.Data.Nombres.Split(' ')[0].ToLower();
+					var nombresFemeninos = new[] { "maria", "ana", "carmen", "rosa", "lucia", "sofia", "elena", "patricia", "laura", "andrea", "diana", "gabriela", "carolina", "alejandra" };
+					SexoPaciente = nombresFemeninos.Any(n => primerNombre.Contains(n)) ? "F" : "M";
+
+					await Shell.Current.DisplayAlert("✅ Datos Validados",
+						$"Información cargada desde el Registro Civil:\n\n" +
+						$"👤 {result.Data.Nombres} {result.Data.Apellidos}\n" +
+						$"🎂 F. Nacimiento: {result.Data.FechaNacimiento?.ToString("dd/MM/yyyy") ?? "No disponible"}\n" +
+						$"📧 Correo sugerido: {CorreoPaciente}\n\n" +
+						"Complete los campos restantes.",
+						"Perfecto");
+				}
+				else
+				{
+					await Shell.Current.DisplayAlert("❌ No Encontrado",
+						$"{result.Message}\n\nPuede completar los datos manualmente.",
+						"OK");
+				}
+			}
+			catch (Exception ex)
+			{
+				await Shell.Current.DisplayAlert("Error", $"Error validando cédula: {ex.Message}", "OK");
+			}
+			finally
+			{
+				IsLoading = false;
+			}
 		}
 
 		private bool ValidarDatos()

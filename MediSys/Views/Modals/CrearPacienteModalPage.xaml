@@ -33,6 +33,46 @@
                            FontAttributes="Bold" 
                            TextColor="#34495E"/>
 
+                    <!-- ✅ NUEVA SECCIÓN: Cédula con validación -->
+                    <StackLayout Spacing="8">
+                        <Label Text="Cédula de Identidad *" 
+                   FontSize="13" 
+                   FontAttributes="Bold" 
+                   TextColor="#2C3E50"/>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <Frame Grid.Column="0" 
+                       BackgroundColor="#F8F9FA" 
+                       BorderColor="#BDC3C7" 
+                       CornerRadius="6" 
+                       Padding="0" 
+                       HasShadow="False">
+                                <Entry Text="{Binding CedulaPaciente}" 
+                           Placeholder="Ej: 1234567890"
+                           Keyboard="Numeric"
+                           MaxLength="10"
+                           BackgroundColor="Transparent"
+                           TextColor="#2C3E50"/>
+                            </Frame>
+
+                            <!-- Botón de validación -->
+                            <Button Grid.Column="1"
+                        Text="🔍 Validar"
+                        BackgroundColor="#E67E22"
+                        TextColor="White"
+                        FontSize="12"
+                        FontAttributes="Bold"
+                        WidthRequest="80"
+                        HeightRequest="40"
+                        CornerRadius="6"
+                        Command="{Binding ValidarCedulaCommand}" />
+                        </Grid>
+
+                        <Label Text="💡 Valide la cédula para cargar automáticamente los datos" 
+                   FontSize="11" 
+                   TextColor="#7F8C8D" />
+                    </StackLayout>
+
                     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" 
                           ColumnDefinitions="*,*" 
                           RowSpacing="16" 

@@ -303,6 +303,7 @@ namespace MediSys.ViewModels
 
 			try
 			{
+				// ✅ PASAR LA CÉDULA AL MODAL
 				var modalPage = new Views.Modals.CrearPacienteModalPage(CedulaBusqueda.Trim());
 				modalPage.PacienteCreado += OnPacienteCreado;
 				await Shell.Current.Navigation.PushModalAsync(modalPage);
