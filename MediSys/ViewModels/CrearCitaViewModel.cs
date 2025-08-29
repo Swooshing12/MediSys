@@ -497,7 +497,7 @@ namespace MediSys.ViewModels
 						$"Gracias por confiar en nuestro servicio médico.",
 						"Aceptar"
 					);
-
+					ResetFormulario();   // 🔹 Limpia todo
 					await Shell.Current.GoToAsync("..");
 				}
 
@@ -609,5 +609,37 @@ namespace MediSys.ViewModels
 							 SlotSeleccionado != null &&
 							 !string.IsNullOrWhiteSpace(MotivoCita);
 		}
+
+		private void ResetFormulario()
+		{
+			PasoActual = 1;
+			TituloModal = "Crear Nueva Cita - Paso 1 de 4";
+			ProgresoTexto = "Seleccione el tipo de cita";
+			PuedeCrearCita = false;
+			EstadoTipoCita = "";
+
+			CedulaBusqueda = "";
+			PacienteEncontrado = false;
+			MostrarFormularioPaciente = false;
+			PacienteSeleccionado = null;
+
+			SucursalSeleccionada = null;
+			EspecialidadSeleccionada = null;
+			DoctorSeleccionado = null;
+			SlotSeleccionado = null;
+
+			TiposCita.Clear();
+			Sucursales.Clear();
+			Especialidades.Clear();
+			Doctores.Clear();
+			SlotsDisponibles.Clear();
+
+			SemanaActual = DateTime.Now;
+			ActualizarTituloSemana();
+
+			MotivoCita = "";
+			NotasCita = "";
+		}
+
 	}
 }
