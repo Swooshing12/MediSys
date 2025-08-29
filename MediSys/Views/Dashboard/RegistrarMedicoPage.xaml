@@ -43,26 +43,46 @@
                            FontAttributes="Bold" 
                            TextColor="#2C3E50" />
 
-                    <!-- Cédula -->
-                    <StackLayout Spacing="5">
+                    <!-- Cédula con validación -->
+                    <StackLayout Spacing="8">
                         <Label Text="Cédula de Identidad *" 
-                               FontSize="14" 
-                               FontAttributes="Bold" 
-                               TextColor="#34495E" />
-                        <Border BackgroundColor="White" 
-                                Stroke="#3498DB" 
-                                StrokeThickness="2" 
-                                Padding="12">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="8" />
-                            </Border.StrokeShape>
-                            <Entry Text="{Binding Cedula}" 
-                                   Placeholder="Ej: 1234567890"
-                                   Keyboard="Numeric"
-                                   MaxLength="10"
-                                   BackgroundColor="Transparent"
-                                   TextColor="#2C3E50" />
-                        </Border>
+           FontSize="14" 
+           FontAttributes="Bold" 
+           TextColor="#34495E" />
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <Border Grid.Column="0"
+                BackgroundColor="White" 
+                Stroke="#3498DB" 
+                StrokeThickness="2" 
+                Padding="12">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Entry Text="{Binding Cedula}" 
+                   Placeholder="Ej: 1234567890"
+                   Keyboard="Numeric"
+                   MaxLength="10"
+                   BackgroundColor="Transparent"
+                   TextColor="#2C3E50" />
+                            </Border>
+
+                            <!-- ✅ BOTÓN DE VALIDACIÓN DIRECTA -->
+                            <Button Grid.Column="1"
+                Text="🔍 Validar"
+                BackgroundColor="#E67E22"
+                TextColor="White"
+                FontSize="14"
+                FontAttributes="Bold"
+                WidthRequest="100"
+                HeightRequest="48"
+                CornerRadius="8"
+                Command="{Binding ValidarCedulaCommand}" />
+                        </Grid>
+
+                        <Label Text="💡 Valide la cédula para obtener automáticamente los datos desde el Registro Civil del Ecuador" 
+           FontSize="12" 
+           TextColor="#7F8C8D" />
                     </StackLayout>
 
                     <!-- Nombres y Apellidos -->

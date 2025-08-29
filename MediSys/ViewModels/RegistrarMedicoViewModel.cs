@@ -6,9 +6,12 @@ using System.Collections.ObjectModel;
 
 namespace MediSys.ViewModels
 {
+
 	public partial class RegistrarMedicoViewModel : ObservableObject
 	{
 		private static MediSysApiService? _sharedApiService;
+
+		private readonly CedulaValidationService _cedulaService;
 
 		private MediSysApiService ApiService
 		{
@@ -84,6 +87,8 @@ namespace MediSys.ViewModels
 
 		public RegistrarMedicoViewModel()
 		{
+			_cedulaService = new CedulaValidationService(); // ✅ NUEVO
+
 			// 🔥 SUSCRIBIRSE A CAMBIOS
 			Horarios.CollectionChanged += (s, e) => {
 				System.Diagnostics.Debug.WriteLine($"🔥 Horarios.CollectionChanged: Count = {Horarios.Count}");
@@ -231,6 +236,77 @@ namespace MediSys.ViewModels
 			{
 				System.Diagnostics.Debug.WriteLine($"🔥 Removiendo horario: {horario.HorarioDisplay}");
 				Horarios.Remove(horario);
+			}
+		}
+
+		// ✅ COMANDO PARA VALIDAR CÉDULA
+		[RelayCommand]
+		private async Task ValidarCedulaAsync()
+		{
+			if (string.IsNullOrWhiteSpace(Cedula) || Cedula.Length != 10)
+			{
+				await Shell.Current.DisplayAlert("Error", "Ingrese una cédula válida de 10 dígitos", "OK");
+				return;
+			}
+
+			try
+			{
+				IsLoading = true;
+
+				var result = await _cedulaService.ValidarCedulaAsync(Cedula);
+
+				if (result.Success && result.Data != null)
+				{
+					// ✅ LLENAR CAMPOS AUTOMÁTICAMENTE
+					Nombres = result.Data.Nombres;
+					Apellidos = result.Data.Apellidos;
+
+					// Generar correo basado en nombres (formato profesional)
+					var nombreLimpio = result.Data.Nombres.ToLower().Replace(" ", ".");
+					var apellidoLimpio = result.Data.Apellidos.ToLower().Replace(" ", ".");
+					Correo = $"dr.{nombreLimpio}.{apellidoLimpio}@medicosec.com";
+
+					// Determinar sexo por nombres (básico)
+					var primerNombre = result.Data.Nombres.Split(' ')[0].ToLower();
+					var nombresFemeninos = new[] { "maria", "ana", "carmen", "rosa", "lucia", "sofia", "elena", "patricia", "laura", "andrea" };
+					if (nombresFemeninos.Any(n => primerNombre.Contains(n)))
+					{
+						Sexo = "F";
+					}
+
+					await Shell.Current.DisplayAlert("✅ Datos Validados",
+						$"Datos del Registro Civil cargados exitosamente:\n\n" +
+						$"👤 {result.Data.Nombres} {result.Data.Apellidos}\n" +
+						$"🆔 Cédula: {result.Data.Cedula}\n" +
+						$"🎂 F. Nacimiento: {result.Data.FechaNacimiento?.ToString("dd/MM/yyyy") ?? "No disponible"}\n" +
+						$"💼 Profesión: {result.Data.Profesion}\n" +
+						$"💒 Estado Civil: {result.Data.EstadoCivil}\n" +
+						$"📍 Lugar: {result.Data.LugarNacimiento}\n\n" +
+						$"📧 Correo sugerido: {Correo}\n\n" +
+						"Complete los campos restantes para continuar.",
+						"Perfecto");
+
+					// Validar después de llenar datos
+					ValidarDatos();
+				}
+				else
+				{
+					await Shell.Current.DisplayAlert("❌ Cédula No Encontrada",
+						$"{result.Message}\n\n" +
+						"Puede completar los campos manualmente si la persona no está registrada en el sistema nacional.",
+						"OK");
+				}
+			}
+			catch (Exception ex)
+			{
+				await Shell.Current.DisplayAlert("Error de Conexión",
+					$"No se pudo conectar al Registro Civil:\n{ex.Message}\n\n" +
+					"Verifique su conexión a internet e intente nuevamente.",
+					"OK");
+			}
+			finally
+			{
+				IsLoading = false;
 			}
 		}
 
@@ -394,6 +470,8 @@ namespace MediSys.ViewModels
 			CanSave = false;
 		}
 	}
+
+
 
 	// ===== MODELO PARA CREAR HORARIOS =====
 	public class HorarioCrear
