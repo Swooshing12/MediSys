@@ -23,7 +23,7 @@ namespace MediSys.Services
 			};
 
 			_httpClient = new HttpClient(handler);
-			_baseUrl = "http://192.168.100.16/MenuDinamico/api";
+			_baseUrl = "http://192.168.100.27/MenuDinamico/api";
 
 			_httpClient.DefaultRequestHeaders.Clear();
 			_httpClient.DefaultRequestHeaders.Add("Accept", "application/json");

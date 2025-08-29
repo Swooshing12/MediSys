@@ -33,7 +33,6 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private string correo = "";
 
-
 		[ObservableProperty]
 		private string sexo = "M";
 
@@ -46,16 +45,18 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private Especialidad? especialidadSeleccionada;
 
-		// ===== SUCURSALES Y HORARIOS =====
-		[ObservableProperty]
-		private ObservableCollection<Especialidad> especialidades = new();
-
+		// ✅ CORREGIDO: Igual que CrearCitaViewModel
 		[ObservableProperty]
 		private ObservableCollection<Sucursal> sucursales = new();
 
 		[ObservableProperty]
-		private ObservableCollection<Sucursal> sucursalesSeleccionadas = new();
+		private Sucursal? sucursalSeleccionada;
 
+		// ✅ ESTA ES LA CLAVE: usar 'especialidades' (minúscula) como en CrearCitaViewModel
+		[ObservableProperty]
+		private ObservableCollection<Especialidad> especialidades = new();
+
+		// ===== HORARIOS =====
 		[ObservableProperty]
 		private ObservableCollection<HorarioCrear> horarios = new();
 
@@ -77,13 +78,13 @@ namespace MediSys.ViewModels
 		// ===== NACIONALIDADES =====
 		public List<string> NacionalidadesDisponibles { get; } = new()
 		{
-			"Ecuadorean", "Colombiana", "Peruavian", "Venezolana", "Argentina",
+			"Ecuatoriana", "Colombiana", "Peruana", "Venezolana", "Argentina",
 			"Chilena", "Brasileña", "Mexicana", "Española", "Estadounidense", "Otra"
 		};
 
 		public RegistrarMedicoViewModel()
 		{
-			// 🔥 SUSCRIBIRSE A CAMBIOS EN HORARIOS Y SUCURSALES
+			// 🔥 SUSCRIBIRSE A CAMBIOS
 			Horarios.CollectionChanged += (s, e) => {
 				System.Diagnostics.Debug.WriteLine($"🔥 Horarios.CollectionChanged: Count = {Horarios.Count}");
 				ShowHorarios = Horarios.Count > 0;
@@ -91,12 +92,28 @@ namespace MediSys.ViewModels
 				ValidarDatos();
 			};
 
-			SucursalesSeleccionadas.CollectionChanged += (s, e) => {
-				System.Diagnostics.Debug.WriteLine($"🔥 SucursalesSeleccionadas.CollectionChanged: Count = {SucursalesSeleccionadas.Count}");
-				ValidarDatos();
-			};
+			// ✅ AGREGAR EL PropertyChanged COMO EN CrearCitaViewModel
+			PropertyChanged += OnPropertyChanged;
 
 			_ = CargarDatosInicialesAsync();
+		}
+
+		// ✅ EVENTO PropertyChanged EXACTO COMO CrearCitaViewModel
+		private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			switch (e.PropertyName)
+			{
+				case nameof(SucursalSeleccionada):
+					_ = CargarEspecialidadesPorSucursalAsync();
+					break;
+				case nameof(EspecialidadSeleccionada):
+				case nameof(Cedula):
+				case nameof(Nombres):
+				case nameof(Apellidos):
+				case nameof(Correo):
+					ValidarDatos();
+					break;
+			}
 		}
 
 		private async Task CargarDatosInicialesAsync()
@@ -104,18 +121,7 @@ namespace MediSys.ViewModels
 			IsLoading = true;
 			try
 			{
-				// Cargar especialidades
-				var especialidadesResult = await ApiService.ObtenerEspecialidadesAsync();
-				if (especialidadesResult.Success && especialidadesResult.Data != null)
-				{
-					Especialidades.Clear();
-					foreach (var especialidad in especialidadesResult.Data)
-					{
-						Especialidades.Add(especialidad);
-					}
-				}
-
-				// Cargar sucursales
+				// ✅ SOLO CARGAR SUCURSALES AL INICIO (como CrearCitaViewModel)
 				var sucursalesResult = await ApiService.ObtenerSucursalesAsync();
 				if (sucursalesResult.Success && sucursalesResult.Data != null)
 				{
@@ -136,59 +142,79 @@ namespace MediSys.ViewModels
 			}
 		}
 
+		// ✅ MÉTODO EXACTO COMO CrearCitaViewModel
 		[RelayCommand]
-		private void AgregarSucursal(Sucursal sucursal)
+		private async Task CargarEspecialidadesPorSucursalAsync()
 		{
-			if (sucursal != null && !SucursalesSeleccionadas.Contains(sucursal))
-			{
-				System.Diagnostics.Debug.WriteLine($"🔥 Agregando sucursal: {sucursal.Nombre}");
-				SucursalesSeleccionadas.Add(sucursal);
-				// ValidarDatos() se llama automáticamente por la suscripción
-			}
-		}
+			if (SucursalSeleccionada == null)
+				return;
 
-		[RelayCommand]
-		private void RemoverSucursal(Sucursal sucursal)
-		{
-			if (sucursal != null && SucursalesSeleccionadas.Contains(sucursal))
+			try
 			{
-				System.Diagnostics.Debug.WriteLine($"🔥 Removiendo sucursal: {sucursal.Nombre}");
-				SucursalesSeleccionadas.Remove(sucursal);
+				System.Diagnostics.Debug.WriteLine($"🔍 Cargando especialidades para sucursal: {SucursalSeleccionada.Nombre} (ID: {SucursalSeleccionada.IdSucursal})");
 
-				// Remover horarios de esa sucursal
-				var horariosARemover = Horarios.Where(h => h.IdSucursal == sucursal.IdSucursal).ToList();
-				foreach (var horario in horariosARemover)
+				IsLoading = true;
+				var result = await ApiService.ObtenerEspecialidadesPorSucursalAsync(SucursalSeleccionada.IdSucursal);
+
+				System.Diagnostics.Debug.WriteLine($"📥 Respuesta API: Success={result.Success}, Data={result.Data?.Count ?? 0} especialidades");
+
+				if (result.Success && result.Data != null)
 				{
-					System.Diagnostics.Debug.WriteLine($"🔥 Removiendo horario: {horario.HorarioDisplay}");
-					Horarios.Remove(horario);
+					// ✅ USAR 'Especialidades' (la propiedad correcta)
+					Especialidades.Clear();
+					foreach (var especialidad in result.Data)
+					{
+						System.Diagnostics.Debug.WriteLine($"➕ Agregando especialidad: {especialidad.Nombre} (ID: {especialidad.IdEspecialidad})");
+						Especialidades.Add(especialidad);
+					}
+
+					// ✅ LIMPIAR SELECCIÓN COMO EN CrearCitaViewModel
+					EspecialidadSeleccionada = null;
+
+					System.Diagnostics.Debug.WriteLine($"✅ Total especialidades cargadas: {Especialidades.Count}");
 				}
-				// ValidarDatos() se llama automáticamente por la suscripción
+				else
+				{
+					System.Diagnostics.Debug.WriteLine($"⚠️ No se encontraron especialidades para esta sucursal");
+					Especialidades.Clear();
+					EspecialidadSeleccionada = null;
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error cargando especialidades: {ex.Message}");
+				await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
+			}
+			finally
+			{
+				IsLoading = false;
 			}
 		}
 
 		[RelayCommand]
 		private async Task AgregarHorarioAsync()
 		{
-			if (SucursalesSeleccionadas.Count == 0)
+			if (SucursalSeleccionada == null)
 			{
-				await Shell.Current.DisplayAlert("Error", "Primero seleccione al menos una sucursal", "OK");
+				await Shell.Current.DisplayAlert("Error", "Primero seleccione una sucursal", "OK");
 				return;
 			}
 
-			var modalPage = new Views.Modals.AgregarHorarioModalPage(SucursalesSeleccionadas.ToList());
+			var sucursalesList = new List<Sucursal> { SucursalSeleccionada };
+			var modalPage = new Views.Modals.AgregarHorarioModalPage(sucursalesList);
 
-			// 🔥 CORREGIR EL EVENTO PARA QUE FUNCIONE BIEN
 			modalPage.HorarioGuardado += (sender, horario) =>
 			{
 				System.Diagnostics.Debug.WriteLine($"🔥 EVENTO HorarioGuardado disparado: {horario.HorarioDisplay}");
 
-				// 🔥 USAR DISPATCHER PARA ASEGURAR QUE SE EJECUTE EN EL HILO PRINCIPAL
+				horario.IdSucursal = SucursalSeleccionada?.IdSucursal ?? 0;
+				horario.NombreSucursal = SucursalSeleccionada?.Nombre ?? "";
+
 				MainThread.BeginInvokeOnMainThread(() =>
 				{
 					Horarios.Add(horario);
 					System.Diagnostics.Debug.WriteLine($"🔥 Horario agregado. Total: {Horarios.Count}");
 
-					// Esto se llama automáticamente por la suscripción, pero por las dudas lo forzamos
 					ShowHorarios = Horarios.Count > 0;
 					OnPropertyChanged(nameof(ShowHorarios));
 					ValidarDatos();
@@ -205,14 +231,12 @@ namespace MediSys.ViewModels
 			{
 				System.Diagnostics.Debug.WriteLine($"🔥 Removiendo horario: {horario.HorarioDisplay}");
 				Horarios.Remove(horario);
-				// ShowHorarios y ValidarDatos() se actualizan automáticamente
 			}
 		}
 
 		[RelayCommand]
 		private async Task GuardarMedicoAsync()
 		{
-			// 🔥 VALIDACIÓN FINAL ANTES DE ENVIAR
 			ValidarDatos();
 
 			if (!CanSave)
@@ -227,27 +251,22 @@ namespace MediSys.ViewModels
 					erroresList.Add("- Apellidos");
 				if (string.IsNullOrWhiteSpace(Correo) || !Correo.Contains("@"))
 					erroresList.Add("- Correo válido");
+				if (SucursalSeleccionada == null)
+					erroresList.Add("- Sucursal");
 				if (EspecialidadSeleccionada == null)
 					erroresList.Add("- Especialidad");
-				if (SucursalesSeleccionadas.Count == 0)
-					erroresList.Add("- Al menos una sucursal");
 				if (Horarios.Count == 0)
 					erroresList.Add("- Al menos un horario");
 
 				await Shell.Current.DisplayAlert("Campos Requeridos",
-					$"Complete los siguientes campos:\n\n{string.Join("\n", erroresList)}\n\n" +
-					$"Estado actual:\n" +
-					$"• Horarios: {Horarios.Count}\n" +
-					$"• Sucursales: {SucursalesSeleccionadas.Count}",
+					$"Complete los siguientes campos:\n\n{string.Join("\n", erroresList)}",
 					"OK");
 				return;
 			}
-			// 🔹 Aquí agregamos logs para ver los valores actuales
-			System.Diagnostics.Debug.WriteLine($"DEBUG: Cedula='{Cedula}'");
-			System.Diagnostics.Debug.WriteLine($"DEBUG: Nombres='{Nombres}', Apellidos='{Apellidos}'");
-			System.Diagnostics.Debug.WriteLine($"DEBUG: Username='{GenerarUsername()}'");
-			System.Diagnostics.Debug.WriteLine($"DEBUG: Sexo='{Sexo}', Especialidad='{EspecialidadSeleccionada?.Nombre ?? "null"}'");
-			System.Diagnostics.Debug.WriteLine($"DEBUG: SucursalesSeleccionadas.Count={SucursalesSeleccionadas.Count}, Horarios.Count={Horarios.Count}");
+
+			System.Diagnostics.Debug.WriteLine($"DEBUG: Guardando médico...");
+			System.Diagnostics.Debug.WriteLine($"DEBUG: Cedula='{Cedula}', Nombres='{Nombres}', Apellidos='{Apellidos}'");
+			System.Diagnostics.Debug.WriteLine($"DEBUG: Sucursal='{SucursalSeleccionada?.Nombre}', Especialidad='{EspecialidadSeleccionada?.Nombre}'");
 
 			IsLoading = true;
 
@@ -264,7 +283,7 @@ namespace MediSys.ViewModels
 					Nacionalidad = Nacionalidad,
 					IdEspecialidad = EspecialidadSeleccionada?.IdEspecialidad ?? 0,
 					TituloProfesional = TituloProfesional,
-					Sucursales = SucursalesSeleccionadas.Select(s => s.IdSucursal).ToList(),
+					Sucursales = new List<int> { SucursalSeleccionada?.IdSucursal ?? 0 },
 					Horarios = Horarios.Select(h => new CrearHorarioRequest
 					{
 						IdSucursal = h.IdSucursal,
@@ -275,14 +294,15 @@ namespace MediSys.ViewModels
 					}).ToList()
 				};
 
-				System.Diagnostics.Debug.WriteLine($"🚀 Enviando request con {request.Horarios.Count} horarios");
-
 				var result = await ApiService.CrearMedicoAsync(request);
 
 				if (result.Success)
 				{
 					await Shell.Current.DisplayAlert("¡Éxito!",
-						$"Médico {Nombres} {Apellidos} creado exitosamente con {Horarios.Count} horarios asignados",
+						$"Médico {Nombres} {Apellidos} creado exitosamente.\n\n" +
+						$"🏥 Sucursal: {SucursalSeleccionada?.Nombre}\n" +
+						$"🩺 Especialidad: {EspecialidadSeleccionada?.Nombre}\n" +
+						$"⏰ Horarios: {Horarios.Count} configurados",
 						"OK");
 
 					LimpiarFormulario();
@@ -304,7 +324,6 @@ namespace MediSys.ViewModels
 			}
 		}
 
-		// 🔥 MÉTODO DE VALIDACIÓN CORREGIDO
 		public void ValidarDatos()
 		{
 			var errores = new List<string>();
@@ -321,15 +340,14 @@ namespace MediSys.ViewModels
 			if (string.IsNullOrWhiteSpace(Correo) || !Correo.Contains("@"))
 				errores.Add("Correo electrónico válido es requerido");
 
-
 			if (string.IsNullOrWhiteSpace(Sexo))
 				errores.Add("Debe seleccionar el sexo");
 
+			if (SucursalSeleccionada == null)
+				errores.Add("Debe seleccionar una sucursal");
+
 			if (EspecialidadSeleccionada == null)
 				errores.Add("Debe seleccionar una especialidad");
-
-			if (SucursalesSeleccionadas.Count == 0)
-				errores.Add("Debe seleccionar al menos una sucursal");
 
 			if (Horarios.Count == 0)
 				errores.Add("Debe agregar al menos un horario de atención");
@@ -337,16 +355,12 @@ namespace MediSys.ViewModels
 			var previousCanSave = CanSave;
 			CanSave = errores.Count == 0;
 
-			// 🔥 DEBUG MEJORADO
 			System.Diagnostics.Debug.WriteLine($"🔍 ValidarDatos:");
 			System.Diagnostics.Debug.WriteLine($"   - Horarios.Count: {Horarios.Count}");
-			System.Diagnostics.Debug.WriteLine($"   - Sucursales.Count: {SucursalesSeleccionadas.Count}");
+			System.Diagnostics.Debug.WriteLine($"   - Sucursal: {SucursalSeleccionada?.Nombre ?? "null"}");
 			System.Diagnostics.Debug.WriteLine($"   - Especialidad: {EspecialidadSeleccionada?.Nombre ?? "null"}");
-			System.Diagnostics.Debug.WriteLine($"   - Sexo: {Sexo}");
 			System.Diagnostics.Debug.WriteLine($"   - CanSave: {previousCanSave} → {CanSave}");
-			System.Diagnostics.Debug.WriteLine($"   - Errores: {errores.Count}");
 
-			// 🔥 NOTIFICAR CAMBIO SOLO SI CAMBIÓ
 			if (previousCanSave != CanSave)
 			{
 				OnPropertyChanged(nameof(CanSave));
@@ -358,11 +372,10 @@ namespace MediSys.ViewModels
 			var baseUsername = $"{Nombres?.ToLower().Replace(" ", "")}.{Apellidos?.ToLower().Replace(" ", "")}".Trim('.');
 
 			if (string.IsNullOrWhiteSpace(baseUsername))
-				baseUsername = $"user{Guid.NewGuid().ToString("N")[..6]}"; // fallback
+				baseUsername = $"user{Guid.NewGuid().ToString("N")[..6]}";
 
 			return baseUsername.Substring(0, Math.Min(20, baseUsername.Length));
 		}
-
 
 		private void LimpiarFormulario()
 		{
@@ -374,7 +387,8 @@ namespace MediSys.ViewModels
 			Nacionalidad = "Ecuatoriana";
 			TituloProfesional = "";
 			EspecialidadSeleccionada = null;
-			SucursalesSeleccionadas.Clear();
+			SucursalSeleccionada = null;
+			Especialidades.Clear();
 			Horarios.Clear();
 			ShowHorarios = false;
 			CanSave = false;
@@ -403,6 +417,6 @@ namespace MediSys.ViewModels
 			_ => "Desconocido"
 		};
 
-		public string HorarioDisplay => $"🏢 {NombreSucursal} - {DiaSemanaTexto}: {HoraInicio} a {HoraFin} ({DuracionCita} min)";
+		public string HorarioDisplay => $"📅 {DiaSemanaTexto}: {HoraInicio} a {HoraFin} ({DuracionCita} min)";
 	}
 }

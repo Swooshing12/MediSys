@@ -155,33 +155,59 @@
                 </StackLayout>
             </Frame>
 
-            <!-- INFORMACIÓN PROFESIONAL -->
+            <!-- ✅ SUCURSAL Y ESPECIALIDAD - ORDEN CORREGIDO -->
             <Frame BackgroundColor="White" 
                    CornerRadius="16" 
                    HasShadow="True" 
                    Padding="25">
                 <StackLayout Spacing="20">
 
-                    <Label Text="🩺 Información Profesional" 
+                    <Label Text="🏢 Información Profesional" 
                            FontSize="18" 
                            FontAttributes="Bold" 
                            TextColor="#2C3E50" />
 
-                    <!-- Especialidad -->
+                    <!-- 1️⃣ PRIMERO: Sucursal -->
                     <StackLayout Spacing="5">
-                        <Label Text="Especialidad Médica *" 
+                        <Label Text="Sucursal de Trabajo *" 
                                FontSize="14" 
                                FontAttributes="Bold" 
                                TextColor="#34495E" />
-                        <Picker ItemsSource="{Binding Especialidades}" 
+                        <Picker ItemsSource="{Binding Sucursales}" 
                                 ItemDisplayBinding="{Binding Nombre}"
-                                SelectedItem="{Binding EspecialidadSeleccionada}"
-                                Title="Seleccione una especialidad"
+                                SelectedItem="{Binding SucursalSeleccionada}"
+                                Title="Seleccione una sucursal"
                                 BackgroundColor="White"
                                 TextColor="#2C3E50" />
+                        <Label Text="💡 Seleccione primero la sucursal para cargar las especialidades disponibles" 
+                               FontSize="12" 
+                               TextColor="#7F8C8D"
+                               IsVisible="{Binding SucursalSeleccionada, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter=inverse}" />
                     </StackLayout>
 
-                    <!-- Título Profesional -->
+                    <!-- 2️⃣ SEGUNDO: Especialidad (se carga según sucursal) -->
+                    <!-- 2️⃣ SEGUNDO: Especialidad (se carga según sucursal) -->
+                    <StackLayout Spacing="5" 
+             IsVisible="{Binding SucursalSeleccionada, Converter={StaticResource ObjectToBoolConverter}}">
+                        <Label Text="Especialidad Médica *" 
+           FontSize="14" 
+           FontAttributes="Bold" 
+           TextColor="#34495E" />
+
+                        <!-- ✅ USAR 'Especialidades' (igual que CrearCitaViewModel) -->
+                        <Picker ItemsSource="{Binding Especialidades}" 
+            ItemDisplayBinding="{Binding Nombre}"
+            SelectedItem="{Binding EspecialidadSeleccionada}"
+            Title="Seleccione una especialidad"
+            BackgroundColor="White"
+            TextColor="#2C3E50" />
+
+                        <Label Text="{Binding Especialidades.Count, StringFormat='✅ {0} especialidades disponibles'}" 
+           FontSize="12" 
+           TextColor="#27AE60" />
+                    </StackLayout>
+
+                    <!-- 3️⃣ TERCERO: Título Profesional -->
                     <StackLayout Spacing="5">
                         <Label Text="Título Profesional" 
                                FontSize="14" 
@@ -204,106 +230,12 @@
                 </StackLayout>
             </Frame>
 
-            <!-- SUCURSALES -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="16" 
-                   HasShadow="True" 
-                   Padding="25">
-                <StackLayout Spacing="20">
-
-                    <StackLayout Orientation="Horizontal" Spacing="10">
-                        <Label Text="🏢 Sucursales de Trabajo *" 
-                               FontSize="18" 
-                               FontAttributes="Bold" 
-                               TextColor="#2C3E50"
-                               VerticalOptions="Center" />
-                        <Label Text="{Binding SucursalesSeleccionadas.Count, StringFormat='({0} seleccionadas)'}" 
-                               FontSize="14" 
-                               TextColor="#7F8C8D"
-                               VerticalOptions="Center" />
-                    </StackLayout>
-
-                    <!-- Lista de sucursales disponibles -->
-                    <CollectionView ItemsSource="{Binding Sucursales}">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:Sucursal">
-                                <Grid ColumnDefinitions="*,Auto" 
-                                      Padding="15" 
-                                      BackgroundColor="#ECF0F1">
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:RegistrarMedicoViewModel}}, Path=AgregarSucursalCommand}" 
-                                                            CommandParameter="{Binding}" />
-                                    </Grid.GestureRecognizers>
-
-                                    <StackLayout Grid.Column="0">
-                                        <Label Text="{Binding Nombre}" 
-                                               FontSize="16" 
-                                               FontAttributes="Bold" 
-                                               TextColor="#2C3E50" />
-                                        <Label Text="{Binding Direccion}" 
-                                               FontSize="12" 
-                                               TextColor="#7F8C8D" />
-                                    </StackLayout>
-
-                                    <Button Grid.Column="1"
-                                            Text="➕"
-                                            BackgroundColor="#27AE60"
-                                            TextColor="White"
-                                            FontSize="16"
-                                            WidthRequest="40"
-                                            HeightRequest="40"
-                                            CornerRadius="20"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:RegistrarMedicoViewModel}}, Path=AgregarSucursalCommand}" 
-                                            CommandParameter="{Binding}" />
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-
-                    <!-- Sucursales seleccionadas -->
-                    <StackLayout IsVisible="{Binding SucursalesSeleccionadas.Count, Converter={StaticResource IntToBoolConverter}}">
-                        <Label Text="✅ Sucursales Seleccionadas:" 
-                               FontSize="14" 
-                               FontAttributes="Bold" 
-                               TextColor="#27AE60" />
-
-                        <CollectionView ItemsSource="{Binding SucursalesSeleccionadas}">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:Sucursal">
-                                    <Grid ColumnDefinitions="*,Auto" 
-                                          Padding="10" 
-                                          BackgroundColor="#E8F5E8"
-                                          Margin="0,2">
-                                        <Label Grid.Column="0" 
-                                               Text="{Binding Nombre}" 
-                                               FontSize="14" 
-                                               TextColor="#27AE60"
-                                               VerticalOptions="Center" />
-
-                                        <Button Grid.Column="1"
-                                                Text="❌"
-                                                BackgroundColor="#E74C3C"
-                                                TextColor="White"
-                                                FontSize="12"
-                                                WidthRequest="30"
-                                                HeightRequest="30"
-                                                CornerRadius="15"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:RegistrarMedicoViewModel}}, Path=RemoverSucursalCommand}" 
-                                                CommandParameter="{Binding}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </StackLayout>
-
-                </StackLayout>
-            </Frame>
-
             <!-- HORARIOS -->
             <Frame BackgroundColor="White" 
                    CornerRadius="16" 
                    HasShadow="True" 
-                   Padding="25">
+                   Padding="25"
+                   IsVisible="{Binding EspecialidadSeleccionada, Converter={StaticResource ObjectToBoolConverter}}">
                 <StackLayout Spacing="20">
 
                     <StackLayout Orientation="Horizontal" Spacing="15">
@@ -320,8 +252,7 @@
                                 FontAttributes="Bold"
                                 CornerRadius="8"
                                 HeightRequest="40"
-                                Command="{Binding AgregarHorarioCommand}"
-                                IsEnabled="{Binding SucursalesSeleccionadas.Count, Converter={StaticResource IntToBoolConverter}}" />
+                                Command="{Binding AgregarHorarioCommand}" />
                     </StackLayout>
 
                     <!-- Lista de horarios -->
