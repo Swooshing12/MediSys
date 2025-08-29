@@ -5,6 +5,8 @@
              x:Class="MediSys.Views.Dashboard.CrearCitaPage"
              Title="Crear Nueva Cita"
              BackgroundColor="#F5F5F5">
+    
+    
 
     <ScrollView>
         <StackLayout Padding="16" Spacing="20">
@@ -411,15 +413,27 @@
                                                     </DataTrigger>
                                                 </Label.Triggers>
                                             </Label>
-                                            <Label Text="{Binding Disponible, Converter={StaticResource BoolToDisponibleTextConverter}}" 
-                                                  FontSize="10" 
-                                                  HorizontalOptions="Center"
-                                                  TextColor="#666">
+                                            <!-- TEXTO MEJORADO PARA DISPONIBILIDAD -->
+                                            <Label FontSize="9" 
+                                                   TextColor="#059669"
+                                                   FontAttributes="Bold"
+                                                   HorizontalOptions="Center">
+                                                <Label.Text>
+                                                    <Binding Path="Disponible">
+                                                        <Binding.Converter>
+                                                            <local:BoolToAvailabilityTextConverter/>
+                                                        </Binding.Converter>
+                                                    </Binding>
+                                                </Label.Text>
                                                 <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Disponible}" Value="False">
+                                                        <Setter Property="TextColor" Value="#DC2626"/>
+                                                    </DataTrigger>
                                                     <DataTrigger TargetType="Label" 
                                                                Binding="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem.FechaHora}" 
                                                                Value="{Binding FechaHora}">
                                                         <Setter Property="TextColor" Value="White"/>
+                                                        <Setter Property="Opacity" Value="0.9"/>
                                                     </DataTrigger>
                                                 </Label.Triggers>
                                             </Label>
