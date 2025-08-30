@@ -16,6 +16,9 @@
             <local2:SexoToIndexConverter x:Key="SexoToIndexConverter" />
             <local2:IntToBoolConverter x:Key="IntToBoolConverter" />
             <local2:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <local2:CountToInverseBoolConverter x:Key="CountToInverseBoolConverter"/>
+            <local2:BoolToAvailabilityTextConverter x:Key="BoolToAvailabilityTextConverter"/>
+            <local2:ObjectToBoolConverter x:Key="ObjectToBoolConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

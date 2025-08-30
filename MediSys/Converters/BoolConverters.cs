@@ -114,4 +114,36 @@ namespace MediSys.Converters
 			return !(bool)value;
 		}
 	}
+	public class CountToInverseBoolConverter : IValueConverter
+	{
+		// Convierte el valor (Count) a true o false
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (value is int count)
+			{
+				return count == 0; // Visible solo cuando no hay elementos
+			}
+			return true; // Por defecto, visible si algo falla
+		}
+
+		// No lo usaremos, pero hay que implementarlo
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class ObjectToBoolConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			// Devuelve true si el objeto NO es nulo
+			return value != null;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

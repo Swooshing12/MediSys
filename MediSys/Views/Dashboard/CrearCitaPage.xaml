@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:MediSys.Converters"
+             xmlns:local2="clr-namespace:MediSys.Converters"
              x:Class="MediSys.Views.Dashboard.CrearCitaPage"
              Title="Crear Nueva Cita"
              BackgroundColor="#F5F5F5">
@@ -421,7 +421,7 @@
                                                 <Label.Text>
                                                     <Binding Path="Disponible">
                                                         <Binding.Converter>
-                                                            <local:BoolToAvailabilityTextConverter/>
+                                                            <local2:BoolToAvailabilityTextConverter/>
                                                         </Binding.Converter>
                                                     </Binding>
                                                 </Label.Text>
@@ -541,7 +541,7 @@
             </StackLayout>
 
             <!-- Botón Cancelar -->
-            <Button Text="❌ Cancelar" 
+            <Button Text="❌ Cancelar Cita" 
                    Command="{Binding CancelarCommand}"
                    BackgroundColor="#F44336" 
                    TextColor="White" 

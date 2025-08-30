@@ -541,9 +541,13 @@ namespace MediSys.ViewModels
 
 			if (confirmacion)
 			{
+				ResetFormulario(); // 👈 aquí sí lo llamas correctamente
+
+				// Opcional: salir de la vista
 				await Shell.Current.GoToAsync("..");
 			}
 		}
+
 
 		private void GenerarSlotsDisponibles(HorariosDisponiblesResponse horarios)
 		{
@@ -611,7 +615,7 @@ namespace MediSys.ViewModels
 							 !string.IsNullOrWhiteSpace(MotivoCita);
 		}
 
-		private void ResetFormulario()
+		private async Task ResetFormulario()
 		{
 			PasoActual = 1;
 			TituloModal = "Crear Nueva Cita - Paso 1 de 4";
@@ -640,6 +644,10 @@ namespace MediSys.ViewModels
 
 			MotivoCita = "";
 			NotasCita = "";
+
+			// 🔹 Volvemos a cargar los datos iniciales
+			await CargarTiposCitaAsync();
+			await CargarSucursalesAsync();
 		}
 
 	}
