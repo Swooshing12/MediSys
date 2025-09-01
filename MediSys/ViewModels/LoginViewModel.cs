@@ -33,6 +33,16 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private bool showError = false;
 
+		// ✅ NUEVAS PROPIEDADES PARA TOGGLE DE CONTRASEÑA
+		[ObservableProperty]
+		private bool isPasswordHidden = true;
+
+		[ObservableProperty]
+		private string passwordToggleIcon = "👁️";
+
+		[ObservableProperty]
+		private string loginButtonText = "INICIAR SESIÓN";
+
 		public LoginViewModel()
 		{
 			// Crear una sola instancia compartida para mantener cookies
@@ -40,6 +50,22 @@ namespace MediSys.ViewModels
 				_sharedApiService = new MediSysApiService();
 
 			_authService = new AuthService();
+		}
+
+		// ✅ MÉTODO PARA CAMBIAR TEXTO DEL BOTÓN SEGÚN LOADING
+		partial void OnIsLoadingChanged(bool value)
+		{
+			LoginButtonText = value ? "VERIFICANDO..." : "INICIAR SESIÓN";
+		}
+
+		// ✅ COMANDO PARA TOGGLE DE CONTRASEÑA
+		[RelayCommand]
+		private void TogglePasswordVisibility()
+		{
+			IsPasswordHidden = !IsPasswordHidden;
+			PasswordToggleIcon = IsPasswordHidden ? "👁️" : "🙈";
+
+			System.Diagnostics.Debug.WriteLine($"Password visibility toggled: Hidden={IsPasswordHidden}, Icon={PasswordToggleIcon}");
 		}
 
 		[RelayCommand]
@@ -50,17 +76,21 @@ namespace MediSys.ViewModels
 				ShowErrorMessage("Complete todos los campos requeridos");
 				return;
 			}
+
 			if (!IsValidEmail(Correo))
 			{
 				ShowErrorMessage("Ingrese un formato de correo válido");
 				return;
 			}
+
 			IsLoading = true;
 			ErrorMessage = "";
 			ShowError = false;
+
 			try
 			{
 				var result = await _sharedApiService!.LoginAsync(Correo, Password);
+
 				if (result.Success && result.Data?.Usuario != null)
 				{
 					var user = result.Data.Usuario;
@@ -69,7 +99,7 @@ namespace MediSys.ViewModels
 					await _authService.SaveUserAsync(user);
 					System.Diagnostics.Debug.WriteLine("✅ User saved to storage");
 
-					// 🔥 NUEVO: Guardar también en Preferences para el perfil
+					// NUEVO: Guardar también en Preferences para el perfil
 					var userJson = System.Text.Json.JsonSerializer.Serialize(user, new System.Text.Json.JsonSerializerOptions
 					{
 						PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
@@ -97,10 +127,15 @@ namespace MediSys.ViewModels
 
 					await Shell.Current.DisplayAlert("¡Inicio de Sesión Exitoso!", welcomeMessage, "Continuar");
 
+					// Limpiar campos
 					Correo = "";
 					Password = "";
 					ErrorMessage = "";
 					ShowError = false;
+
+					// ✅ RESETEAR ESTADO DE CONTRASEÑA
+					IsPasswordHidden = true;
+					PasswordToggleIcon = "👁️";
 
 					// SEGUNDO: Habilitar flyout
 					Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
@@ -150,10 +185,25 @@ namespace MediSys.ViewModels
 			await Shell.Current.GoToAsync("//forgotpassword");
 		}
 
+		// ✅ MÉTODO MEJORADO PARA MOSTRAR ERRORES
 		private void ShowErrorMessage(string message)
 		{
 			ErrorMessage = message;
 			ShowError = true;
+
+			// Auto-ocultar error después de 8 segundos
+			Task.Run(async () =>
+			{
+				await Task.Delay(8000);
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					if (ErrorMessage == message) // Solo ocultar si es el mismo mensaje
+					{
+						ShowError = false;
+						ErrorMessage = "";
+					}
+				});
+			});
 		}
 
 		private static bool IsValidEmail(string email)
@@ -167,6 +217,18 @@ namespace MediSys.ViewModels
 			{
 				return false;
 			}
+		}
+
+		// ✅ MÉTODO DE LIMPIEZA PARA CUANDO SE NAVEGA AWAY
+		public void ResetForm()
+		{
+			Correo = "";
+			Password = "";
+			ErrorMessage = "";
+			ShowError = false;
+			IsPasswordHidden = true;
+			PasswordToggleIcon = "👁️";
+			IsLoading = false;
 		}
 	}
 }

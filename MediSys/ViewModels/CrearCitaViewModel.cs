@@ -349,6 +349,16 @@ namespace MediSys.ViewModels
 					DoctorSeleccionado = null;
 					Doctores.Clear();
 					SlotsDisponibles.Clear();
+
+					// 🔹 Mensaje bonito en el debug con count
+					System.Diagnostics.Debug.WriteLine($"✅ Se encontraron {Especialidades.Count} especialidades para {SucursalSeleccionada.Nombre}");
+				}
+				else
+				{
+					Especialidades.Clear();
+					EspecialidadSeleccionada = null;
+
+					System.Diagnostics.Debug.WriteLine($"⚠️ No se encontraron especialidades para {SucursalSeleccionada.Nombre}");
 				}
 			}
 			catch (Exception ex)
@@ -360,6 +370,7 @@ namespace MediSys.ViewModels
 				IsLoading = false;
 			}
 		}
+
 
 		[RelayCommand]
 		private async Task CargarDoctoresPorEspecialidadAsync()

@@ -1,4 +1,4 @@
-using MediSys.ViewModels;
+﻿using MediSys.ViewModels;
 
 namespace MediSys.Views.Dashboard;
 
@@ -16,6 +16,10 @@ public partial class ConsultarMedicoPage : ContentPage
 	protected override void OnAppearing()
 	{
 		base.OnAppearing();
-		 _viewModel.LimpiarBusquedaCommand.Execute(null);
+		// ✅ SOLO limpiar búsqueda si NO hay médico encontrado
+		if (_viewModel.MedicoEncontrado == null)
+		{
+			_viewModel.LimpiarBusquedaCommand.Execute(null);
+		}
 	}
 }

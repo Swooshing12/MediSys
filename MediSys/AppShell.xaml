@@ -9,198 +9,272 @@
     x:DataType="viewmodels:AppShellViewModel"
     Title="MediSys"
     FlyoutBehavior="Flyout"
-    FlyoutBackgroundColor="#2C3E50">
+    FlyoutBackgroundColor="PaleVioletRed"
+    Shell.ForegroundColor="PaleVioletRed"
+    Shell.UnselectedColor="Gray"
+    Shell.TitleColor="White">
+
+    <Shell.Resources>
+        <ResourceDictionary>
+            <!-- Colores médicos consistentes -->
+            <Color x:Key="MedicalBlue">#2E86AB</Color>
+            <Color x:Key="MedicalTeal">#A23B72</Color>
+            <Color x:Key="MedicalGreen">#F18F01</Color>
+            <Color x:Key="MedicalWhite">#FFFFFF</Color>
+            <Color x:Key="MedicalGray">#F8F9FA</Color>
+            <Color x:Key="MedicalDarkBlue">#1A5A7A</Color>
+            <Color x:Key="MenuItemColor">#2C3E50</Color>
+            <Color x:Key="MenuItemSelected">#3498DB</Color>
+        </ResourceDictionary>
+    </Shell.Resources>
 
     <Shell.BindingContext>
         <viewmodels:AppShellViewModel />
     </Shell.BindingContext>
 
-    <!-- FLYOUT HEADER RESPONSIVO -->
+    <!-- FLYOUT HEADER MÉDICO PROFESIONAL -->
     <Shell.FlyoutHeader>
-        <StackLayout>
-            <!-- Contenedor principal con altura mínima pero flexible -->
-            <Grid MinimumHeightRequest="200" Padding="0">
-                <!-- Gradiente de fondo -->
-                <Rectangle>
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#2C3E50" Offset="0.0" />
-                            <GradientStop Color="#3498DB" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
+        <Grid MinimumHeightRequest="280" BackgroundColor="{StaticResource MedicalGray}">
 
-                <!-- Patrón decorativo -->
-                <Grid Opacity="0.1">
-                    <Path Data="M0,0 L50,50 M50,0 L100,50 M100,0 L150,50"
-                          Stroke="White"
-                          StrokeThickness="2"
-                          HorizontalOptions="Fill"
-                          VerticalOptions="Fill" />
-                </Grid>
+            <!-- Fondo con gradiente médico -->
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource MedicalBlue}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource MedicalTeal}" Offset="0.6" />
+                        <GradientStop Color="{StaticResource MedicalDarkBlue}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
 
-                <!-- Contenido del usuario -->
-                <StackLayout Padding="20,25,20,20" 
-                             VerticalOptions="Fill"
-                             Spacing="12">
-
-                    <!-- Avatar compacto -->
-                    <Frame BackgroundColor="White"
-                           CornerRadius="35"
-                           HeightRequest="70"
-                           WidthRequest="70"
-                           HasShadow="True"
-                           Padding="0"
-                           HorizontalOptions="Center">
-                        <Label Text="{Binding UserInitials}"
-                               FontSize="24"
-                               FontAttributes="Bold"
-                               TextColor="#2C3E50"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center" />
-                    </Frame>
-
-                    <!-- Nombre del usuario - Texto más compacto -->
-                    <Label Text="{Binding UserFullName}"
-                           FontSize="17"
-                           FontAttributes="Bold"
-                           TextColor="White"
-                           HorizontalOptions="Center"
-                           HorizontalTextAlignment="Center"
-                           LineBreakMode="TailTruncation"
-                           MaxLines="2" />
-
-                    <!-- Rol del usuario - Más compacto -->
-                    <Border BackgroundColor="White"
-                            Stroke="White"
-                            StrokeThickness="0"
-                            HorizontalOptions="Center"
-                            Padding="10,4">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="10" />
-                        </Border.StrokeShape>
-                        <Label Text="{Binding UserRoleDisplay}"
-                               FontSize="11"
-                               FontAttributes="Bold"
-                               TextColor="#2C3E50"
-                               HorizontalOptions="Center" />
-                    </Border>
-
-                    <!-- Información extra - Texto más pequeño -->
-                    <Label Text="{Binding UserExtraInfo}"
-                           FontSize="12"
-                           TextColor="LightGray"
-                           HorizontalOptions="Center"
-                           HorizontalTextAlignment="Center"
-                           LineBreakMode="TailTruncation"
-                           MaxLines="1" />
-
-                    <!-- Estado en línea - Más compacto -->
-                    <StackLayout Orientation="Horizontal" 
-                                 HorizontalOptions="Center"
-                                 Spacing="6">
-                        <Ellipse Fill="#2ECC71" 
-                                 WidthRequest="8" 
-                                 HeightRequest="8"
-                                 VerticalOptions="Center" />
-                        <Label Text="En línea"
-                               FontSize="11"
-                               FontAttributes="Bold"
-                               TextColor="#2ECC71"
-                               VerticalOptions="Center" />
-                    </StackLayout>
-                </StackLayout>
+            <!-- Patrón médico decorativo -->
+            <Grid Opacity="0.15">
+                <Path Data="M20,20 L40,40 M60,20 L80,40 M100,20 L120,40 M140,20 L160,40"
+                      Stroke="White"
+                      StrokeThickness="1.5"
+                      HorizontalOptions="Start"
+                      VerticalOptions="Start" />
+                <Path Data="M20,60 L40,80 M60,60 L80,80 M100,60 L120,80 M140,60 L160,80"
+                      Stroke="White"
+                      StrokeThickness="1.5"
+                      HorizontalOptions="Start"
+                      VerticalOptions="Start" />
             </Grid>
 
-            <!-- Separador visual -->
-            <BoxView BackgroundColor="#34495E" 
-                     HeightRequest="1" />
-        </StackLayout>
+            <!-- Contenido principal -->
+            <StackLayout Padding="25,30,25,25" Spacing="15">
+
+                <!-- Logo médico con sombra -->
+                <Border BackgroundColor="{StaticResource MedicalWhite}"
+                        WidthRequest="85"
+                        HeightRequest="85"
+                        HorizontalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="42" />
+                    </Border.StrokeShape>
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.3" Radius="15" Offset="0,5" />
+                    </Border.Shadow>
+
+                    <Label Text="🏥"
+                           FontSize="42"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+
+                <!-- Nombre del usuario -->
+                <Label Text="{Binding UserFullName}"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource MedicalWhite}"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="2" />
+
+                <!-- Rol profesional -->
+                <Border BackgroundColor="{StaticResource MedicalGreen}"
+                        HorizontalOptions="Center"
+                        Padding="15,6">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="15" />
+                    </Border.StrokeShape>
+                    <Border.Shadow>
+                        <Shadow Brush="{StaticResource MedicalGreen}" Opacity="0.4" Radius="8" Offset="0,3" />
+                    </Border.Shadow>
+
+                    <Label Text="{Binding UserRoleDisplay}"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource MedicalWhite}" />
+                </Border>
+
+                <!-- Información adicional -->
+                <StackLayout Orientation="Horizontal" 
+                             HorizontalOptions="Center" 
+                             Spacing="8">
+                    <Label Text="📧" FontSize="14" />
+                    <Label Text="{Binding UserExtraInfo}"
+                           FontSize="13"
+                           TextColor="{StaticResource MedicalWhite}"
+                           Opacity="0.9"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="1"
+                           VerticalOptions="Center" />
+                </StackLayout>
+
+                <!-- Estado conectado -->
+                <StackLayout Orientation="Horizontal" 
+                             HorizontalOptions="Center"
+                             Spacing="8">
+                    <Border BackgroundColor="#2ECC71"
+                            WidthRequest="10"
+                            HeightRequest="10">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="5" />
+                        </Border.StrokeShape>
+                    </Border>
+                    <Label Text="Conectado"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="#2ECC71"
+                           VerticalOptions="Center" />
+                </StackLayout>
+
+            </StackLayout>
+
+            <!-- Separador elegante -->
+            <Rectangle HeightRequest="2"
+                       VerticalOptions="End">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                        <GradientStop Color="Transparent" Offset="0" />
+                        <GradientStop Color="{StaticResource MedicalGreen}" Offset="0.5" />
+                        <GradientStop Color="Transparent" Offset="1" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+        </Grid>
     </Shell.FlyoutHeader>
 
-    <!-- FLYOUT FOOTER CON LOGOUT -->
+    <!-- FLYOUT FOOTER PROFESIONAL -->
     <Shell.FlyoutFooter>
-        <StackLayout BackgroundColor="#34495E" Padding="15">
-            <Button Text="Cerrar Sesión"
-                    BackgroundColor="#E74C3C"
-                    TextColor="White"
-                    CornerRadius="8"
+        <StackLayout BackgroundColor="{StaticResource MedicalGray}" 
+                     Padding="20,15,20,20" 
+                     Spacing="12">
+
+            <!-- Información del sistema -->
+            <StackLayout Orientation="Horizontal" 
+                         HorizontalOptions="Center" 
+                         Spacing="8">
+                <Label Text="🔐" FontSize="12" />
+                <Label Text="Sesión segura SSL"
+                       FontSize="11"
+                       TextColor="{StaticResource MenuItemColor}"
+                       Opacity="0.7" />
+                <Label Text="•" 
+                       FontSize="11"
+                       TextColor="{StaticResource MenuItemColor}"
+                       Opacity="0.5" />
+                <Label Text="v1.0.0"
+                       FontSize="11"
+                       TextColor="{StaticResource MenuItemColor}"
+                       Opacity="0.7" />
+            </StackLayout>
+
+            <!-- Botón logout profesional -->
+            <Button Text="🚪 Cerrar Sesión"
+                    FontSize="15"
                     FontAttributes="Bold"
-                    FontSize="14"
-                    HeightRequest="45"
-                    Command="{Binding LogoutCommand}" />
+                    TextColor="{StaticResource MedicalWhite}"
+                    HeightRequest="48"
+                    CornerRadius="12"
+                    Command="{Binding LogoutCommand}">
+
+                <Button.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#E74C3C" Offset="0.0" />
+                        <GradientStop Color="#C0392B" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Button.Background>
+
+                <Button.Shadow>
+                    <Shadow Brush="#E74C3C" Opacity="0.4" Radius="8" Offset="0,3" />
+                </Button.Shadow>
+            </Button>
+
         </StackLayout>
     </Shell.FlyoutFooter>
 
-    <!-- MENÚ PRINCIPAL -->
-    <FlyoutItem Title="Dashboard" 
+    <!-- MENÚ PRINCIPAL CON ESTILO MÉDICO -->
+    <FlyoutItem Title="🏠 Dashboard" 
                 FlyoutDisplayOptions="AsMultipleItems">
         <FlyoutItem.Icon>
-            <FontImageSource Glyph="🏠" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+            <FontImageSource Glyph="🏠" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalBlue}" />
         </FlyoutItem.Icon>
         <ShellContent Title="Dashboard"
                       ContentTemplate="{DataTemplate dashboard:DashboardPage}"
                       Route="dashboard" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Consultar Historial" 
+    <FlyoutItem Title="📋 Historial Clínico" 
                 FlyoutDisplayOptions="AsMultipleItems"
                 IsVisible="{Binding CanViewHistorial}">
         <FlyoutItem.Icon>
-            <FontImageSource Glyph="📋" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+            <FontImageSource Glyph="📋" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalTeal}" />
         </FlyoutItem.Icon>
         <ShellContent Title="Historial Médico"
                       ContentTemplate="{DataTemplate dashboard:HistorialClinicoPage}"
                       Route="historial" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Consultar Citas" 
+    <FlyoutItem Title="📅 Consultar Citas" 
                 FlyoutDisplayOptions="AsMultipleItems"
                 IsVisible="{Binding CanViewConsultaCitas}">
         <FlyoutItem.Icon>
-            <FontImageSource Glyph="📅" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+            <FontImageSource Glyph="📅" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalGreen}" />
         </FlyoutItem.Icon>
         <ShellContent Title="Consultar Citas"
                       ContentTemplate="{DataTemplate dashboard:ConsultaCitasPage}"
                       Route="consulta-citas" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Mi Perfil" 
+    <FlyoutItem Title="👤 Mi Perfil" 
                 FlyoutDisplayOptions="AsMultipleItems">
         <FlyoutItem.Icon>
-            <FontImageSource Glyph="👤" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+            <FontImageSource Glyph="👤" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalBlue}" />
         </FlyoutItem.Icon>
         <ShellContent Title="Mi Perfil"
                       ContentTemplate="{DataTemplate dashboard:PerfilPage}"
                       Route="perfil" />
     </FlyoutItem>
-    <!-- Gestión de Médicos -->
-    <FlyoutItem Title="Gestión Médicos" 
-            FlyoutDisplayOptions="AsMultipleItems">
+
+    <!-- Gestión Médicos -->
+    <FlyoutItem Title="👩‍⚕️ Gestión Médicos" 
+                FlyoutDisplayOptions="AsMultipleItems">
         <FlyoutItem.Icon>
-            <FontImageSource Glyph="👩‍⚕️" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+            <FontImageSource Glyph="👩‍⚕️" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalTeal}" />
         </FlyoutItem.Icon>
 
-        <ShellContent Title="Registrar Médico"
-                  ContentTemplate="{DataTemplate dashboard:RegistrarMedicoPage}"
-                  Route="registrarmedico" />
+        <ShellContent Title="➕ Registrar Médico"
+                      ContentTemplate="{DataTemplate dashboard:RegistrarMedicoPage}"
+                      Route="registrarmedico" />
 
-        <ShellContent Title="Consultar Médico"
-                  ContentTemplate="{DataTemplate dashboard:ConsultarMedicoPage}"
-                  Route="consultarmedico" />
-        <!-- En MediSys/AppShell.xaml, agregar esta ruta: -->
-        <ShellContent Title="Crear Cita" 
-              Icon="calendar_add"
-              Route="crear_cita"
-              ContentTemplate="{DataTemplate dashboard:CrearCitaPage}" />
+        <ShellContent Title="🔍 Consultar Médico"
+                      ContentTemplate="{DataTemplate dashboard:ConsultarMedicoPage}"
+                      Route="consultarmedico" />
+
+        <ShellContent Title="📝 Crear Cita" 
+                      ContentTemplate="{DataTemplate dashboard:CrearCitaPage}"
+                      Route="crear_cita" />
     </FlyoutItem>
 
-    <!-- MIS CITAS - Solo para médicos -->
-    <FlyoutItem Title="Mis Citas" 
+    <!-- Mis Citas Médicas -->
+    <FlyoutItem Title="🩺 Mis Citas" 
                 FlyoutDisplayOptions="AsMultipleItems"
                 IsVisible="{Binding IsMedico}">
         <FlyoutItem.Icon>
-            <FontImageSource Glyph="🩺" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="20" />
+            <FontImageSource Glyph="🩺" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalGreen}" />
         </FlyoutItem.Icon>
         <ShellContent Title="Mis Citas Médicas"
                       ContentTemplate="{DataTemplate dashboard:MisCitasPage}"

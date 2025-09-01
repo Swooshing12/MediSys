@@ -101,6 +101,7 @@ namespace MediSys.ViewModels
 			}
 		}
 
+		// ✅ MANTENER EL MÉTODO ORIGINAL PARA CUANDO SE BUSCA POR PRIMERA VEZ
 		[RelayCommand]
 		private async Task CargarHorariosAsync()
 		{
@@ -108,6 +109,8 @@ namespace MediSys.ViewModels
 
 			try
 			{
+				IsLoading = true; // ✅ SOLO aquí mostrar loading
+
 				System.Diagnostics.Debug.WriteLine($"📅 Cargando horarios del médico ID: {MedicoEncontrado.IdDoctor}");
 
 				var horariosResult = await ApiService.ObtenerHorariosAsync(MedicoEncontrado.IdDoctor);
@@ -143,8 +146,11 @@ namespace MediSys.ViewModels
 				System.Diagnostics.Debug.WriteLine($"❌ Error cargando horarios: {ex.Message}");
 				await Shell.Current.DisplayAlert("Error", $"Error cargando horarios: {ex.Message}", "OK");
 			}
+			finally
+			{
+				IsLoading = false;
+			}
 		}
-
 		[RelayCommand]
 		private async Task AgregarNuevoHorarioAsync()
 		{
@@ -170,12 +176,14 @@ namespace MediSys.ViewModels
 
 				MainThread.BeginInvokeOnMainThread(async () =>
 				{
-					IsLoading = true;
+					// ✅ NO mostrar loading que puede confundir al usuario
+					// IsLoading = true;
+
 					try
 					{
 						var request = new GuardarHorariosRequest
 						{
-							IdDoctor = idDoctor, // USAR LA VARIABLE CAPTURADA
+							IdDoctor = idDoctor,
 							Horarios = new List<CrearHorarioRequest>
 					{
 						new CrearHorarioRequest
@@ -193,9 +201,11 @@ namespace MediSys.ViewModels
 
 						if (result.Success)
 						{
+							// ✅ SOLO RECARGAR HORARIOS SIN PERDER EL MÉDICO
+							await ActualizarSoloHorariosAsync();
+
 							await Shell.Current.DisplayAlert("Horario Agregado",
 								"El horario se agregó exitosamente", "OK");
-							await CargarHorariosAsync();
 						}
 						else
 						{
@@ -207,10 +217,7 @@ namespace MediSys.ViewModels
 					{
 						await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
 					}
-					finally
-					{
-						IsLoading = false;
-					}
+					// ✅ NO cambiar IsLoading
 				});
 			};
 
@@ -233,7 +240,7 @@ namespace MediSys.ViewModels
 			{
 				MainThread.BeginInvokeOnMainThread(async () =>
 				{
-					IsLoading = true;
+					// ✅ NO mostrar loading
 					try
 					{
 						var request = new EditarHorarioRequest
@@ -250,26 +257,71 @@ namespace MediSys.ViewModels
 
 						if (result.Success)
 						{
-							await Shell.Current.DisplayAlert("Actualizado", "Horario actualizado exitosamente", "OK");
-							await CargarHorariosAsync();
+							// ✅ SOLO RECARGAR HORARIOS SIN PERDER EL MÉDICO
+							await ActualizarSoloHorariosAsync();
+
+							await Shell.Current.DisplayAlert("Actualizado",
+								"Horario actualizado exitosamente", "OK");
 						}
 						else
 						{
-							await Shell.Current.DisplayAlert("Error", result.Message ?? "Error actualizando", "OK");
+							await Shell.Current.DisplayAlert("Error",
+								result.Message ?? "Error actualizando horario", "OK");
 						}
 					}
 					catch (Exception ex)
 					{
 						await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
 					}
-					finally
-					{
-						IsLoading = false;
-					}
 				});
 			};
 
 			await Shell.Current.Navigation.PushModalAsync(modalPage);
+		}
+
+		// ✅ NUEVO MÉTODO: Solo actualizar horarios sin resetear la vista
+		private async Task ActualizarSoloHorariosAsync()
+		{
+			if (MedicoEncontrado == null) return;
+
+			try
+			{
+				System.Diagnostics.Debug.WriteLine($"🔄 Actualizando solo horarios del médico ID: {MedicoEncontrado.IdDoctor}");
+
+				var horariosResult = await ApiService.ObtenerHorariosAsync(MedicoEncontrado.IdDoctor);
+
+				if (horariosResult.Success && horariosResult.Data != null)
+				{
+					// ✅ MANTENER REFERENCIA AL MÉDICO Y SOLO ACTUALIZAR HORARIOS
+					Horarios.Clear();
+					HorariosPorSucursal.Clear();
+
+					foreach (var horario in horariosResult.Data.HorariosRaw)
+					{
+						Horarios.Add(horario);
+					}
+
+					foreach (var sucursal in horariosResult.Data.HorariosPorSucursal)
+					{
+						HorariosPorSucursal.Add(sucursal);
+					}
+
+					Estadisticas = horariosResult.Data.Estadisticas;
+					ShowHorarios = Horarios.Count > 0;
+
+					System.Diagnostics.Debug.WriteLine($"✅ Horarios actualizados: {Horarios.Count} en {HorariosPorSucursal.Count} sucursales");
+				}
+				else
+				{
+					ShowHorarios = false;
+					System.Diagnostics.Debug.WriteLine($"⚠️ No se encontraron horarios: {horariosResult.Message}");
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error actualizando horarios: {ex.Message}");
+				// ✅ NO mostrar error al usuario, solo log
+			}
 		}
 
 		[RelayCommand]
