@@ -23,7 +23,7 @@ namespace MediSys.Services
 			};
 
 			_httpClient = new HttpClient(handler);
-			_baseUrl = "http://192.168.100.30/MenuDinamico/api";
+			_baseUrl = "http://192.168.100.33/MenuDinamico/api";
 
 			_httpClient.DefaultRequestHeaders.Clear();
 			_httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -1466,6 +1466,168 @@ namespace MediSys.Services
 			}
 		}
 
+		// Services/MediSysApiService.cs - Agregar estos métodos
+
+		/// <summary>
+		/// Obtener citas de un paciente por fecha
+		/// </summary>
+		public async Task<ApiResponse<List<CitaDetallada>>> ObtenerCitasPacientePorFechaAsync(string cedula, string fecha)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/citas/paciente/{cedula}?fecha={fecha}";
+
+				System.Diagnostics.Debug.WriteLine($"📅 Obteniendo citas del paciente: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Citas response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<CitaDetallada>>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<List<CitaDetallada>>
+					{
+						Success = false,
+						Message = "Respuesta inválida del servidor"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<List<CitaDetallada>>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error obteniendo citas del paciente"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Exception obteniendo citas: {ex.Message}");
+				return new ApiResponse<List<CitaDetallada>>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// Crear triaje para una cita
+		/// </summary>
+		public async Task<ApiResponse<CrearTriajeResponse>> CrearTriajeAsync(CrearTriajeRequest triajeData)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/triaje/crear";
+
+				System.Diagnostics.Debug.WriteLine($"🏥 Creando triaje: {url}");
+				System.Diagnostics.Debug.WriteLine($"📤 Datos: {JsonSerializer.Serialize(triajeData)}");
+
+				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				request.Content = new StringContent(JsonSerializer.Serialize(triajeData), Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Crear triaje response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<CrearTriajeResponse>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<CrearTriajeResponse>
+					{
+						Success = false,
+						Message = "Respuesta inválida del servidor"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<CrearTriajeResponse>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error creando triaje"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Exception creando triaje: {ex.Message}");
+				return new ApiResponse<CrearTriajeResponse>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// Obtener triaje existente de una cita
+		/// </summary>
+		public async Task<ApiResponse<Triaje2>> ObtenerTriajePorCitaAsync(int idCita)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/triaje/cita/{idCita}";
+
+				System.Diagnostics.Debug.WriteLine($"🔍 Obteniendo triaje: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<Triaje2>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<Triaje2>
+					{
+						Success = false,
+						Message = "Respuesta inválida del servidor"
+					};
+				}
+				else
+				{
+					return new ApiResponse<Triaje2>
+					{
+						Success = false,
+						Message = "Triaje no encontrado"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<Triaje2>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
 
 		public class NullableStringConverter : JsonConverter<string>
 		{
@@ -1490,6 +1652,8 @@ namespace MediSys.Services
 				}
 			}
 		}
+
+
 
 		private JsonSerializerOptions GetJsonOptions()
 		{

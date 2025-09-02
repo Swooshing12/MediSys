@@ -25,12 +25,18 @@ namespace MediSys.ViewModels
 		private bool isMedico = false;
 
 		[ObservableProperty]
+		private bool isEnfermero = false;
+
+		[ObservableProperty]
 		private bool canViewHistorial = false;
 
 		[ObservableProperty]
 		private bool canViewConsultaCitas = false;
 
+
+
 		private User? currentUser;
+
 
 		public AppShellViewModel()
 		{
@@ -106,6 +112,7 @@ namespace MediSys.ViewModels
 
 					// Configurar visibilidad según rol
 					IsMedico = currentUser.Rol?.ToLower() == "medico";
+					isEnfermero = currentUser.Rol?.ToLower() == "enfermero";
 					CanViewHistorial = currentUser.Rol?.ToLower() != "paciente";
 					CanViewConsultaCitas = true;
 

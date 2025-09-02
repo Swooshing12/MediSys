@@ -182,6 +182,10 @@ namespace MediSys.Models
 		[JsonPropertyName("sala_virtual")]
 		public string SalaVirtual { get; set; } = "";
 
+		// ✅ NUEVOS CAMPOS PARA CITAS VIRTUALES
+		[JsonPropertyName("plataforma_virtual")]
+		public string? PlataformaVirtual { get; set; }
+
 		[JsonPropertyName("fecha_creacion")]
 		public string FechaCreacion { get; set; } = "";
 
@@ -411,8 +415,21 @@ namespace MediSys.Models
 		[JsonPropertyName("enlace_virtual")]
 		public string EnlaceVirtual { get; set; } = "";
 
+		// ✅ NUEVOS CAMPOS PARA CITAS VIRTUALES
+		[JsonPropertyName("plataforma_virtual")]
+		public string? PlataformaVirtual { get; set; }
+
 		[JsonPropertyName("sala_virtual")]
 		public string SalaVirtual { get; set; } = "";
+	}
+
+	// Models/PlataformaVirtual.cs
+	public class PlataformaVirtual
+	{
+		public string Codigo { get; set; } = "";
+		public string Nombre { get; set; } = "";
+		public string Icono { get; set; } = "";
+		public string Descripcion { get; set; } = "";
 	}
 
 	// ===== HORARIOS DISPONIBLES =====
@@ -569,6 +586,15 @@ namespace MediSys.Models
 
 		[JsonPropertyName("id_cita")]
 		public int IdCita { get; set; }
+
+		[JsonPropertyName("enlace_virtual")]
+		public string? EnlaceVirtual { get; set; }
+
+		[JsonPropertyName("plataforma_virtual")]
+		public string? PlataformaVirtual { get; set; }
+
+		[JsonPropertyName("sala_virtual")]
+		public string? SalaVirtual { get; set; }
 
 		[JsonPropertyName("mensaje")]
 		public string Mensaje { get; set; } = "";
@@ -1387,6 +1413,9 @@ namespace MediSys.Models
 
 			public string HorarioDisplay => $"🏢 {NombreSucursal} - {DiaSemanaTexto}: {HoraInicio} a {HoraFin} ({DuracionCita} min)";
 		}
+
+
+
 
 	}
 }

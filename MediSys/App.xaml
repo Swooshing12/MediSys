@@ -19,6 +19,8 @@
             <local2:CountToInverseBoolConverter x:Key="CountToInverseBoolConverter"/>
             <local2:BoolToAvailabilityTextConverter x:Key="BoolToAvailabilityTextConverter"/>
             <local2:ObjectToBoolConverter x:Key="ObjectToBoolConverter"/>
+            <local2:NullToBoolConverter x:Key="NullToBoolConverter"/>
+            <local2:CountToBoolConverter x:Key="CountToBoolConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

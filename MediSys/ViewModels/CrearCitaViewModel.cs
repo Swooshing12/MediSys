@@ -109,6 +109,19 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private string notasCita = "";
 
+		// ===== NUEVAS PROPIEDADES PARA CITAS VIRTUALES =====
+		[ObservableProperty]
+		private bool mostrarOpcionesVirtuales = false;
+
+		[ObservableProperty]
+		private ObservableCollection<PlataformaVirtual> plataformasVirtuales = new();
+
+		[ObservableProperty]
+		private PlataformaVirtual? plataformaSeleccionada;
+
+		[ObservableProperty]
+		private string salaVirtual = "";
+
 		// ===== DATOS ESTÁTICOS =====
 		public List<string> SexosDisponibles { get; } = new() { "M", "F" };
 		public List<string> TiposSangre { get; } = new() { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Desconocido" };
@@ -121,8 +134,38 @@ namespace MediSys.ViewModels
 		public CrearCitaViewModel()
 		{
 			ActualizarTituloSemana();
+			InicializarPlataformasVirtuales();
 			_ = InicializarAsync();
 			PropertyChanged += OnPropertyChanged;
+		}
+
+		private void InicializarPlataformasVirtuales()
+		{
+			PlataformasVirtuales = new ObservableCollection<PlataformaVirtual>
+			{
+				new PlataformaVirtual
+				{
+					Codigo = "zoom",
+					Nombre = "Zoom",
+					Icono = "📹",
+					Descripcion = "Videollamada con Zoom - Fácil y confiable"
+				},
+				new PlataformaVirtual
+				{
+					Codigo = "meet",
+					Nombre = "Google Meet",
+					Icono = "📱",
+					Descripcion = "Google Meet - Gratis para todos"
+				},
+				new PlataformaVirtual
+				{
+					Codigo = "teams",
+					Nombre = "Microsoft Teams",
+					Icono = "💼",
+					Descripcion = "Microsoft Teams - Ideal para empresas"
+				},
+			
+			};
 		}
 
 		private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -134,6 +177,21 @@ namespace MediSys.ViewModels
 					{
 						EstadoTipoCita = "Completado";
 						ProgresoTexto = "Busque al paciente por su cédula";
+
+						// Detectar si es cita virtual
+						MostrarOpcionesVirtuales = TipoCitaSeleccionado.IdTipoCita == 2;
+
+						if (MostrarOpcionesVirtuales)
+						{
+							// Seleccionar Zoom por defecto para citas virtuales
+							PlataformaSeleccionada = PlataformasVirtuales.FirstOrDefault(p => p.Codigo == "zoom");
+						}
+						else
+						{
+							// Limpiar selecciones virtuales si cambia a presencial
+							PlataformaSeleccionada = null;
+							SalaVirtual = "";
+						}
 					}
 					break;
 				case nameof(PacienteSeleccionado):
@@ -303,7 +361,6 @@ namespace MediSys.ViewModels
 
 			try
 			{
-				// ✅ PASAR LA CÉDULA AL MODAL
 				var modalPage = new Views.Modals.CrearPacienteModalPage(CedulaBusqueda.Trim());
 				modalPage.PacienteCreado += OnPacienteCreado;
 				await Shell.Current.Navigation.PushModalAsync(modalPage);
@@ -350,7 +407,6 @@ namespace MediSys.ViewModels
 					Doctores.Clear();
 					SlotsDisponibles.Clear();
 
-					// 🔹 Mensaje bonito en el debug con count
 					System.Diagnostics.Debug.WriteLine($"✅ Se encontraron {Especialidades.Count} especialidades para {SucursalSeleccionada.Nombre}");
 				}
 				else
@@ -370,7 +426,6 @@ namespace MediSys.ViewModels
 				IsLoading = false;
 			}
 		}
-
 
 		[RelayCommand]
 		private async Task CargarDoctoresPorEspecialidadAsync()
@@ -478,9 +533,19 @@ namespace MediSys.ViewModels
 				return;
 			}
 
+			// Validación específica para citas virtuales
+			if (TipoCitaSeleccionado.IdTipoCita == 2 && PlataformaSeleccionada == null)
+			{
+				await Shell.Current.DisplayAlert("Error",
+					"Debe seleccionar una plataforma virtual", "OK");
+				return;
+			}
+
 			try
 			{
 				IsLoading = true;
+
+				var fechaHoraCompleta = $"{SlotSeleccionado.FechaHora}";
 
 				var citaData = new CrearCitaRequest
 				{
@@ -488,31 +553,55 @@ namespace MediSys.ViewModels
 					IdDoctor = DoctorSeleccionado.IdDoctor,
 					IdSucursal = SucursalSeleccionada.IdSucursal,
 					IdTipoCita = TipoCitaSeleccionado.IdTipoCita,
-					FechaHora = SlotSeleccionado.FechaHora,
+					FechaHora = fechaHoraCompleta,
 					Motivo = MotivoCita.Trim(),
-					TipoCita = TipoCitaSeleccionado.NombreTipo.ToLower(),
-					Notas = NotasCita?.Trim() ?? ""
+					Notas = NotasCita?.Trim(),
+
+					// Datos para citas virtuales
+					PlataformaVirtual = PlataformaSeleccionada?.Codigo,
+					SalaVirtual = string.IsNullOrWhiteSpace(SalaVirtual) ? null : SalaVirtual.Trim()
 				};
+
+				// DEBUG: Mostrar datos que se envían
+				System.Diagnostics.Debug.WriteLine($"🔍 ENVIANDO CITA:");
+				System.Diagnostics.Debug.WriteLine($"  - Tipo Cita: {citaData.IdTipoCita}");
+				System.Diagnostics.Debug.WriteLine($"  - Plataforma: {citaData.PlataformaVirtual}");
+				System.Diagnostics.Debug.WriteLine($"  - Sala: {citaData.SalaVirtual}");
 
 				var result = await ApiService.CrearCitaAsync(citaData);
 
 				if (result.Success && result.Data != null)
 				{
-					await Shell.Current.DisplayAlert(
-						"✅ Cita Creada Exitosamente",
-						$"Su cita ha sido programada correctamente.\n\n" +
-						$"📅 **Fecha y hora:** {SlotSeleccionado.FechaHora:dddd, dd 'de' MMMM yyyy - hh:mm tt}\n" +
-						$"👤 **Paciente:** {PacienteSeleccionado.NombreCompleto}\n" +
-						$"🩺 **Doctor:** Dr. {DoctorSeleccionado.Nombres} {DoctorSeleccionado.Apellidos}\n" +
-						$"🏥 **Sucursal:** {SucursalSeleccionada.Nombre}\n" +
-						$"📌 **Tipo de cita:** {TipoCitaSeleccionado.NombreTipo}\n\n" +
-						$"Gracias por confiar en nuestro servicio médico.",
-						"Aceptar"
-					);
-					ResetFormulario();   // 🔹 Limpia todo
+					// DEBUG: Mostrar respuesta
+					System.Diagnostics.Debug.WriteLine($"🔍 RESPUESTA:");
+					System.Diagnostics.Debug.WriteLine($"  - Enlace Virtual: {result.Data.EnlaceVirtual}");
+					System.Diagnostics.Debug.WriteLine($"  - Plataforma: {result.Data.PlataformaVirtual}");
+
+					string mensajeExito = "✅ Cita creada exitosamente";
+
+					// Información adicional para citas virtuales
+					if (TipoCitaSeleccionado.IdTipoCita == 2)
+					{
+						mensajeExito += $"\n\n📹 Plataforma: {PlataformaSeleccionada?.Nombre}";
+
+						if (!string.IsNullOrEmpty(result.Data.EnlaceVirtual))
+						{
+							mensajeExito += $"\n🔗 Enlace generado automáticamente";
+						}
+
+						mensajeExito += "\n💌 Se enviaron las credenciales por correo";
+					}
+
+					mensajeExito += $"\n\n📅 Fecha y hora: {SlotSeleccionado.FechaHora}" +
+								   $"\n👤 Paciente: {PacienteSeleccionado.NombreCompleto}" +
+								   $"\n🩺 Doctor: Dr. {DoctorSeleccionado.Nombres} {DoctorSeleccionado.Apellidos}" +
+								   $"\n🏥 Sucursal: {SucursalSeleccionada.Nombre}";
+
+					await Shell.Current.DisplayAlert("¡Éxito!", mensajeExito, "OK");
+
+					ResetFormulario();
 					await Shell.Current.GoToAsync("..");
 				}
-
 				else
 				{
 					await Shell.Current.DisplayAlert("Error",
@@ -521,6 +610,7 @@ namespace MediSys.ViewModels
 			}
 			catch (Exception ex)
 			{
+				System.Diagnostics.Debug.WriteLine($"❌ ERROR: {ex.Message}");
 				await Shell.Current.DisplayAlert("Error", $"Error: {ex.Message}", "OK");
 			}
 			finally
@@ -552,13 +642,10 @@ namespace MediSys.ViewModels
 
 			if (confirmacion)
 			{
-				ResetFormulario(); // 👈 aquí sí lo llamas correctamente
-
-				// Opcional: salir de la vista
+				ResetFormulario();
 				await Shell.Current.GoToAsync("..");
 			}
 		}
-
 
 		private void GenerarSlotsDisponibles(HorariosDisponiblesResponse horarios)
 		{
@@ -618,12 +705,21 @@ namespace MediSys.ViewModels
 
 		private void ValidarPuedeCrearCita()
 		{
-			PuedeCrearCita = TipoCitaSeleccionado != null &&
-							 PacienteSeleccionado != null &&
-							 DoctorSeleccionado != null &&
-							 SucursalSeleccionada != null &&
-							 SlotSeleccionado != null &&
-							 !string.IsNullOrWhiteSpace(MotivoCita);
+			bool validacionBasica = TipoCitaSeleccionado != null &&
+									PacienteSeleccionado != null &&
+									DoctorSeleccionado != null &&
+									SucursalSeleccionada != null &&
+									SlotSeleccionado != null &&
+									!string.IsNullOrWhiteSpace(MotivoCita);
+
+			// Validación adicional para citas virtuales
+			bool validacionVirtual = true;
+			if (TipoCitaSeleccionado?.IdTipoCita == 2)
+			{
+				validacionVirtual = PlataformaSeleccionada != null;
+			}
+
+			PuedeCrearCita = validacionBasica && validacionVirtual;
 		}
 
 		private async Task ResetFormulario()
@@ -644,6 +740,11 @@ namespace MediSys.ViewModels
 			DoctorSeleccionado = null;
 			SlotSeleccionado = null;
 
+			// Limpiar opciones virtuales
+			MostrarOpcionesVirtuales = false;
+			PlataformaSeleccionada = null;
+			SalaVirtual = "";
+
 			TiposCita.Clear();
 			Sucursales.Clear();
 			Especialidades.Clear();
@@ -656,10 +757,8 @@ namespace MediSys.ViewModels
 			MotivoCita = "";
 			NotasCita = "";
 
-			// 🔹 Volvemos a cargar los datos iniciales
 			await CargarTiposCitaAsync();
 			await CargarSucursalesAsync();
 		}
-
 	}
 }

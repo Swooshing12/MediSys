@@ -267,6 +267,9 @@
         <ShellContent Title="📝 Crear Cita" 
                       ContentTemplate="{DataTemplate dashboard:CrearCitaPage}"
                       Route="crear_cita" />
+        <ShellContent Title="Registro de Triaje"
+                       ContentTemplate="{DataTemplate dashboard:TriajePage}"
+                       Route="triaje" />
     </FlyoutItem>
 
     <!-- Mis Citas Médicas -->
@@ -280,6 +283,7 @@
                       ContentTemplate="{DataTemplate dashboard:MisCitasPage}"
                       Route="mis-citas" />
     </FlyoutItem>
+
 
     <!-- PÁGINAS OCULTAS -->
     <ShellContent ContentTemplate="{DataTemplate auth:LoginPage}"

@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
+             xmlns:models="clr-namespace:MediSys.Models"
+             xmlns:local2="clr-namespace:MediSys.Converters"
+             x:Class="MediSys.Views.Dashboard.TriajePage"
+             x:DataType="viewmodels:TriajeViewModel"
+             Title="Triaje - Enfermería"
+             BackgroundColor="#F8F9FA">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Color x:Key="MedicalBlue">#2E86AB</Color>
+            <Color x:Key="MedicalGreen">#27AE60</Color>
+            <Color x:Key="MedicalRed">#E74C3C</Color>
+            <Color x:Key="MedicalOrange">#F39C12</Color>
+            <Color x:Key="CardBackground">#FFFFFF</Color>
+            <Color x:Key="TextDark">#2C3E50</Color>
+            <Color x:Key="TextLight">#7F8C8D</Color>
+
+            <!-- CONVERTERS AGREGADOS -->
+            <local2:ObjectToBoolConverter x:Key="ObjectToBoolConverter" />
+            <local2:CountToBoolConverter x:Key="CountToBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+            <!-- HEADER -->
+            <Frame BackgroundColor="{StaticResource CardBackground}"
+                   HasShadow="True"
+                   CornerRadius="15"
+                   Padding="25">
+                <StackLayout Orientation="Horizontal" Spacing="15">
+                    <Frame BackgroundColor="{StaticResource MedicalBlue}"
+                           WidthRequest="60" 
+                           HeightRequest="60"
+                           CornerRadius="30"
+                           HasShadow="False">
+                        <Label Text="🩺" 
+                               FontSize="28" 
+                               TextColor="White"
+                               HorizontalOptions="Center" 
+                               VerticalOptions="Center" />
+                    </Frame>
+                    <StackLayout VerticalOptions="Center">
+                        <Label Text="Triaje de Enfermería" 
+                               FontSize="24" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource TextDark}" />
+                        <Label Text="Registro de signos vitales y evaluación" 
+                               FontSize="14" 
+                               TextColor="{StaticResource TextLight}" />
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- PASO 1: BUSCAR PACIENTE -->
+            <Frame BackgroundColor="{StaticResource CardBackground}"
+                   HasShadow="True"
+                   CornerRadius="15"
+                   Padding="20">
+                <StackLayout Spacing="15">
+                    <Label Text="👤 Paso 1: Buscar Paciente" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource TextDark}" />
+
+                    <StackLayout Spacing="10">
+                        <Label Text="Cédula del Paciente:" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource TextDark}" />
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <!-- Reemplaza esta sección del campo de cédula: -->
+                            <Frame Grid.Column="0" 
+                                   BackgroundColor="#F8F9FA" 
+                                   HasShadow="False"
+                                   CornerRadius="8"
+                                   Padding="12">
+                                       <Entry Text="{Binding CedulaBusqueda}"
+                                       Placeholder="Ingrese cédula (10 dígitos)"
+                                       Keyboard="Numeric"
+                                       MaxLength="10"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource TextDark}"
+                                       PlaceholderColor="{StaticResource TextLight}"
+                                       FontSize="16" />
+                          </Frame>
+
+                            <Button Grid.Column="1" 
+                                    Text="🔍 Buscar"
+                                    Command="{Binding BuscarPacienteCommand}"
+                                    BackgroundColor="{StaticResource MedicalBlue}"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    WidthRequest="100"
+                                    HeightRequest="50"
+                                    CornerRadius="8" />
+                        </Grid>
+                    </StackLayout>
+
+                    <!-- PACIENTE ENCONTRADO -->
+                    <Frame IsVisible="{Binding PacienteEncontrado}"
+                           BackgroundColor="#E8F5E8" 
+                           HasShadow="False"
+                           CornerRadius="8"
+                           Padding="15">
+                        <StackLayout Spacing="5">
+                            <Label Text="✅ Paciente Encontrado" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource MedicalGreen}" />
+                            <Label Text="{Binding PacienteSeleccionado.NombreCompleto}" 
+                                   FontSize="16" 
+                                   FontAttributes="Bold" 
+                                   TextColor="{StaticResource TextDark}" />
+                            <Label Text="{Binding PacienteSeleccionado.Correo, StringFormat='📧 {0}'}" 
+                                   FontSize="13" 
+                                   TextColor="{StaticResource TextLight}" />
+                        </StackLayout>
+                    </Frame>
+                </StackLayout>
+            </Frame>
+
+            <!-- PASO 2: SELECCIONAR CITA -->
+            <Frame IsVisible="{Binding MostrarCitas}"
+                   BackgroundColor="{StaticResource CardBackground}"
+                   HasShadow="True"
+                   CornerRadius="15"
+                   Padding="20">
+                <StackLayout Spacing="15">
+                    <Label Text="📅 Paso 2: Seleccionar Cita para Triaje" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource TextDark}" />
+
+                    <CollectionView ItemsSource="{Binding CitasDelDia}" 
+                                   SelectedItem="{Binding CitaSeleccionada}" 
+                                   SelectionMode="Single">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CitaDetallada">
+                                <Frame Margin="0,5" 
+                                       BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="10"
+                                       Padding="15">
+                                    <StackLayout Spacing="8">
+                                        <StackLayout Orientation="Horizontal" Spacing="10">
+                                            <Label Text="🕐" FontSize="16" VerticalOptions="Center" />
+                                            <Label Text="{Binding FechaHoraDisplay}" 
+                                                   FontSize="16" 
+                                                   FontAttributes="Bold" 
+                                                   TextColor="{StaticResource TextDark}"
+                                                   VerticalOptions="Center" />
+                                            <Label Text="-" FontSize="14" VerticalOptions="Center" />
+                                            <Label Text="{Binding TipoCitaNombre}" 
+                                                   FontSize="14" 
+                                                   TextColor="{StaticResource MedicalBlue}"
+                                                   VerticalOptions="Center" />
+                                        </StackLayout>
+
+                                        <Label Text="{Binding DoctorCompleto, StringFormat='👨‍⚕️ {0}'}" 
+                                               FontSize="14" 
+                                               TextColor="{StaticResource TextLight}" />
+
+                                        <Label Text="{Binding NombreEspecialidad, StringFormat='🩺 {0}'}" 
+                                               FontSize="13" 
+                                               TextColor="{StaticResource TextLight}" />
+
+                                        <Label Text="{Binding Motivo, StringFormat='📋 {0}'}" 
+                                               FontSize="13" 
+                                               TextColor="{StaticResource TextDark}" />
+                                    </StackLayout>
+
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TriajeViewModel}}, Path=SeleccionarCitaCommand}"
+                                                            CommandParameter="{Binding .}" />
+                                    </Frame.GestureRecognizers>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+
+            <!-- PASO 3: FORMULARIO DE TRIAJE -->
+            <Frame IsVisible="{Binding MostrarFormularioTriaje}"
+                   BackgroundColor="{StaticResource CardBackground}"
+                   HasShadow="True"
+                   CornerRadius="15"
+                   Padding="20">
+                <StackLayout Spacing="20">
+                    <Label Text="🩺 Paso 3: Registro de Triaje" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource TextDark}" />
+
+                    <!-- NIVEL DE URGENCIA -->
+                    <StackLayout Spacing="10">
+                        <Label Text="⚠️ Nivel de Urgencia:" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource TextDark}" />
+
+                        <CollectionView ItemsSource="{Binding NivelesUrgencia}" 
+                                       SelectedItem="{Binding NivelUrgenciaSeleccionado}" 
+                                       SelectionMode="Single"
+                                       HeightRequest="80">
+                            <CollectionView.ItemsLayout>
+                                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8" />
+                            </CollectionView.ItemsLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:NivelUrgencia">
+                                    <Frame BackgroundColor="#F8F9FA" 
+                                           HasShadow="False"
+                                           CornerRadius="8"
+                                           Padding="12,8"
+                                           WidthRequest="80">
+                                        <StackLayout HorizontalOptions="Center">
+                                            <Label Text="{Binding Icono}" 
+                                                   FontSize="20" 
+                                                   HorizontalOptions="Center" />
+                                            <Label Text="{Binding Nombre}" 
+                                                   FontSize="11" 
+                                                   FontAttributes="Bold" 
+                                                   HorizontalOptions="Center"
+                                                   TextColor="{StaticResource TextDark}" />
+                                        </StackLayout>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </StackLayout>
+
+                    <!-- SIGNOS VITALES -->
+                    <StackLayout Spacing="15">
+                        <Label Text="🫀 Signos Vitales" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource TextDark}" />
+
+                        <Grid RowDefinitions="Auto,Auto" 
+                              ColumnDefinitions="*,*" 
+                              RowSpacing="10" 
+                              ColumnSpacing="10">
+
+                            <!-- Temperatura -->
+                            <StackLayout Grid.Row="0" Grid.Column="0" Spacing="5">
+                                <Label Text="🌡️ Temperatura (°C)" 
+                                       FontSize="13" 
+                                       FontAttributes="Bold" />
+                                <Frame BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10">
+                                    <Entry Text="{Binding Temperatura}"
+                                           Placeholder="36.5"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent" />
+                                </Frame>
+                            </StackLayout>
+
+                            <!-- Frecuencia Cardíaca -->
+                            <StackLayout Grid.Row="0" Grid.Column="1" Spacing="5">
+                                <Label Text="💓 F. Cardíaca (lpm)" 
+                                       FontSize="13" 
+                                       FontAttributes="Bold" />
+                                <Frame BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10">
+                                    <Entry Text="{Binding FrecuenciaCardiaca}"
+                                           Placeholder="72"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent" />
+                                </Frame>
+                            </StackLayout>
+
+                            <!-- Saturación -->
+                            <StackLayout Grid.Row="1" Grid.Column="0" Spacing="5">
+                                <Label Text="🫁 Saturación (%)" 
+                                       FontSize="13" 
+                                       FontAttributes="Bold" />
+                                <Frame BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10">
+                                    <Entry Text="{Binding SaturacionOxigeno}"
+                                           Placeholder="98"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent" />
+                                </Frame>
+                            </StackLayout>
+
+                            <!-- Frecuencia Respiratoria -->
+                            <StackLayout Grid.Row="1" Grid.Column="1" Spacing="5">
+                                <Label Text="🫁 F. Respiratoria (rpm)" 
+                                       FontSize="13" 
+                                       FontAttributes="Bold" />
+                                <Frame BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10">
+                                    <Entry Text="{Binding FrecuenciaRespiratoria}"
+                                           Placeholder="16"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent" />
+                                </Frame>
+                            </StackLayout>
+                        </Grid>
+
+                        <!-- Presión Arterial -->
+                        <StackLayout Spacing="5">
+                            <Label Text="🩸 Presión Arterial (mmHg)" 
+                                   FontSize="13" 
+                                   FontAttributes="Bold" />
+                            <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="8">
+                                <Frame Grid.Column="0" 
+                                       BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10">
+                                    <Entry Text="{Binding PresionSistolica}"
+                                           Placeholder="120"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent" />
+                                </Frame>
+                                <Label Grid.Column="1" 
+                                       Text="/" 
+                                       FontSize="20" 
+                                       FontAttributes="Bold" 
+                                       VerticalOptions="Center" 
+                                       TextColor="{StaticResource TextDark}" />
+                                <Frame Grid.Column="2" 
+                                       BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10">
+                                    <Entry Text="{Binding PresionDiastolica}"
+                                           Placeholder="80"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent" />
+                                </Frame>
+                            </Grid>
+                        </StackLayout>
+                    </StackLayout>
+
+                    <!-- MEDIDAS ANTROPOMÉTRICAS -->
+                    <StackLayout Spacing="15">
+                        <Label Text="📏 Medidas Antropométricas" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource TextDark}" />
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <!-- Peso -->
+                            <StackLayout Grid.Column="0" Spacing="5">
+                                <Label Text="⚖️ Peso (kg)" 
+                                       FontSize="13" 
+                                       FontAttributes="Bold" />
+                                <Frame BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10">
+                                    <Entry Text="{Binding Peso}"
+                                           Placeholder="70.5"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent" />
+                                </Frame>
+                            </StackLayout>
+
+                            <!-- Talla -->
+                            <StackLayout Grid.Column="1" Spacing="5">
+                                <Label Text="📏 Talla (cm)" 
+                                       FontSize="13" 
+                                       FontAttributes="Bold" />
+                                <Frame BackgroundColor="#F8F9FA" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10">
+                                    <Entry Text="{Binding Talla}"
+                                           Placeholder="170"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent" />
+                                </Frame>
+                            </StackLayout>
+                        </Grid>
+
+                        <!-- IMC Calculado -->
+                        <Frame IsVisible="{Binding ImcCalculado, Converter={StaticResource ObjectToBoolConverter}}"
+                               BackgroundColor="#E8F4FD" 
+                               HasShadow="False"
+                               CornerRadius="6"
+                               Padding="12">
+                            <StackLayout Orientation="Horizontal" Spacing="10">
+                                <Label Text="📊" 
+                                       FontSize="16" 
+                                       VerticalOptions="Center" />
+                                <StackLayout>
+                                    <Label Text="{Binding ImcCalculado, StringFormat='IMC: {0:F1}'}"
+                                           FontSize="14" 
+                                           FontAttributes="Bold" 
+                                           TextColor="{StaticResource MedicalBlue}" />
+                                    <Label Text="{Binding CategoriaImc}" 
+                                           FontSize="12" 
+                                           TextColor="{StaticResource TextLight}" />
+                                </StackLayout>
+                            </StackLayout>
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- OBSERVACIONES -->
+                    <StackLayout Spacing="8">
+                        <Label Text="📝 Observaciones" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource TextDark}" />
+                        <Frame BackgroundColor="#F8F9FA" 
+                               HasShadow="False"
+                               CornerRadius="6"
+                               Padding="10">
+                            <Editor Text="{Binding Observaciones}"
+                                    Placeholder="Observaciones del enfermero..."
+                                    BackgroundColor="Transparent"
+                                    HeightRequest="60" />
+                        </Frame>
+                    </StackLayout>
+
+                    <!-- ALERTAS -->
+                    <CollectionView ItemsSource="{Binding AlertasSignosVitales}"
+                                   IsVisible="{Binding AlertasSignosVitales.Count, Converter={StaticResource CountToBoolConverter}}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="#FFF3CD" 
+                                       HasShadow="False"
+                                       CornerRadius="6"
+                                       Padding="10" 
+                                       Margin="0,2">
+                                    <Label Text="{Binding}" 
+                                           FontSize="13" 
+                                           TextColor="{StaticResource MedicalOrange}" />
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- BOTONES -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0" 
+                                Text="❌ Cancelar"
+                                Command="{Binding CancelarCommand}"
+                                BackgroundColor="{StaticResource MedicalRed}"
+                                TextColor="White"
+                                FontSize="16"
+                                HeightRequest="50"
+                                CornerRadius="10" />
+
+                        <Button Grid.Column="1" 
+                                Text="✅ Guardar Triaje"
+                                Command="{Binding GuardarTriajeCommand}"
+                                BackgroundColor="{StaticResource MedicalGreen}"
+                                TextColor="White"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                HeightRequest="50"
+                                CornerRadius="10"
+                                IsEnabled="{Binding PuedeGuardarTriaje}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- LOADING INDICATOR -->
+            <StackLayout IsVisible="{Binding IsLoading}" 
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Spacing="15">
+                <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                                   Color="{StaticResource MedicalBlue}" 
+                                   WidthRequest="40"
+                                   HeightRequest="40" />
+                <Label Text="Procesando..." 
+                       FontSize="14" 
+                       TextColor="{StaticResource TextLight}"
+                       HorizontalOptions="Center" />
+            </StackLayout>
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

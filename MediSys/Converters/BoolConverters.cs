@@ -2,6 +2,19 @@
 
 namespace MediSys.Converters
 {
+
+	public class NullToBoolConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return value != null;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
 	public class InvertedBoolConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -133,6 +146,22 @@ namespace MediSys.Converters
 		}
 	}
 
+	// Converters/CountToBoolConverter.cs
+	public class CountToBoolConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if (value is int count)
+				return count > 0;
+
+			return false;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
 	public class ObjectToBoolConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
