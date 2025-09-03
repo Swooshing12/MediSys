@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MediSys.Models;
 using MediSys.Services;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace MediSys.ViewModels
 {
@@ -24,6 +25,8 @@ namespace MediSys.ViewModels
 
 		[ObservableProperty]
 		private PacienteBusqueda? pacienteSeleccionado;
+
+		public ICommand SeleccionarNivelUrgenciaCommand { get; set; }
 
 		// Citas del paciente
 		[ObservableProperty]
@@ -56,6 +59,7 @@ namespace MediSys.ViewModels
 
 		[ObservableProperty]
 		private string saturacionOxigeno = "";
+
 
 		// Medidas antropométricas
 		[ObservableProperty]
@@ -90,12 +94,21 @@ namespace MediSys.ViewModels
 
 		public TriajeViewModel(MediSysApiService apiService, AuthService authService)
 		{
+			SeleccionarNivelUrgenciaCommand = new Command<NivelUrgencia>(OnSeleccionarNivelUrgencia);
+
 			_apiService = apiService;
 			_authService = authService;
 			InicializarNivelesUrgencia();
 			PropertyChanged += OnPropertyChanged;
 		}
-
+		private void OnSeleccionarNivelUrgencia(NivelUrgencia nivel)
+		{
+			if (nivel != null)
+			{
+				NivelUrgenciaSeleccionado = nivel;
+				OnPropertyChanged(nameof(NivelUrgenciaSeleccionado));
+			}
+		}
 		private void InicializarNivelesUrgencia()
 		{
 			NivelesUrgencia = new ObservableCollection<NivelUrgencia>

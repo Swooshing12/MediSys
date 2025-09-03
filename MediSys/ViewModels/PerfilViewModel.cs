@@ -32,6 +32,8 @@ namespace MediSys.ViewModels
 			"doctor" => "👨‍⚕️ Médico",
 			"paciente" => "🧑‍🤝‍🧑 Paciente",
 			"admin" => "⚙️ Administrador",
+			"recepcionista" => "🛎️ Recepcionista",
+			"enfermero" => "👩‍⚕️ Enfermero",
 			_ => Usuario.TipoUsuario
 		};
 
