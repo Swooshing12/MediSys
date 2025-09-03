@@ -44,14 +44,54 @@ public partial class ConsultaMedicaPage : ContentPage
 	{
 		try
 		{
-			// Aquí cargarías la información del paciente desde la API
-			PacienteInfoLabel.Text = $"Cita ID: {_idCita} - Cargando datos del paciente...";
+			if (_idCita <= 0)
+			{
+				PacienteInfoLabel.Text = "⚠️ No se recibió un ID de cita válido.";
+				return;
+			}
+
+			var response = await _apiService.ObtenerDetalleConsultaAsync(_idCita);
+
+			if (response == null)
+			{
+				PacienteInfoLabel.Text = "❌ No se pudo conectar al servidor.";
+				return;
+			}
+
+			if (!response.Success)
+			{
+				PacienteInfoLabel.Text = $"❌ Error del servidor: {response.Message ?? "Respuesta inválida"}";
+				return;
+			}
+
+			if (response.Data == null || response.Data.Paciente == null)
+			{
+				PacienteInfoLabel.Text = "⚠️ No se encontró información del paciente en esta cita.";
+				return;
+			}
+
+			var paciente = response.Data.Paciente;
+
+			var info = $"👤 {paciente.NombreCompleto}\n" +
+					   $"📄 Cédula: {paciente.Cedula}\n" +
+					   $"📞 Teléfono: {paciente.Telefono ?? "No disponible"}\n" +
+					   $"📧 Email: {paciente.Correo ?? "No disponible"}\n" +
+					   $"🎂 Edad: {paciente.Edad?.ToString() ?? "No disponible"} años\n" +
+					   $"🩸 Tipo Sangre: {paciente.TipoSangre ?? "No disponible"}";
+
+			if (!string.IsNullOrWhiteSpace(paciente.Alergias))
+			{
+				info += $"\n⚠️ Alergias: {paciente.Alergias}";
+			}
+
+			PacienteInfoLabel.Text = info;
 		}
 		catch (Exception ex)
 		{
-			System.Diagnostics.Debug.WriteLine($"Error cargando paciente: {ex.Message}");
+			PacienteInfoLabel.Text = $"⚠️ Error inesperado: {ex.Message}";
 		}
 	}
+
 
 	private void OnTratamientoCheckChanged(object sender, CheckedChangedEventArgs e)
 	{
@@ -115,7 +155,10 @@ public partial class ConsultaMedicaPage : ContentPage
 
 			if (response?.Success == true)
 			{
-				await DisplayAlert("Éxito", "Consulta médica guardada correctamente", "OK");
+				await DisplayAlert("Éxito",
+					"Consulta médica guardada correctamente.\n\n" +
+					"📧 Se ha enviado un correo al paciente con el reporte médico en PDF.",
+					"OK");
 				await Shell.Current.GoToAsync("..");
 			}
 			else

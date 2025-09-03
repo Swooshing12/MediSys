@@ -23,7 +23,7 @@ namespace MediSys.Services
 			};
 
 			_httpClient = new HttpClient(handler);
-			_baseUrl = "http://192.168.100.33/MenuDinamico/api";
+			_baseUrl = "http://192.168.68.112/MenuDinamico/api";
 
 			_httpClient.DefaultRequestHeaders.Clear();
 			_httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -1757,7 +1757,7 @@ namespace MediSys.Services
 		/// <summary>
 		/// Obtener detalle completo de una consulta médica
 		/// </summary>
-		public async Task<ApiResponse<DetalleConsultaMedica>> ObtenerDetalleConsultaAsync(int idCita)
+		public async Task<ApiResponse<DetalleConsulta>> ObtenerDetalleConsultaAsync(int idCita)
 		{
 			try
 			{
@@ -1773,12 +1773,12 @@ namespace MediSys.Services
 
 				if (response.IsSuccessStatusCode)
 				{
-					var apiResponse = JsonSerializer.Deserialize<ApiResponse<DetalleConsultaMedica>>(responseContent, new JsonSerializerOptions
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<DetalleConsulta>>(responseContent, new JsonSerializerOptions
 					{
 						PropertyNameCaseInsensitive = true
 					});
 
-					return apiResponse ?? new ApiResponse<DetalleConsultaMedica>
+					return apiResponse ?? new ApiResponse<DetalleConsulta>
 					{
 						Success = false,
 						Message = "Error procesando respuesta"
@@ -1791,7 +1791,7 @@ namespace MediSys.Services
 						PropertyNameCaseInsensitive = true
 					});
 
-					return new ApiResponse<DetalleConsultaMedica>
+					return new ApiResponse<DetalleConsulta>
 					{
 						Success = false,
 						Message = errorResponse?.Message ?? "Consulta no encontrada"
@@ -1801,7 +1801,7 @@ namespace MediSys.Services
 			catch (Exception ex)
 			{
 				System.Diagnostics.Debug.WriteLine($"❌ Error obteniendo detalle: {ex.Message}");
-				return new ApiResponse<DetalleConsultaMedica>
+				return new ApiResponse<DetalleConsulta>
 				{
 					Success = false,
 					Message = $"Error: {ex.Message}"

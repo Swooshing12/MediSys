@@ -264,7 +264,7 @@ namespace MediSys.ViewModels
 				System.Diagnostics.Debug.WriteLine($"👁️ Mostrando detalle de cita: {cita.IdCita}");
 
 				// ✅ CREAR PÁGINA Y ESTABLECER CITA
-				var detallePage = new Views.Dashboard.DetalleCitaMedicaPage();
+				var detallePage = new Views.Dashboard.DetalleCitaMedicaPage(cita);
 				detallePage.SetCita(cita);
 
 				await Shell.Current.Navigation.PushModalAsync(detallePage);

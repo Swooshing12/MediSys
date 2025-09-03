@@ -1,5 +1,4 @@
-﻿// Views/Dashboard/DetalleCitaMedicaPage.xaml.cs - CORREGIDO
-using MediSys.Models;
+﻿using MediSys.Models;
 using MediSys.ViewModels;
 
 namespace MediSys.Views.Dashboard;
@@ -8,28 +7,25 @@ public partial class DetalleCitaMedicaPage : ContentPage
 {
 	private DetalleCitaMedicaViewModel? _viewModel;
 
-	// ✅ CONSTRUCTOR SIN PARÁMETROS (requerido por MAUI)
-	public DetalleCitaMedicaPage()
-	{
-		InitializeComponent();
-		System.Diagnostics.Debug.WriteLine("👁️ DetalleCitaMedicaPage initialized without parameters");
-	}
+	
 
-	// ✅ CONSTRUCTOR CON CITA (para uso manual)
-	public DetalleCitaMedicaPage(CitaConsultaMedica cita) : this()
-	{
-		_viewModel = new DetalleCitaMedicaViewModel(cita);
-		BindingContext = _viewModel;
+	// Constructor con cita
+	 public DetalleCitaMedicaPage(CitaConsultaMedica cita)
+    {
+        InitializeComponent();
 
-		System.Diagnostics.Debug.WriteLine($"👁️ DetalleCitaMedicaPage initialized for cita: {cita.IdCita}");
-	}
+        BindingContext = new DetalleCitaMedicaViewModel(cita);
 
-	// ✅ MÉTODO PARA ESTABLECER LA CITA DESPUÉS DE LA CREACIÓN
+        System.Diagnostics.Debug.WriteLine($"👁️ DetalleCitaMedicaPage initialized for cita: {cita.IdCita}");
+    }
+
+	// Método para establecer la cita después de la creación
 	public void SetCita(CitaConsultaMedica cita)
 	{
 		_viewModel = new DetalleCitaMedicaViewModel(cita);
 		BindingContext = _viewModel;
-		System.Diagnostics.Debug.WriteLine($"👁️ Cita establecida: {cita.IdCita}");
+		System.Diagnostics.Debug.WriteLine($"📌 Cita establecida: {cita.IdCita}");
+		System.Diagnostics.Debug.WriteLine($"📌 Triaje recibido: {System.Text.Json.JsonSerializer.Serialize(cita.Triaje)}");
 	}
 
 	protected override void OnAppearing()

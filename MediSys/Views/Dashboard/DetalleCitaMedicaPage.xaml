@@ -52,18 +52,28 @@
             <!-- INFORMACIÓN DEL PACIENTE -->
             <Frame Style="{StaticResource CardStyle}">
                 <StackLayout Spacing="12">
-                    <Label Text="👤 Información del Paciente" 
+                                        <Label Text="👤 Información del Paciente" 
                            Style="{StaticResource TitleStyle}" />
 
-                    <Label Text="{Binding Cita.Paciente.NombreCompleto}" 
+                                        <Label Text="{Binding Cita.Paciente.NombreCompleto}" 
                            FontSize="16" FontAttributes="Bold" 
                            TextColor="{StaticResource TextPrimary}" />
 
-                    <Label Text="{Binding Cita.Paciente.Cedula, StringFormat='📄 Cédula: {0}'}" 
+                                        <Label Text="{Binding Cita.Paciente.Cedula, StringFormat='📄 Cédula: {0}'}" 
                            TextColor="{StaticResource TextSecondary}" />
 
-                    <Label Text="{Binding Cita.Paciente.Telefono, StringFormat='📱 Teléfono: {0}'}" 
+                                        <Label Text="{Binding Cita.Paciente.Telefono, StringFormat='📞 Teléfono: {0}'}" 
                            TextColor="{StaticResource TextSecondary}" />
+
+                                        <Label Text="{Binding Cita.Paciente.Correo, StringFormat='📧 Email: {0}'}"
+                           TextColor="{StaticResource TextSecondary}" />
+
+                                        <Label Text="{Binding Cita.Paciente.Nacionalidad, StringFormat='🌍 Nacionalidad: {0}'}"
+                           TextColor="{StaticResource TextSecondary}" />
+
+                                        <Label Text="{Binding Cita.Paciente.SexoDisplay, StringFormat='⚧ Sexo: {0}'}"
+                           TextColor="{StaticResource TextSecondary}" />
+
                 </StackLayout>
             </Frame>
 
@@ -96,65 +106,68 @@
                 </StackLayout>
             </Frame>
 
-            <!-- INFORMACIÓN DE TRIAJE (si existe) -->
-            <Frame IsVisible="{Binding Cita.Triaje, Converter={StaticResource ObjectToBoolConverter}}"
-                   BackgroundColor="#F0F9FF" 
-                   BorderColor="{StaticResource AccentBlue}"
-                   HasShadow="True" 
-                   CornerRadius="16" 
-                   Padding="20"
-                   Margin="0,10">
+            <!-- INFORMACIÓN DE TRIAJE -->
+            <Frame IsVisible="{Binding TieneTriaje}"
+       BackgroundColor="#F0F9FF" 
+       BorderColor="{StaticResource AccentBlue}"
+       HasShadow="True" 
+       CornerRadius="16" 
+       Padding="20"
+       Margin="0,10">
                 <StackLayout Spacing="12">
                     <Label Text="📊 Datos de Triaje" 
-                           FontSize="18" FontAttributes="Bold" 
-                           TextColor="{StaticResource AccentBlue}" />
+               FontSize="18" FontAttributes="Bold" 
+               TextColor="{StaticResource AccentBlue}" />
 
                     <!-- Signos Vitales -->
-                    <Label Text="🔍 Signos Vitales" 
-                           FontSize="14" FontAttributes="Bold" 
-                           TextColor="{StaticResource TextPrimary}" />
+                    <StackLayout IsVisible="{Binding TieneSignosVitales}">
+                        <Label Text="🔍 Signos Vitales" 
+                   FontSize="14" FontAttributes="Bold" 
+                   TextColor="{StaticResource TextPrimary}" />
 
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15" RowSpacing="8">
-                        <Label Grid.Row="0" Grid.Column="0" 
-                               Text="{Binding Cita.Triaje.PresionArterial, StringFormat='🩸 Presión: {0}'}" 
-                               FontSize="13" />
-                        <Label Grid.Row="0" Grid.Column="1" 
-                               Text="{Binding Cita.Triaje.Temperatura, StringFormat='🌡️ Temp: {0}°C'}" 
-                               FontSize="13" />
-                        <Label Grid.Row="1" Grid.Column="0" 
-                               Text="{Binding Cita.Triaje.FrecuenciaCardiaca, StringFormat='💓 FC: {0} bpm'}" 
-                               FontSize="13" />
-                        <Label Grid.Row="1" Grid.Column="1" 
-                               Text="{Binding Cita.Triaje.SaturacionOxigeno, StringFormat='🫁 SatO2: {0}%'}" 
-                               FontSize="13" />
-                        <Label Grid.Row="2" Grid.Column="0" 
-                               Text="{Binding Cita.Triaje.Peso, StringFormat='⚖️ Peso: {0} kg'}" 
-                               FontSize="13" />
-                        <Label Grid.Row="2" Grid.Column="1" 
-                               Text="{Binding Cita.Triaje.Talla, StringFormat='📏 Talla: {0} cm'}" 
-                               FontSize="13" />
-                    </Grid>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="15" RowSpacing="8">
+                            <Label Grid.Row="0" Grid.Column="0" 
+                       Text="{Binding Cita.Triaje.PresionArterial, StringFormat='🩸 Presión: {0}'}" 
+                       FontSize="13" />
+                            <Label Grid.Row="0" Grid.Column="1" 
+                       Text="{Binding Cita.Triaje.Temperatura, StringFormat='🌡️ Temp: {0}°C'}" 
+                       FontSize="13" />
+                            <Label Grid.Row="1" Grid.Column="0" 
+                       Text="{Binding Cita.Triaje.FrecuenciaCardiaca, StringFormat='💓 FC: {0} bpm'}" 
+                       FontSize="13" />
+                            <Label Grid.Row="1" Grid.Column="1" 
+                       Text="{Binding Cita.Triaje.SaturacionOxigeno, StringFormat='🫁 SatO2: {0}%'}" 
+                       FontSize="13" />
+                            <Label Grid.Row="2" Grid.Column="0" 
+                       Text="{Binding Cita.Triaje.Peso, StringFormat='⚖️ Peso: {0} kg'}" 
+                       FontSize="13" />
+                            <Label Grid.Row="2" Grid.Column="1" 
+                       Text="{Binding Cita.Triaje.Talla, StringFormat='📏 Talla: {0} cm'}" 
+                       FontSize="13" />
+                        </Grid>
+                    </StackLayout>
 
                     <!-- Nivel de Urgencia -->
-                    <Frame IsVisible="{Binding Cita.EsUrgente}"
-                           BackgroundColor="#FEE2E2"
-                           BorderColor="{StaticResource DangerRed}"
-                           CornerRadius="8"
-                           Padding="12"
-                           Margin="0,8,0,0">
+                    <Frame IsVisible="{Binding EsUrgente}"
+               BackgroundColor="#FEE2E2"
+               BorderColor="{StaticResource DangerRed}"
+               CornerRadius="8"
+               Padding="12"
+               Margin="0,8,0,0">
                         <Label Text="{Binding Cita.Triaje.NivelUrgencia, StringFormat='🚨 URGENTE - Nivel {0}'}" 
-                               TextColor="{StaticResource DangerRed}" 
-                               FontAttributes="Bold"
-                               HorizontalOptions="Center" />
+                   TextColor="{StaticResource DangerRed}" 
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
                     </Frame>
 
-                    <!-- Observaciones del Triaje -->
-                    <Label IsVisible="{Binding Cita.Triaje.Observaciones, Converter={StaticResource ObjectToBoolConverter}}"
-                           Text="{Binding Cita.Triaje.Observaciones, StringFormat='📝 Observaciones: {0}'}" 
-                           FontSize="13"
-                           TextColor="{StaticResource TextSecondary}" />
+                    <!-- Observaciones -->
+                    <Label IsVisible="{Binding TieneObservaciones}"
+               Text="{Binding Cita.Triaje.Observaciones, StringFormat='📝 Observaciones: {0}'}" 
+               FontSize="13"
+               TextColor="{StaticResource TextSecondary}" />
                 </StackLayout>
             </Frame>
+
 
             <!-- CONSULTA MÉDICA (si existe) -->
             <Frame IsVisible="{Binding Cita.TieneConsulta}"

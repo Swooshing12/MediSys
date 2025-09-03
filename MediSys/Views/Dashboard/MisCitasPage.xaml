@@ -252,24 +252,35 @@
                                 <StackLayout Spacing="16">
 
                                     <!-- HEADER CON INFO DEL PACIENTE Y ESTADO -->
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" Padding="10,5">
                                         <!-- Info del Paciente -->
-                                        <StackLayout Grid.Column="0" Spacing="4">
+                                        <StackLayout Grid.Column="0" Spacing="6">
+                                            <!-- Nombre -->
                                             <Label Text="{Binding Paciente.NombreCompleto}" 
-                                                   FontSize="18" 
-                                                   FontAttributes="Bold" 
-                                                   TextColor="{StaticResource TextPrimary}"
-                                                   LineBreakMode="TailTruncation" />
+                                           FontSize="18" 
+                                           FontAttributes="Bold" 
+                                           TextColor="{StaticResource TextPrimary}"
+                                           LineBreakMode="WordWrap" />
 
-                                            <StackLayout Orientation="Horizontal" Spacing="16">
-                                                <Label Text="{Binding Paciente.Cedula, StringFormat='CI: {0}'}" 
-                                                       FontSize="13" 
-                                                       TextColor="{StaticResource TextSecondary}"
-                                                       FontAttributes="Bold" />
-                                                <Label Text="{Binding Paciente.Telefono, StringFormat='Tel: {0}'}" 
-                                                       FontSize="13" 
-                                                       TextColor="{StaticResource TextSecondary}" />
+                                                                        <!-- Fila 1: Cédula y Teléfono -->
+                                                                        <StackLayout Orientation="Horizontal" Spacing="20">
+                                                                            <Label Text="{Binding Paciente.Cedula, StringFormat='CI: {0}'}" 
+                                               FontSize="13" 
+                                               TextColor="{StaticResource TextSecondary}" 
+                                               FontAttributes="Bold" />
+                                                                            <Label Text="{Binding Paciente.Telefono, StringFormat='Tel: {0}'}" 
+                                               FontSize="13" 
+                                               TextColor="{StaticResource TextSecondary}" />
+                                                                        </StackLayout>
+
+                                                                        <!-- Fila 2: Nacionalidad y Sexo -->
+                                                                        <StackLayout Orientation="Horizontal" Spacing="20">
+                                                                            <Label Text="{Binding Paciente.Nacionalidad, StringFormat='Nacionalidad: {0}'}" 
+                                               FontSize="13" 
+                                               TextColor="{StaticResource TextSecondary}" />
+                                                                            <Label Text="{Binding Paciente.SexoDisplay, StringFormat='Sexo: {0}'}" 
+                                               FontSize="13" 
+                                               TextColor="{StaticResource TextSecondary}" />
                                             </StackLayout>
                                         </StackLayout>
 
@@ -312,7 +323,7 @@
                                                    FontAttributes="Bold" />
 
                                             <StackLayout Orientation="Horizontal" Spacing="20">
-                                                <Label Text="{Binding Sucursal, StringFormat='Sucursal: {0}'}" 
+                                                <Label Text="{Binding Sucursal.Nombre, StringFormat='Sucursal: {0}'}" 
                                                        FontSize="13" 
                                                        TextColor="{StaticResource TextSecondary}" />
                                                 <Label Text="{Binding TipoCita, StringFormat='Modalidad: {0}'}" 
