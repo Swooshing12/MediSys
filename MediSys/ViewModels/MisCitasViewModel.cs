@@ -253,6 +253,7 @@ namespace MediSys.ViewModels
 			}
 		}
 
+		// En MisCitasViewModel.cs - CORREGIR ESTE MÉTODO
 		[RelayCommand]
 		private async Task VerDetalleCita(CitaConsultaMedica cita)
 		{
@@ -262,8 +263,10 @@ namespace MediSys.ViewModels
 			{
 				System.Diagnostics.Debug.WriteLine($"👁️ Mostrando detalle de cita: {cita.IdCita}");
 
-				// Crear y mostrar modal con detalles de la cita
-				var detallePage = new Views.Dashboard.DetalleCitaMedicaPage(cita);
+				// ✅ CREAR PÁGINA Y ESTABLECER CITA
+				var detallePage = new Views.Dashboard.DetalleCitaMedicaPage();
+				detallePage.SetCita(cita);
+
 				await Shell.Current.Navigation.PushModalAsync(detallePage);
 			}
 			catch (Exception ex)

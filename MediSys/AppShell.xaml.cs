@@ -7,6 +7,9 @@ namespace MediSys
 		public AppShell()
 		{
 			InitializeComponent();
+			Routing.RegisterRoute("consulta-medica", typeof(Views.Dashboard.ConsultaMedicaPage));
+
+
 
 			// 🔥 NAVEGAR DIRECTAMENTE AL LOGIN AL INICIAR
 			Loaded += OnAppShellLoaded;

@@ -158,7 +158,7 @@ namespace MediSys.Models
 		public string? Tratamiento { get; set; }
 	}
 
-	// ===== REQUEST PARA CREAR/ACTUALIZAR CONSULTA MÉDICA =====
+	// Models/ConsultaMedicaModels.cs - AGREGAR SI NO EXISTE
 	public class ConsultaMedicaRequest
 	{
 		[JsonPropertyName("motivo_consulta")]
@@ -174,7 +174,7 @@ namespace MediSys.Models
 		public string? Tratamiento { get; set; }
 
 		[JsonPropertyName("observaciones")]
-		public string? Observaciones { get; set; } // Receta médica
+		public string? Observaciones { get; set; }
 
 		[JsonPropertyName("fecha_seguimiento")]
 		public string? FechaSeguimiento { get; set; }

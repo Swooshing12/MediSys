@@ -283,6 +283,8 @@
                   ContentTemplate="{DataTemplate dashboard:MisCitasPage}"
                   Route="mis-citas" />
     </FlyoutItem>
+    
+    
 
     <!-- PÁGINAS OCULTAS -->
     <ShellContent ContentTemplate="{DataTemplate auth:LoginPage}"

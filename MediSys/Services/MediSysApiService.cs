@@ -1812,6 +1812,7 @@ namespace MediSys.Services
 		/// <summary>
 		/// Actualizar estado de una cita
 		/// </summary>
+		// En MediSysApiService.cs - CORREGIR EL MÉTODO
 		public async Task<ApiResponse<object>> ActualizarEstadoCitaAsync(int idCita, string nuevoEstado)
 		{
 			try
@@ -1820,6 +1821,7 @@ namespace MediSys.Services
 
 				System.Diagnostics.Debug.WriteLine($"🔄 Actualizando estado cita: {url} - Estado: {nuevoEstado}");
 
+				// ✅ CAMBIAR A PUT en lugar de POST
 				var request = new HttpRequestMessage(HttpMethod.Put, url);
 				request.Content = new StringContent(JsonSerializer.Serialize(new { estado = nuevoEstado }), Encoding.UTF8, "application/json");
 
@@ -1865,7 +1867,6 @@ namespace MediSys.Services
 				};
 			}
 		}
-
 		public class NullableStringConverter : JsonConverter<string>
 		{
 			public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

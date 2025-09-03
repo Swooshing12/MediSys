@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediSys.Views.Dashboard.ConsultaMedicaPage"
+             Title="Consulta Médica"
+             BackgroundColor="#F8FAFC">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- COLORES MÉDICOS -->
+            <Color x:Key="PrimaryBlue">#2563EB</Color>
+            <Color x:Key="SuccessGreen">#10B981</Color>
+            <Color x:Key="DangerRed">#EF4444</Color>
+            <Color x:Key="WarningOrange">#F59E0B</Color>
+            <Color x:Key="CardBackground">#FFFFFF</Color>
+            <Color x:Key="TextPrimary">#111827</Color>
+            <Color x:Key="TextSecondary">#6B7280</Color>
+            <Color x:Key="BorderLight">#E5E7EB</Color>
+            <Color x:Key="BackgroundLight">#F9FAFB</Color>
+
+            <!-- ESTILOS -->
+            <Style x:Key="CardStyle" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="{StaticResource CardBackground}" />
+                <Setter Property="HasShadow" Value="True" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Padding" Value="24" />
+                <Setter Property="Margin" Value="16,8" />
+            </Style>
+
+            <Style x:Key="SectionTitleStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="18" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{StaticResource PrimaryBlue}" />
+                <Setter Property="Margin" Value="0,0,0,12" />
+            </Style>
+
+            <Style x:Key="FieldLabelStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                <Setter Property="Margin" Value="0,0,0,6" />
+            </Style>
+
+            <Style x:Key="InputStyle" TargetType="Entry">
+                <Setter Property="BackgroundColor" Value="{StaticResource BackgroundLight}" />
+                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="HeightRequest" Value="44" />
+                <Setter Property="Margin" Value="0,0,0,16" />
+            </Style>
+
+            <Style x:Key="EditorStyle" TargetType="Editor">
+                <Setter Property="BackgroundColor" Value="{StaticResource BackgroundLight}" />
+                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Margin" Value="0,0,0,16" />
+            </Style>
+
+            <Style x:Key="ButtonPrimaryStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource SuccessGreen}" />
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="HeightRequest" Value="50" />
+                <Setter Property="Margin" Value="8,0" />
+            </Style>
+
+            <Style x:Key="ButtonSecondaryStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource TextSecondary}" />
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="HeightRequest" Value="50" />
+                <Setter Property="Margin" Value="8,0" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <StackLayout Spacing="0" Padding="0,0,0,40">
+
+            <!-- HEADER -->
+            <Frame BackgroundColor="{StaticResource PrimaryBlue}" 
+                   
+                     HasShadow="True" 
+                   Padding="24,40,24,24"
+                   Margin="0,0,0,16">
+                <StackLayout Spacing="8">
+                    <Label Text="Consulta Médica" 
+                           FontSize="26" 
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center" />
+                    <Label Text="Complete los datos de la consulta médica" 
+                           FontSize="14" 
+                           TextColor="#E0E7FF"
+                           HorizontalOptions="Center" />
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN DEL PACIENTE -->
+            <Frame Style="{StaticResource CardStyle}">
+                <StackLayout Spacing="16">
+                    <Label Text="Información del Paciente" 
+                           Style="{StaticResource SectionTitleStyle}" />
+
+                    <Label x:Name="PacienteInfoLabel" 
+                           Text="Cargando información del paciente..."
+                           FontSize="14"
+                           TextColor="{StaticResource TextSecondary}" />
+                </StackLayout>
+            </Frame>
+
+            <!-- CONSULTA MÉDICA -->
+            <Frame Style="{StaticResource CardStyle}">
+                <StackLayout Spacing="16">
+
+                    <Label Text="Datos de la Consulta" 
+                           Style="{StaticResource SectionTitleStyle}" />
+
+                    <!-- Motivo de Consulta -->
+                    <StackLayout>
+                        <Label Text="Motivo de Consulta *" 
+                               Style="{StaticResource FieldLabelStyle}" />
+                        <Entry x:Name="MotivoEntry" 
+                               Placeholder="Ingrese el motivo principal de la consulta"
+                               Style="{StaticResource InputStyle}" />
+                    </StackLayout>
+
+                    <!-- Síntomas -->
+                    <StackLayout>
+                        <Label Text="Síntomas y Signos" 
+                               Style="{StaticResource FieldLabelStyle}" />
+                        <Editor x:Name="SintomasEditor" 
+                                Placeholder="Describa los síntomas observados y reportados por el paciente"
+                                HeightRequest="90"
+                                Style="{StaticResource EditorStyle}" />
+                    </StackLayout>
+
+                    <!-- Diagnóstico -->
+                    <StackLayout>
+                        <Label Text="Diagnóstico *" 
+                               Style="{StaticResource FieldLabelStyle}" />
+                        <Editor x:Name="DiagnosticoEditor" 
+                                Placeholder="Indique el diagnóstico médico"
+                                HeightRequest="90"
+                                Style="{StaticResource EditorStyle}" />
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- TRATAMIENTO Y RECETA (OPCIONALES) -->
+            <Frame Style="{StaticResource CardStyle}">
+                <StackLayout Spacing="16">
+
+                    <Label Text="Tratamiento y Prescripción" 
+                           Style="{StaticResource SectionTitleStyle}" />
+
+                    <!-- Checkbox para activar tratamiento -->
+                    <StackLayout Orientation="Horizontal" Spacing="12">
+                        <CheckBox x:Name="TratamientoCheckBox" 
+                                  Color="{StaticResource PrimaryBlue}"
+                                  CheckedChanged="OnTratamientoCheckChanged" />
+                        <Label Text="Prescribir tratamiento médico" 
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+
+                    <Label Text="Active esta opción si desea prescribir tratamiento o medicamentos" 
+                           FontSize="13"
+                           TextColor="{StaticResource TextSecondary}"
+                           Margin="36,0,0,16" />
+
+                    <!-- Sección de Tratamiento (Oculta por defecto) -->
+                    <StackLayout x:Name="TratamientoSection" 
+                                 IsVisible="False"
+                                 Spacing="16">
+
+                        <Frame BackgroundColor="#F0F9FF" 
+                               BorderColor="{StaticResource PrimaryBlue}"
+                               CornerRadius="12" 
+                               HasShadow="False" 
+                               Padding="20">
+                            <StackLayout Spacing="16">
+
+                                <!-- Tratamiento -->
+                                <StackLayout>
+                                    <Label Text="Plan de Tratamiento" 
+                                           Style="{StaticResource FieldLabelStyle}" />
+                                    <Editor x:Name="TratamientoEditor" 
+                                            Placeholder="Describa el plan de tratamiento recomendado"
+                                            HeightRequest="100"
+                                            Style="{StaticResource EditorStyle}" />
+                                </StackLayout>
+
+                                <!-- Separador visual -->
+                                <BoxView BackgroundColor="{StaticResource BorderLight}" 
+                                         HeightRequest="1" 
+                                         Margin="0,8" />
+
+                                <!-- Receta Médica -->
+                                <StackLayout>
+                                    <Label Text="Prescripción Médica" 
+                                           Style="{StaticResource FieldLabelStyle}" />
+                                    <Label Text="Incluya: medicamentos, dosis, frecuencia, duración" 
+                                           FontSize="12"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           Margin="0,0,0,8" />
+                                    <Editor x:Name="RecetaEditor" 
+                                            Placeholder="Ejemplo: Paracetamol 500mg cada 8 horas por 5 días&#10;Ibuprofeno 400mg cada 12 horas por 3 días"
+                                            HeightRequest="120"
+                                            Style="{StaticResource EditorStyle}" />
+                                </StackLayout>
+
+                                <!-- Plantillas de medicamentos comunes -->
+                                <StackLayout>
+                                    <Label Text="Medicamentos Comunes:" 
+                                           FontSize="13" 
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}" />
+
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowSpacing="8">
+                                        <Button Grid.Column="0" 
+                                                Text="Paracetamol 500mg" 
+                                                FontSize="12"
+                                                BackgroundColor="{StaticResource BackgroundLight}"
+                                                TextColor="{StaticResource TextPrimary}"
+                                                CornerRadius="6"
+                                                HeightRequest="36"
+                                                Clicked="OnMedicamentoSelected" />
+
+                                        <Button Grid.Column="1" 
+                                                Text="Ibuprofeno 400mg" 
+                                                FontSize="12"
+                                                BackgroundColor="{StaticResource BackgroundLight}"
+                                                TextColor="{StaticResource TextPrimary}"
+                                                CornerRadius="6"
+                                                HeightRequest="36"
+                                                Clicked="OnMedicamentoSelected" />
+                                    </Grid>
+                                </StackLayout>
+
+                            </StackLayout>
+                        </Frame>
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- SEGUIMIENTO -->
+            <Frame Style="{StaticResource CardStyle}">
+                <StackLayout Spacing="16">
+
+                    <Label Text="Control y Seguimiento" 
+                           Style="{StaticResource SectionTitleStyle}" />
+
+                    <StackLayout Orientation="Horizontal" Spacing="12">
+                        <CheckBox x:Name="SeguimientoCheckBox" 
+                                  Color="{StaticResource WarningOrange}"
+                                  CheckedChanged="OnSeguimientoCheckChanged" />
+                        <Label Text="Programar cita de control" 
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"
+                               VerticalOptions="Center" />
+                    </StackLayout>
+
+                    <!-- Fecha de seguimiento (oculta por defecto) -->
+                    <StackLayout x:Name="SeguimientoSection" 
+                                 IsVisible="False"
+                                 Spacing="12">
+
+                        <Label Text="Fecha de Control" 
+                               Style="{StaticResource FieldLabelStyle}" />
+
+                        <Frame BackgroundColor="{StaticResource BackgroundLight}" 
+                               CornerRadius="8" 
+                               HasShadow="False" 
+                               Padding="12">
+                            <DatePicker x:Name="FechaSeguimientoPicker" 
+                                        BackgroundColor="Transparent"
+                                        TextColor="{StaticResource TextPrimary}" />
+                        </Frame>
+
+                        <Label Text="Recomendaciones para el control:" 
+                               Style="{StaticResource FieldLabelStyle}" />
+                        <Editor x:Name="RecomendacionesEditor" 
+                                Placeholder="Indique instrucciones especiales para la próxima cita"
+                                HeightRequest="70"
+                                Style="{StaticResource EditorStyle}" />
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <Frame Style="{StaticResource CardStyle}">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+
+                    <Button Grid.Column="0"
+                            Text="Guardar Consulta" 
+                            Clicked="OnGuardarClicked"
+                            Style="{StaticResource ButtonPrimaryStyle}" />
+
+                    <Button Grid.Column="1"
+                            Text="Cancelar" 
+                            Clicked="OnCancelarClicked"
+                            Style="{StaticResource ButtonSecondaryStyle}" />
+                </Grid>
+            </Frame>
+
+            <!-- Indicador de campos obligatorios -->
+            <Label Text="* Campos obligatorios" 
+                   FontSize="12"
+                   TextColor="{StaticResource TextSecondary}"
+                   HorizontalOptions="Center"
+                   Margin="0,16,0,0" />
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
