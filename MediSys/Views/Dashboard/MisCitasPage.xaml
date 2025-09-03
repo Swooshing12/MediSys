@@ -1,12 +1,397 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
+             xmlns:models="clr-namespace:MediSys.Models"
              x:Class="MediSys.Views.Dashboard.MisCitasPage"
-             Title="MisCitasPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="viewmodels:MisCitasViewModel"
+             Title="🩺 Mis Citas Médicas"
+             BackgroundColor="#F0F4F8">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- COLORES -->
+            <Color x:Key="PrimaryBlue">#1E3A8A</Color>
+            <Color x:Key="AccentBlue">#3B82F6</Color>
+            <Color x:Key="SuccessGreen">#059669</Color>
+            <Color x:Key="WarningOrange">#D97706</Color>
+            <Color x:Key="DangerRed">#DC2626</Color>
+            <Color x:Key="CardBackground">#FFFFFF</Color>
+            <Color x:Key="TextPrimary">#1F2937</Color>
+            <Color x:Key="TextSecondary">#6B7280</Color>
+
+            <!-- ESTILOS -->
+            <Style x:Key="CardStyle" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="{StaticResource CardBackground}" />
+                <Setter Property="HasShadow" Value="True" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Padding" Value="20" />
+                <Setter Property="Margin" Value="16,8" />
+            </Style>
+
+            <Style x:Key="TitleStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="18" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+            </Style>
+
+            <Style x:Key="SubtitleStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+            </Style>
+
+            <Style x:Key="ButtonStyle" TargetType="Button">
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="HeightRequest" Value="40" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <StackLayout Padding="0" Spacing="0">
+
+            <!-- HEADER CON FILTROS -->
+            <Frame Style="{StaticResource CardStyle}" Margin="16,16,16,8">
+                <StackLayout Spacing="15">
+
+                    <!-- Título y estadísticas -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="15">
+                        <StackLayout Grid.Column="0">
+                            <Label Text="📋 Panel de Consultas" Style="{StaticResource TitleStyle}" />
+                            <Label Text="{Binding FechaSeleccionada, StringFormat='📅 {0:dddd, dd \\de MMMM \\de yyyy}'}" 
+                                   Style="{StaticResource SubtitleStyle}" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Column="1" Orientation="Horizontal" Spacing="20">
+                            <StackLayout>
+                                <Label Text="{Binding TotalCitas}" 
+                                       FontSize="24" FontAttributes="Bold" 
+                                       TextColor="{StaticResource PrimaryBlue}"
+                                       HorizontalOptions="Center" />
+                                <Label Text="Total" FontSize="12" 
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalOptions="Center" />
+                            </StackLayout>
+
+                            <StackLayout>
+                                <Label Text="{Binding CitasPendientes}" 
+                                       FontSize="24" FontAttributes="Bold" 
+                                       TextColor="{StaticResource WarningOrange}"
+                                       HorizontalOptions="Center" />
+                                <Label Text="Pendientes" FontSize="12" 
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalOptions="Center" />
+                            </StackLayout>
+                        </StackLayout>
+                    </Grid>
+
+                    <!-- Controles de filtrado -->
+                    <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="10">
+
+                        <!-- Selector de fecha -->
+                        <StackLayout Grid.Column="0">
+                            <Label Text="📅 Fecha" FontSize="12" FontAttributes="Bold" 
+           TextColor="{StaticResource TextSecondary}" />
+                            <DatePicker Date="{Binding FechaSeleccionada}" 
+                BackgroundColor="White"
+                TextColor="{StaticResource TextPrimary}">
+                                <DatePicker.Behaviors>
+                                    <toolkit:EventToCommandBehavior EventName="DateSelected"
+                                          Command="{Binding CambiarFechaCommand}" />
+                                </DatePicker.Behaviors>
+                            </DatePicker>
+                        </StackLayout>
+
+                        <!-- Selector de estado -->
+                        <StackLayout Grid.Column="1">
+                            <Label Text="📊 Estado" FontSize="12" FontAttributes="Bold" 
+           TextColor="{StaticResource TextSecondary}" />
+                            <Picker ItemsSource="{Binding EstadosDisponibles}"
+            SelectedItem="{Binding EstadoFiltro}"
+            BackgroundColor="White"
+            TextColor="{StaticResource TextPrimary}">
+                                <Picker.Behaviors>
+                                    <toolkit:EventToCommandBehavior EventName="SelectedIndexChanged"
+                                          Command="{Binding CambiarEstadoCommand}" />
+                                </Picker.Behaviors>
+                            </Picker>
+                        </StackLayout>
+
+                        <!-- Botones de acción -->
+                        <StackLayout Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                            <Button Text="🔄" 
+                                    Command="{Binding RefrescarCitasCommand}"
+                                    BackgroundColor="{StaticResource AccentBlue}"
+                                    TextColor="White"
+                                    WidthRequest="40" 
+                                    Style="{StaticResource ButtonStyle}" />
+
+                            <Button Text="🚨" 
+                                    Command="{Binding FiltrarUrgentesCommand}"
+                                    BackgroundColor="{StaticResource DangerRed}"
+                                    TextColor="White"
+                                    WidthRequest="40"
+                                    Style="{StaticResource ButtonStyle}" />
+                        </StackLayout>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- LOADING INDICATOR -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}" 
+                               IsRunning="{Binding IsLoading}"
+                               Color="{StaticResource AccentBlue}" 
+                               VerticalOptions="Center" 
+                               Margin="0,20" />
+
+            <!-- LISTA DE CITAS -->
+            <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding RefrescarCitasCommand}"
+                         RefreshColor="{StaticResource AccentBlue}">
+
+                <CollectionView ItemsSource="{Binding Citas}" 
+                                IsVisible="{Binding TieneCitas}"
+                                BackgroundColor="Transparent">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:CitaConsultaMedica">
+                            <Grid Padding="16,8">
+
+                                <!-- CARD DE CITA -->
+                                <Frame Style="{StaticResource CardStyle}" Margin="0">
+
+                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto" 
+                                          RowSpacing="10" ColumnSpacing="15">
+
+                                        <!-- HEADER CON PACIENTE Y HORA -->
+                                        <StackLayout Grid.Row="0" Grid.Column="0">
+                                            <Label Text="{Binding Paciente.NombreCompleto}" 
+                                                   Style="{StaticResource TitleStyle}" />
+                                            <Label>
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="📄 " />
+                                                        <Span Text="{Binding Paciente.Cedula}" 
+                                                              TextColor="{StaticResource TextSecondary}" />
+                                                        <Span Text=" • 📱 " />
+                                                        <Span Text="{Binding Paciente.Telefono}" 
+                                                              TextColor="{StaticResource TextSecondary}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </StackLayout>
+
+                                        <!-- ESTADO Y HORA -->
+                                        <StackLayout Grid.Row="0" Grid.Column="1" 
+                                                     HorizontalOptions="End">
+                                            <Label>
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding EstadoIcon}" />
+                                                        <Span Text=" " />
+                                                        <Span Text="{Binding Estado}" 
+                                                              TextColor="{Binding EstadoColor}" 
+                                                              FontAttributes="Bold" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                            <Label Text="{Binding HoraDisplay}" 
+                                                   FontSize="16" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource PrimaryBlue}"
+                                                   HorizontalOptions="End" />
+                                        </StackLayout>
+
+                                        <!-- INFORMACIÓN DE LA CITA -->
+                                        <StackLayout Grid.Row="1" Grid.ColumnSpan="2" 
+                                                     Spacing="5">
+                                            <Label>
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="📝 Motivo: " FontAttributes="Bold" />
+                                                        <Span Text="{Binding Motivo}" 
+                                                             TextColor="{StaticResource TextSecondary}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+
+                                            <Label>
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="🏥 " />
+                                                        <Span Text="{Binding Sucursal}" 
+                                                             TextColor="{StaticResource TextSecondary}" />
+                                                        <Span Text=" • " />
+                                                        <Span Text="{Binding TipoCita}" 
+                                                             TextColor="{StaticResource TextSecondary}" />
+                                                        <Span Text="{Binding EsVirtual, Converter={StaticResource BoolToStringConverter}, ConverterParameter='💻|🏥'}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </StackLayout>
+
+                                        <!-- INFORMACIÓN DE TRIAJE (si existe) -->
+                                        <Frame Grid.Row="2" Grid.ColumnSpan="2" 
+                                              IsVisible="{Binding Triaje, Converter={StaticResource ObjectToBoolConverter}}"
+                                              BackgroundColor="#F0F9FF" 
+                                              BorderColor="{StaticResource AccentBlue}"
+                                              CornerRadius="8" 
+                                              Padding="12">
+                                            <StackLayout Spacing="5">
+                                                <Label Text="📊 Datos de Triaje" 
+                                                      FontSize="12" 
+                                                      FontAttributes="Bold" 
+                                                      TextColor="{StaticResource AccentBlue}" />
+
+                                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                                                    <Label Grid.Column="0" 
+                                                          Text="{Binding Triaje.PresionArterial, StringFormat='🩸 {0}'}" 
+                                                          FontSize="11" />
+                                                    <Label Grid.Column="1" 
+                                                          Text="{Binding Triaje.Temperatura, StringFormat='🌡️ {0}°C'}" 
+                                                          FontSize="11" />
+                                                    <Label Grid.Column="2" 
+                                                          Text="{Binding Triaje.FrecuenciaCardiaca, StringFormat='💓 {0} bpm'}" 
+                                                          FontSize="11" />
+                                                </Grid>
+
+                                                <Label IsVisible="{Binding EsUrgente}">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="🚨 " />
+                                                            <Span Text="URGENTE - Nivel " 
+                                                                 FontAttributes="Bold" 
+                                                                 TextColor="{StaticResource DangerRed}" />
+                                                            <Span Text="{Binding Triaje.NivelUrgencia}" 
+                                                                 FontAttributes="Bold" 
+                                                                 TextColor="{StaticResource DangerRed}" />
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                            </StackLayout>
+                                        </Frame>
+
+                                        <!-- ACCIONES -->
+                                        <StackLayout Grid.Row="3" Grid.ColumnSpan="2" 
+                                                    Orientation="Horizontal" 
+                                                    Spacing="8" 
+                                                    HorizontalOptions="End">
+
+                                            <!-- Botón Ver Detalles -->
+                                            <Button Text="👁️ Ver" 
+                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MisCitasViewModel}}, Path=VerDetalleCitaCommand}"
+                                                   CommandParameter="{Binding .}"
+                                                   BackgroundColor="{StaticResource AccentBlue}"
+                                                   TextColor="White"
+                                                   FontSize="12"
+                                                   Style="{StaticResource ButtonStyle}" />
+
+                                            <!-- Botón Iniciar Consulta (solo si puede consultar) -->
+                                            <Button Text="🩺 Consultar" 
+                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MisCitasViewModel}}, Path=IniciarConsultaCommand}"
+                                                   CommandParameter="{Binding .}"
+                                                   IsVisible="{Binding PuedeConsultar}"
+                                                   BackgroundColor="{StaticResource SuccessGreen}"
+                                                   TextColor="White"
+                                                   FontSize="12"
+                                                   Style="{StaticResource ButtonStyle}" />
+
+                                            <!-- Botón Editar Consulta (si ya tiene consulta) -->
+                                            <Button Text="✏️ Editar" 
+                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MisCitasViewModel}}, Path=EditarConsultaCommand}"
+                                                   CommandParameter="{Binding .}"
+                                                   IsVisible="{Binding TieneConsulta}"
+                                                   BackgroundColor="{StaticResource WarningOrange}"
+                                                   TextColor="White"
+                                                   FontSize="12"
+                                                   Style="{StaticResource ButtonStyle}" />
+
+                                            <!-- Botón No Asistió -->
+                                            <Button Text="❌ No Asistió" 
+                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MisCitasViewModel}}, Path=MarcarComoNoAsistioCommand}"
+                                                   CommandParameter="{Binding .}"
+                                                   IsVisible="{Binding Estado, Converter={StaticResource StringEqualToBoolConverter}, ConverterParameter='Confirmada'}"
+                                                   BackgroundColor="{StaticResource DangerRed}"
+                                                   TextColor="White"
+                                                   FontSize="12"
+                                                   Style="{StaticResource ButtonStyle}" />
+                                        </StackLayout>
+
+                                        <!-- Indicador de consulta existente -->
+                                        <Frame Grid.Row="1" Grid.Column="1" 
+                                              IsVisible="{Binding TieneConsulta}"
+                                              BackgroundColor="#F0FDF4" 
+                                              BorderColor="{StaticResource SuccessGreen}"
+                                              CornerRadius="6" 
+                                              Padding="8"
+                                              HorizontalOptions="End"
+                                              VerticalOptions="Start">
+                                            <Label Text="✅ Consultado" 
+                                                  FontSize="10" 
+                                                  FontAttributes="Bold"
+                                                  TextColor="{StaticResource SuccessGreen}" />
+                                        </Frame>
+                                    </Grid>
+                                </Frame>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+
+            <!-- MENSAJE CUANDO NO HAY CITAS -->
+            <StackLayout IsVisible="{Binding TieneCitas, Converter={StaticResource InverseBoolConverter}}" 
+                        Padding="40" 
+                        Spacing="20"
+                        VerticalOptions="Center">
+
+                <Label Text="📅" 
+                      FontSize="80" 
+                      HorizontalOptions="Center"
+                      Opacity="0.3" />
+
+                <Label Text="{Binding MensajeVacio}" 
+                      FontSize="18" 
+                      FontAttributes="Bold"
+                      TextColor="{StaticResource TextSecondary}"
+                      HorizontalOptions="Center"
+                      HorizontalTextAlignment="Center" />
+
+                <Label Text="Selecciona otra fecha o cambia el filtro de estado para ver más citas." 
+                      FontSize="14" 
+                      TextColor="{StaticResource TextSecondary}"
+                      HorizontalOptions="Center"
+                      HorizontalTextAlignment="Center" />
+
+                <Button Text="🔄 Actualizar" 
+                       Command="{Binding RefrescarCitasCommand}"
+                       BackgroundColor="{StaticResource AccentBlue}"
+                       TextColor="White"
+                       Style="{StaticResource ButtonStyle}"
+                       HorizontalOptions="Center"
+                       WidthRequest="120" />
+            </StackLayout>
+
+            <!-- BOTÓN FLOTANTE PARA ACCIONES RÁPIDAS -->
+            <Frame BackgroundColor="{StaticResource AccentBlue}" 
+                  CornerRadius="30"
+                  HasShadow="True"
+                  Padding="0"
+                  HorizontalOptions="End"
+                  VerticalOptions="End"
+                  Margin="20"
+                  HeightRequest="60"
+                  WidthRequest="60">
+
+                <Button Text="⚡" 
+                       BackgroundColor="Transparent"
+                       TextColor="White"
+                       FontSize="24"
+                       Command="{Binding LimpiarFiltrosCommand}" />
+            </Frame>
+
+        </StackLayout>
+    </ScrollView>
 </ContentPage>

@@ -1628,6 +1628,243 @@ namespace MediSys.Services
 			}
 		}
 
+		// Services/MediSysApiService.cs - AGREGAR ESTOS MÉTODOS AL FINAL
+
+		/// <summary>
+		/// Obtener citas del doctor para consulta médica
+		/// </summary>
+		public async Task<ApiResponse<List<CitaConsultaMedica>>> ObtenerCitasConsultaDoctorAsync(string cedulaDoctor, string fecha, string estado = "Confirmada")
+		{
+			try
+			{
+				var url = $"{_baseUrl}/consultas/doctor/{cedulaDoctor}";
+				var queryParams = new List<string> { $"fecha={fecha}" };
+
+				if (!string.IsNullOrEmpty(estado) && estado != "Todas")
+				{
+					queryParams.Add($"estado={Uri.EscapeDataString(estado)}");
+				}
+
+				if (queryParams.Any())
+				{
+					url += "?" + string.Join("&", queryParams);
+				}
+
+				System.Diagnostics.Debug.WriteLine($"🩺 Obteniendo citas doctor: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Citas doctor response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<CitaConsultaMedica>>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<List<CitaConsultaMedica>>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<List<CitaConsultaMedica>>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error obteniendo citas del doctor"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error obteniendo citas doctor: {ex.Message}");
+				return new ApiResponse<List<CitaConsultaMedica>>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// Crear o actualizar consulta médica
+		/// </summary>
+		public async Task<ApiResponse<object>> CrearActualizarConsultaMedicaAsync(int idCita, ConsultaMedicaRequest consultaData)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/consultas/cita/{idCita}";
+
+				System.Diagnostics.Debug.WriteLine($"🩺 Creando/actualizando consulta: {url}");
+				System.Diagnostics.Debug.WriteLine($"📤 Datos consulta: {JsonSerializer.Serialize(consultaData)}");
+
+				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				request.Content = new StringContent(JsonSerializer.Serialize(consultaData), Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Consulta response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error procesando consulta médica"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error procesando consulta: {ex.Message}");
+				return new ApiResponse<object>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+		
+		/// <summary>
+		/// Obtener detalle completo de una consulta médica
+		/// </summary>
+		public async Task<ApiResponse<DetalleConsultaMedica>> ObtenerDetalleConsultaAsync(int idCita)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/consultas/detalle/{idCita}";
+
+				System.Diagnostics.Debug.WriteLine($"🔍 Obteniendo detalle consulta: {url}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Detalle consulta response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<DetalleConsultaMedica>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<DetalleConsultaMedica>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<DetalleConsultaMedica>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Consulta no encontrada"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error obteniendo detalle: {ex.Message}");
+				return new ApiResponse<DetalleConsultaMedica>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
+
+		/// <summary>
+		/// Actualizar estado de una cita
+		/// </summary>
+		public async Task<ApiResponse<object>> ActualizarEstadoCitaAsync(int idCita, string nuevoEstado)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/citas/{idCita}/estado";
+
+				System.Diagnostics.Debug.WriteLine($"🔄 Actualizando estado cita: {url} - Estado: {nuevoEstado}");
+
+				var request = new HttpRequestMessage(HttpMethod.Put, url);
+				request.Content = new StringContent(JsonSerializer.Serialize(new { estado = nuevoEstado }), Encoding.UTF8, "application/json");
+
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📥 Estado cita response: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error actualizando estado de cita"
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error actualizando estado: {ex.Message}");
+				return new ApiResponse<object>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
 
 		public class NullableStringConverter : JsonConverter<string>
 		{

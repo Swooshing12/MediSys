@@ -272,18 +272,17 @@
                        Route="triaje" />
     </FlyoutItem>
 
-    <!-- Mis Citas Médicas -->
+    <!-- AppShell.xaml - Asegúrate de que esté así: -->
     <FlyoutItem Title="🩺 Mis Citas" 
-                FlyoutDisplayOptions="AsMultipleItems"
-                IsVisible="{Binding IsMedico}">
+            FlyoutDisplayOptions="AsMultipleItems"
+            IsVisible="{Binding IsMedico}">
         <FlyoutItem.Icon>
             <FontImageSource Glyph="🩺" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalGreen}" />
         </FlyoutItem.Icon>
         <ShellContent Title="Mis Citas Médicas"
-                      ContentTemplate="{DataTemplate dashboard:MisCitasPage}"
-                      Route="mis-citas" />
+                  ContentTemplate="{DataTemplate dashboard:MisCitasPage}"
+                  Route="mis-citas" />
     </FlyoutItem>
-
 
     <!-- PÁGINAS OCULTAS -->
     <ShellContent ContentTemplate="{DataTemplate auth:LoginPage}"

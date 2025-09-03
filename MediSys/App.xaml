@@ -21,6 +21,8 @@
             <local2:ObjectToBoolConverter x:Key="ObjectToBoolConverter"/>
             <local2:NullToBoolConverter x:Key="NullToBoolConverter"/>
             <local2:CountToBoolConverter x:Key="CountToBoolConverter"/>
+            <local2:StringEqualToBoolConverter x:Key="StringEqualToBoolConverter"/>
+            <local2:BoolToStringConverter x:Key="BoolToStringConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
