@@ -145,29 +145,111 @@
 
                     <!-- PACIENTE ENCONTRADO MEJORADO -->
                     <Frame IsVisible="{Binding PacienteEncontrado}"
-                           BackgroundColor="#ECFDF5" 
-                           HasShadow="False"
-                           CornerRadius="12"
-                           Padding="20"
-                           BorderColor="{StaticResource SuccessGreen}">
-                        <StackLayout Spacing="8">
+       BackgroundColor="#ECFDF5"
+       HasShadow="True"
+       CornerRadius="16"
+       Padding="20"
+       BorderColor="{StaticResource SuccessGreen}"
+       Margin="0,10">
+                        <StackLayout Spacing="14">
+
+                            <!-- Encabezado -->
                             <StackLayout Orientation="Horizontal" Spacing="8">
                                 <Label Text="✅" FontSize="18" VerticalOptions="Center" />
-                                <Label Text="Paciente Encontrado" 
-                                       FontSize="16" 
-                                       FontAttributes="Bold" 
-                                       TextColor="{StaticResource SuccessGreen}"
-                                       VerticalOptions="Center" />
+                                <Label Text="Paciente Encontrado"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource SuccessGreen}"
+                   VerticalOptions="Center" />
                             </StackLayout>
-                            <Label Text="{Binding PacienteSeleccionado.NombreCompleto}" 
-                                   FontSize="18" 
-                                   FontAttributes="Bold" 
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="{Binding PacienteSeleccionado.Correo}" 
-                                   FontSize="14" 
-                                   TextColor="{StaticResource TextSecondary}" />
+
+                            <!-- Nombre completo -->
+                            <Label Text="{Binding PacienteSeleccionado.NombreCompleto}"
+               FontSize="20"
+               FontAttributes="Bold"
+               TextColor="{StaticResource TextPrimary}" />
+
+                            <!-- Datos básicos -->
+                            <Grid ColumnDefinitions="*,*"
+              RowDefinitions="Auto,Auto,Auto"
+              ColumnSpacing="20" RowSpacing="6">
+
+                                <!-- Cédula -->
+                                <Label Grid.Row="0" Grid.Column="0"
+                   Text="{Binding PacienteSeleccionado.CedulaString, StringFormat='🪪 Cédula: {0}'}"
+                   FontSize="14" TextColor="{StaticResource TextSecondary}" />
+
+                                <!-- Edad -->
+                                <Label Grid.Row="0" Grid.Column="1"
+                   Text="{Binding PacienteSeleccionado.EdadDisplay, StringFormat='🎂 Edad: {0} años'}"
+                   FontSize="14" TextColor="{StaticResource TextSecondary}" />
+
+                                <!-- Sexo -->
+                                <Label Grid.Row="1" Grid.Column="0"
+                   Text="{Binding PacienteSeleccionado.SexoDisplay}"
+                   FontSize="14" TextColor="{StaticResource TextSecondary}" />
+
+                                <!-- Tipo de sangre -->
+                                <Label Grid.Row="1" Grid.Column="1"
+                   Text="{Binding PacienteSeleccionado.TipoSangre, StringFormat='🩸 Sangre: {0}'}"
+                   FontSize="14" TextColor="{StaticResource TextSecondary}" />
+
+                                <!-- Nacionalidad -->
+                                <Label Grid.Row="2" Grid.Column="0"
+                   Text="{Binding PacienteSeleccionado.Nacionalidad, StringFormat='🌎 {0}'}"
+                   FontSize="14" TextColor="{StaticResource TextSecondary}" />
+
+                                <!-- Número seguro -->
+                                <Label Grid.Row="2" Grid.Column="1"
+                   Text="{Binding PacienteSeleccionado.NumeroSeguro, StringFormat='🛡️ Seguro: {0}'}"
+                   FontSize="14" TextColor="{StaticResource TextSecondary}" />
+
+                            </Grid>
+
+                            <!-- Contactos -->
+                            <StackLayout Spacing="4" Margin="0,10,0,0">
+                                <Label Text="📞 Contactos"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding PacienteSeleccionado.Telefono, StringFormat='Teléfono: {0}'}"
+                   FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                                <Label Text="{Binding PacienteSeleccionado.Correo, StringFormat='Correo: {0}'}"
+                   FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                            </StackLayout>
+
+                            <!-- Contacto de emergencia -->
+                            <StackLayout Spacing="4">
+                                <Label Text="🚨 Contacto de Emergencia"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource DangerRed}" />
+                                <Label Text="{Binding PacienteSeleccionado.ContactoEmergencia, StringFormat='Nombre: {0}'}"
+                   FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                                <Label Text="{Binding PacienteSeleccionado.TelefonoEmergencia, StringFormat='Teléfono: {0}'}"
+                   FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                            </StackLayout>
+
+                            <!-- Alergias y antecedentes -->
+                            <StackLayout Spacing="4">
+                                <Label Text="⚕️ Antecedentes Médicos"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding PacienteSeleccionado.AntecedentesMedicos}"
+                   FontSize="13" TextColor="{StaticResource TextSecondary}" />
+
+                                <Label Text="🌿 Alergias"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding PacienteSeleccionado.Alergias}"
+                   FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                            </StackLayout>
+
                         </StackLayout>
                     </Frame>
+
                 </StackLayout>
             </Frame>
 

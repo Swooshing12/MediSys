@@ -599,8 +599,7 @@
                 </StackLayout>
             </Frame>
 
-            <!-- Espaciado inferior -->
-            <BoxView HeightRequest="20" Color="Transparent" />
+
 
         </StackLayout>
     </ScrollView>
