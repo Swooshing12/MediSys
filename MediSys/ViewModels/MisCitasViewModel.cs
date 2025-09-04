@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediSys.Models;
 using MediSys.Services;
+using MediSys.Views.Dashboard;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 
@@ -254,25 +255,19 @@ namespace MediSys.ViewModels
 		}
 
 		// En MisCitasViewModel.cs - CORREGIR ESTE MÉTODO
+		// En MisCitasViewModel o donde sea que navegues a la vista
 		[RelayCommand]
 		private async Task VerDetalleCita(CitaConsultaMedica cita)
 		{
-			if (cita == null) return;
-
 			try
 			{
-				System.Diagnostics.Debug.WriteLine($"👁️ Mostrando detalle de cita: {cita.IdCita}");
-
-				// ✅ CREAR PÁGINA Y ESTABLECER CITA
-				var detallePage = new Views.Dashboard.DetalleCitaMedicaPage(cita);
-				detallePage.SetCita(cita);
-
-				await Shell.Current.Navigation.PushModalAsync(detallePage);
+				var detallePage = new DetalleCitaMedicaPage(cita);
+				await Shell.Current.Navigation.PushModalAsync(new NavigationPage(detallePage));
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"❌ Error mostrando detalle: {ex.Message}");
-				await Shell.Current.DisplayAlert("Error", $"Error mostrando detalles: {ex.Message}", "OK");
+				System.Diagnostics.Debug.WriteLine($"❌ Error abriendo detalle: {ex.Message}");
+				await Shell.Current.DisplayAlert("Error", $"Error abriendo detalle: {ex.Message}", "OK");
 			}
 		}
 
