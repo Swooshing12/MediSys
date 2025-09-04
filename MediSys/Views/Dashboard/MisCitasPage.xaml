@@ -437,8 +437,11 @@
                         <DataTemplate x:DataType="models:CitaConsultaMedica">
 
                             <!-- CARD DE CITA COMPACTA -->
-                            <Frame Style="{StaticResource CompactCardStyle}">
+                            <Frame Style="{StaticResource CompactCardStyle}"
+                                        BorderColor="#2D3748"
+                                            HasShadow="True">
                                 <StackLayout Spacing="12">
+                                    <!-- HEADER OPTIMIZADO -->
 
                                     <!-- HEADER OPTIMIZADO -->
                                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
@@ -831,10 +834,11 @@
                                                         Text="❌ No Asistió" 
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MisCitasViewModel}}, Path=MarcarComoNoAsistioCommand}"
                                                         CommandParameter="{Binding .}"
+                                                        IsVisible="{Binding PuedeMarcarNoAsistio}"
                                                         BackgroundColor="{StaticResource DangerRed}"
                                                         TextColor="White"
                                                         Style="{StaticResource ActionButtonStyle}" />
-                                            </Grid>
+                                               </Grid>
                                         </StackLayout>
                                     </Frame>
 

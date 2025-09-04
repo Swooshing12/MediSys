@@ -354,6 +354,8 @@ namespace MediSys.ViewModels
 			}
 		}
 
+
+
 		[RelayCommand]
 		private async Task LimpiarFiltros()
 		{

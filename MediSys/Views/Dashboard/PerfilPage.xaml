@@ -240,21 +240,7 @@
                                VerticalOptions="Center" />
                     </StackLayout>
 
-                    <!-- ID Usuario -->
-                    <StackLayout Spacing="5">
-                        <Label Text="ID de Usuario"
-                               FontSize="14"
-                               FontAttributes="Bold"
-                               TextColor="#34495E" />
-                        <Frame BackgroundColor="#ECF0F1"
-                               CornerRadius="8"
-                               Padding="12"
-                               HasShadow="False">
-                            <Label Text="{Binding Usuario.IdUsuario}"
-                                   FontSize="16"
-                                   TextColor="#2C3E50" />
-                        </Frame>
-                    </StackLayout>
+                  
 
                     <!-- Fecha de registro -->
                     <StackLayout Spacing="5">
@@ -282,7 +268,7 @@
                                CornerRadius="8"
                                Padding="12"
                                HasShadow="False">
-                            <Label Text="{Binding TipoUsuarioDisplay}"
+                            <Label Text="{Binding Usuario.RolDisplay}"
                                    FontSize="16"
                                    TextColor="#2C3E50" />
                         </Frame>

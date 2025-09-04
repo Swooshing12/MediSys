@@ -9,11 +9,12 @@
     x:DataType="viewmodels:AppShellViewModel"
     Title="MediSys"
     FlyoutBehavior="Flyout"
-    FlyoutBackgroundColor="PaleVioletRed"
-    Shell.ForegroundColor="PaleVioletRed"
+    FlyoutBackgroundColor="#2C2C2C"
+    Shell.ForegroundColor="FloralWhite"
     Shell.UnselectedColor="Gray"
-    Shell.TitleColor="White">
+    Shell.TitleColor="FloralWhite">
 
+    
     <Shell.Resources>
         <ResourceDictionary>
             <!-- Colores médicos consistentes -->
@@ -25,6 +26,8 @@
             <Color x:Key="MedicalDarkBlue">#1A5A7A</Color>
             <Color x:Key="MenuItemColor">#2C3E50</Color>
             <Color x:Key="MenuItemSelected">#3498DB</Color>
+            
+            
         </ResourceDictionary>
     </Shell.Resources>
 
@@ -206,13 +209,14 @@
         </StackLayout>
     </Shell.FlyoutFooter>
 
+    
     <!-- MENÚ PRINCIPAL CON ESTILO MÉDICO -->
     <FlyoutItem Title="🏠 Dashboard" 
                 FlyoutDisplayOptions="AsMultipleItems">
         <FlyoutItem.Icon>
             <FontImageSource Glyph="🏠" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalBlue}" />
         </FlyoutItem.Icon>
-        <ShellContent Title="Dashboard"
+        <ShellContent Title="🏠 Dashboard"
                       ContentTemplate="{DataTemplate dashboard:DashboardPage}"
                       Route="dashboard" />
     </FlyoutItem>
@@ -223,7 +227,7 @@
         <FlyoutItem.Icon>
             <FontImageSource Glyph="📋" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalTeal}" />
         </FlyoutItem.Icon>
-        <ShellContent Title="Historial Médico"
+        <ShellContent Title="📋 Historial Médico"
                       ContentTemplate="{DataTemplate dashboard:HistorialClinicoPage}"
                       Route="historial" />
     </FlyoutItem>
@@ -234,7 +238,7 @@
         <FlyoutItem.Icon>
             <FontImageSource Glyph="📅" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalGreen}" />
         </FlyoutItem.Icon>
-        <ShellContent Title="Consultar Citas"
+        <ShellContent Title="📅 Consultar Citas"
                       ContentTemplate="{DataTemplate dashboard:ConsultaCitasPage}"
                       Route="consulta-citas" />
     </FlyoutItem>
@@ -244,7 +248,7 @@
         <FlyoutItem.Icon>
             <FontImageSource Glyph="👤" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalBlue}" />
         </FlyoutItem.Icon>
-        <ShellContent Title="Mi Perfil"
+        <ShellContent Title="👤 Mi Perfil"
                       ContentTemplate="{DataTemplate dashboard:PerfilPage}"
                       Route="perfil" />
     </FlyoutItem>
@@ -267,19 +271,19 @@
         <ShellContent Title="📝 Crear Cita" 
                       ContentTemplate="{DataTemplate dashboard:CrearCitaPage}"
                       Route="crear_cita" />
-        <ShellContent Title="Registro de Triaje"
+        <ShellContent Title="🩺 Registro de Triaje"
                        ContentTemplate="{DataTemplate dashboard:TriajePage}"
                        Route="triaje" />
     </FlyoutItem>
 
     <!-- AppShell.xaml - Asegúrate de que esté así: -->
-    <FlyoutItem Title="🩺 Mis Citas" 
+    <FlyoutItem Title="🗓️ Mis Citas" 
             FlyoutDisplayOptions="AsMultipleItems"
             IsVisible="{Binding IsMedico}">
         <FlyoutItem.Icon>
             <FontImageSource Glyph="🩺" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalGreen}" />
         </FlyoutItem.Icon>
-        <ShellContent Title="Mis Citas Médicas"
+        <ShellContent Title="🗓️ Mis Citas Médicas"
                   ContentTemplate="{DataTemplate dashboard:MisCitasPage}"
                   Route="mis-citas" />
     </FlyoutItem>

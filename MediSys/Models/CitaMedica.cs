@@ -25,6 +25,18 @@ namespace MediSys.Models
 		[JsonPropertyName("estado")]
 		public string Estado { get; set; } = "";
 
+		// ✅ AGREGAR ESTA PROPIEDAD CALCULADA
+		public bool PuedeMarcarNoAsistio
+		{
+			get
+			{
+				// Solo se puede marcar como "No Asistió" si NO está completada
+				return !string.Equals(Estado, "Completada", StringComparison.OrdinalIgnoreCase) &&
+					   !string.Equals(Estado, "Cancelada", StringComparison.OrdinalIgnoreCase) &&
+					   !string.Equals(Estado, "No Asistió", StringComparison.OrdinalIgnoreCase);
+			}
+		}
+
 		[JsonPropertyName("tipo_cita")]
 		public string TipoCita { get; set; } = "";
 
@@ -107,6 +119,8 @@ namespace MediSys.Models
 			_ => "📋"
 		};
 	}
+
+
 
 	// ===== PACIENTE INFO COMPLETA =====
 	public class PacienteInfo

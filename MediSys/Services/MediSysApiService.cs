@@ -1809,6 +1809,79 @@ namespace MediSys.Services
 			}
 		}
 
+		// ✅ NUEVO MÉTODO para obtener información de cita (sin requerir consulta médica)
+		public async Task<ApiResponse<ConsultaDetalleResponse>> ObtenerInformacionCitaAsync(int idCita)
+		{
+			try
+			{
+				System.Diagnostics.Debug.WriteLine($"🔍 Obteniendo información de cita ID: {idCita}");
+
+				var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/citas/informacion/{idCita}");
+				var response = await SendRequestWithSessionAsync(request);
+				var content = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"📡 Respuesta HTTP: {response.StatusCode}");
+				System.Diagnostics.Debug.WriteLine($"📄 Contenido: {content}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var result = JsonSerializer.Deserialize<ApiResponse<ConsultaDetalleResponse>>(content, GetJsonOptions());
+					System.Diagnostics.Debug.WriteLine($"✅ Información de cita obtenida exitosamente");
+					return result ?? new ApiResponse<ConsultaDetalleResponse>
+					{
+						Success = false,
+						Message = "Respuesta vacía del servidor"
+					};
+				}
+				else
+				{
+					System.Diagnostics.Debug.WriteLine($"❌ Error HTTP {response.StatusCode}: {content}");
+					return new ApiResponse<ConsultaDetalleResponse>
+					{
+						Success = false,
+						Message = $"Error del servidor: {response.StatusCode}"
+					};
+				}
+			}
+			catch (HttpRequestException ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error de conexión: {ex.Message}");
+				return new ApiResponse<ConsultaDetalleResponse>
+				{
+					Success = false,
+					Message = "Error de conexión al servidor"
+				};
+			}
+			catch (TaskCanceledException ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Timeout: {ex.Message}");
+				return new ApiResponse<ConsultaDetalleResponse>
+				{
+					Success = false,
+					Message = "Tiempo de espera agotado"
+				};
+			}
+			catch (JsonException ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error JSON: {ex.Message}");
+				return new ApiResponse<ConsultaDetalleResponse>
+				{
+					Success = false,
+					Message = "Error procesando respuesta del servidor"
+				};
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error inesperado: {ex.Message}");
+				return new ApiResponse<ConsultaDetalleResponse>
+				{
+					Success = false,
+					Message = $"Error inesperado: {ex.Message}"
+				};
+			}
+		}
+
+
 		/// <summary>
 		/// Actualizar estado de una cita
 		/// </summary>

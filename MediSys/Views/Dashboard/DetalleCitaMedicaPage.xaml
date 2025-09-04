@@ -862,20 +862,6 @@
                         </Button.Text>
                     </Button>
 
-                    <!-- Botón Ver Consulta (si ya tiene) -->
-                    <Button IsVisible="{Binding TieneConsulta}"
-                            Command="{Binding VerConsultaCommand}"
-                            Style="{StaticResource ActionButtonStyle}"
-                            BackgroundColor="{StaticResource AccentBlue}"
-                            TextColor="White"
-                            CornerRadius="20"
-                            HeightRequest="60">
-                        <Button.Text>
-                            <MultiBinding StringFormat="👁️ {0}">
-                                <Binding Source="Ver Consulta Completa" />
-                            </MultiBinding>
-                        </Button.Text>
-                    </Button>
 
                     <!-- Botón Refrescar -->
                     <Button Command="{Binding RefrescarDatosCommand}"

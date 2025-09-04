@@ -83,8 +83,7 @@
 
             <!-- HEADER -->
             <Frame BackgroundColor="{StaticResource PrimaryBlue}" 
-                   
-                     HasShadow="True" 
+                   HasShadow="True" 
                    Padding="24,40,24,24"
                    Margin="0,0,0,16">
                 <StackLayout Spacing="8">
@@ -101,15 +100,24 @@
             </Frame>
 
             <!-- INFORMACIÓN DEL PACIENTE -->
+            <!-- INFORMACIÓN DEL PACIENTE MEJORADA -->
             <Frame Style="{StaticResource CardStyle}">
-                <StackLayout Spacing="16">
-                    <Label Text="Información del Paciente" 
-                           Style="{StaticResource SectionTitleStyle}" />
+                <StackLayout Spacing="14">
 
-                    <Label x:Name="PacienteInfoLabel" 
-                           Text="Cargando información del paciente..."
-                           FontSize="14"
-                           TextColor="{StaticResource TextSecondary}" />
+                    <!-- Header con icono -->
+                    <StackLayout Orientation="Horizontal" Spacing="8">
+                        <Label Text="👤" FontSize="20" />
+                        <Label Text="Información del Paciente" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource TextPrimary}" />
+                                </StackLayout>  
+
+                    <!-- Contenedor principal que se llena dinámicamente -->
+                    <StackLayout x:Name="PacienteInfoContainer" Spacing="12">
+                        <!-- Este contenedor se llenará desde el código -->
+                    </StackLayout>
+
                 </StackLayout>
             </Frame>
 
@@ -124,7 +132,7 @@
                     <StackLayout>
                         <Label Text="Motivo de Consulta *" 
                                Style="{StaticResource FieldLabelStyle}" />
-                        <Entry x:Name="MotivoEntry" 
+                        <Entry x:Name="MotivoConsultaEditor" 
                                Placeholder="Ingrese el motivo principal de la consulta"
                                Style="{StaticResource InputStyle}" />
                     </StackLayout>
@@ -287,9 +295,9 @@
                                         TextColor="{StaticResource TextPrimary}" />
                         </Frame>
 
-                        <Label Text="Recomendaciones para el control:" 
+                        <Label Text="Observaciones para el control:" 
                                Style="{StaticResource FieldLabelStyle}" />
-                        <Editor x:Name="RecomendacionesEditor" 
+                        <Editor x:Name="ObservacionesEditor" 
                                 Placeholder="Indique instrucciones especiales para la próxima cita"
                                 HeightRequest="70"
                                 Style="{StaticResource EditorStyle}" />
