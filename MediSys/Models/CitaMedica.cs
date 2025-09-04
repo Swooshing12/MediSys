@@ -51,7 +51,7 @@ namespace MediSys.Models
 
 		// Especialidad
 		[JsonPropertyName("especialidad")]
-		public EspecialidadInfo Especialidad { get; set; } = new();
+		public EspecialidadInfo2 Especialidad { get; set; } = new();
 
 		// Tipo de cita info
 		[JsonPropertyName("tipo_cita_info")]
@@ -63,7 +63,7 @@ namespace MediSys.Models
 
 		// Consulta médica (si existe)
 		[JsonPropertyName("consulta_medica")]
-		public ConsultaMedicaInfo? ConsultaMedica { get; set; }
+		public ConsultaMedicaInfo2? ConsultaMedica { get; set; }
 
 		// Estados y capacidades
 		[JsonPropertyName("tiene_triaje")]
@@ -176,7 +176,7 @@ namespace MediSys.Models
 	// ===== SUCURSAL INFO =====
 	public class SucursalInformation
 	{
-		[JsonPropertyName("nombre_sucursal")]
+		[JsonPropertyName("nombre")]
 		public string Nombre { get; set; } = "";
 
 		[JsonPropertyName("direccion")]
@@ -436,7 +436,7 @@ namespace MediSys.Models
 		public SucursalInformation Sucursal { get; set; } = new();
 
 		[JsonPropertyName("especialidad")]
-		public EspecialidadInfo Especialidad { get; set; } = new();
+		public EspecialidadInfo2 Especialidad { get; set; } = new();
 
 		[JsonPropertyName("triaje")]
 		public TriajeInfo2? Triaje { get; set; }

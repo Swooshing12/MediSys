@@ -98,7 +98,7 @@
                            TextColor="{Binding Cita.EstadoColor}" 
                            FontAttributes="Bold" />
 
-                    <Label Text="{Binding Cita.Sucursal, StringFormat='🏥 Sucursal: {0}'}" 
+                    <Label Text="{Binding Cita.Sucursal.Nombre, StringFormat='🏥 Sucursal: {0}'}" 
                            TextColor="{StaticResource TextSecondary}" />
 
                     <Label Text="{Binding Cita.TipoCita, StringFormat='💻 Tipo: {0}'}" 
