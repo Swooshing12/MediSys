@@ -28,6 +28,12 @@ namespace MediSys.ViewModels
 		private bool isEnfermero = false;
 
 		[ObservableProperty]
+		private bool isAdmin = false;
+
+		[ObservableProperty]
+		private bool isRecepcionista = false;
+
+		[ObservableProperty]
 		private bool canViewHistorial = false;
 
 		[ObservableProperty]
@@ -113,6 +119,8 @@ namespace MediSys.ViewModels
 					// Configurar visibilidad según rol
 					IsMedico = currentUser.Rol?.ToLower() == "medico";
 					IsEnfermero = currentUser.Rol?.ToLower() == "enfermero";  // ✅ CORRECTO
+					IsAdmin = currentUser.Rol?.ToLower() == "administrador";
+					IsRecepcionista = currentUser.Rol?.ToLower() == "recepcionista";
 					CanViewHistorial = currentUser.Rol?.ToLower() != "paciente";
 					CanViewConsultaCitas = true;
 
@@ -147,6 +155,8 @@ namespace MediSys.ViewModels
 			UserExtraInfo = "";
 			IsMedico = false;
 			IsEnfermero = false;
+			IsAdmin = false;
+			IsRecepcionista = false;
 			CanViewHistorial = false;
 			CanViewConsultaCitas = false;
 		}

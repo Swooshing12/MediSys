@@ -320,7 +320,7 @@
                             </StackLayout>
                         </Border>
 
-                        <!-- Consultar Citas -->
+                        <!-- Consultar Citas
                         <Border Grid.Row="0" Grid.Column="1"
                                 StrokeThickness="0">
                             <Border.Background>
@@ -352,6 +352,7 @@
                                        HorizontalTextAlignment="Center" />
                             </StackLayout>
                         </Border>
+                         -->
 
                         <!-- Mi Perfil -->
                         <Border Grid.Row="1" Grid.Column="0"

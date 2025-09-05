@@ -23,6 +23,7 @@
             <local2:CountToBoolConverter x:Key="CountToBoolConverter"/>
             <local2:StringEqualToBoolConverter x:Key="StringEqualToBoolConverter"/>
             <local2:BoolToStringConverter x:Key="BoolToStringConverter"/>
+            <local2:OrBoolConverter x:Key="OrBoolConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

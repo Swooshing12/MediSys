@@ -7,6 +7,7 @@
     xmlns:dashboard="clr-namespace:MediSys.Views.Dashboard"
     xmlns:viewmodels="clr-namespace:MediSys.ViewModels"
     x:DataType="viewmodels:AppShellViewModel"
+    xmlns:local2="clr-namespace:MediSys.Converters"
     Title="MediSys"
     FlyoutBehavior="Flyout"
     FlyoutBackgroundColor="#2C2C2C"
@@ -17,6 +18,9 @@
     
     <Shell.Resources>
         <ResourceDictionary>
+
+            <local2:OrBoolConverter x:Key="OrBoolConverter" />
+
             <!-- Colores médicos consistentes -->
             <Color x:Key="MedicalBlue">#2E86AB</Color>
             <Color x:Key="MedicalTeal">#A23B72</Color>
@@ -232,7 +236,7 @@
                       Route="historial" />
     </FlyoutItem>
 
-    <FlyoutItem Title="📅 Consultar Citas" 
+    <!--<FlyoutItem Title="📅 Consultar Citas" 
                 FlyoutDisplayOptions="AsMultipleItems"
                 IsVisible="{Binding CanViewConsultaCitas}">
         <FlyoutItem.Icon>
@@ -242,6 +246,7 @@
                       ContentTemplate="{DataTemplate dashboard:ConsultaCitasPage}"
                       Route="consulta-citas" />
     </FlyoutItem>
+     -->
 
     <FlyoutItem Title="👤 Mi Perfil" 
                 FlyoutDisplayOptions="AsMultipleItems">
@@ -262,15 +267,25 @@
 
         <ShellContent Title="➕ Registrar Médico"
                       ContentTemplate="{DataTemplate dashboard:RegistrarMedicoPage}"
-                      Route="registrarmedico" />
+                      Route="registrarmedico" 
+                      IsVisible="{Binding IsAdmin}"/>
 
         <ShellContent Title="🔍 Consultar Médico"
                       ContentTemplate="{DataTemplate dashboard:ConsultarMedicoPage}"
-                      Route="consultarmedico" />
+                      Route="consultarmedico" 
+                      IsVisible="{Binding IsAdmin}"/>
 
         <ShellContent Title="📝 Crear Cita" 
-                      ContentTemplate="{DataTemplate dashboard:CrearCitaPage}"
-                      Route="crear_cita" />
+              ContentTemplate="{DataTemplate dashboard:CrearCitaPage}"
+              Route="crear_cita">
+            <ShellContent.IsVisible>
+                <MultiBinding Converter="{StaticResource OrBoolConverter}">
+                    <Binding Path="IsAdmin" />
+                    <Binding Path="IsRecepcionista" />
+                </MultiBinding>
+            </ShellContent.IsVisible>
+        </ShellContent>
+
 
     </FlyoutItem>
 
