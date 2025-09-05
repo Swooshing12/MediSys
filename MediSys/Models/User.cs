@@ -138,4 +138,19 @@ namespace MediSys.Models
 		[JsonPropertyName("mensaje_usuario")]
 		public string MensajeUsuario { get; set; } = string.Empty;
 	}
+
+	public class CambiarPasswordRequest
+	{
+		[JsonPropertyName("id_usuario")]
+		public int IdUsuario { get; set; }
+
+		[JsonPropertyName("password_actual")]
+		public string PasswordActual { get; set; } = "";
+
+		[JsonPropertyName("password_nueva")]
+		public string PasswordNueva { get; set; } = "";
+
+		[JsonPropertyName("confirmar_password")]
+		public string ConfirmarPassword { get; set; } = "";
+	}
 }

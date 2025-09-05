@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using MediSys.Models;
 using MediSys.Services;
+using MediSys.Views.Dashboard;
 using System.Globalization;
 
 namespace MediSys.ViewModels
@@ -117,9 +118,8 @@ namespace MediSys.ViewModels
 		{
 			try
 			{
-				await Shell.Current.DisplayAlert("Cambiar Contraseña", "Esta funcionalidad estará disponible pronto", "OK");
-				// TODO: Implementar navegación a página de cambio de contraseña
-				// await Shell.Current.GoToAsync("//cambiarcontrasena");
+				var cambiarPasswordPage = new CambiarPasswordPage();
+				await Shell.Current.Navigation.PushModalAsync(cambiarPasswordPage);
 			}
 			catch (Exception ex)
 			{
@@ -127,7 +127,7 @@ namespace MediSys.ViewModels
 			}
 		}
 
-		
+
 		[RelayCommand]
 		private async Task CerrarSesionAsync()
 		{

@@ -1964,7 +1964,64 @@ namespace MediSys.Services
 			}
 		}
 
+		// ✅ CAMBIAR CONTRASEÑA PARA USUARIO LOGUEADO
+		public async Task<ApiResponse<object>> CambiarPasswordLogueadoAsync(CambiarPasswordRequest request)
+		{
+			try
+			{
+				System.Diagnostics.Debug.WriteLine($"Cambiando contraseña para usuario ID: {request.IdUsuario}");
 
+				var json = JsonSerializer.Serialize(request, GetJsonOptions());
+				var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+				var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/auth/change-password-logged")
+				{
+					Content = content
+				};
+
+				var response = await SendRequestWithSessionAsync(httpRequest);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				System.Diagnostics.Debug.WriteLine($"Respuesta cambio password: {response.StatusCode}");
+				System.Diagnostics.Debug.WriteLine($"Contenido: {responseContent}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					var result = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, GetJsonOptions());
+					return result ?? new ApiResponse<object> { Success = false, Message = "Respuesta vacía" };
+				}
+				else
+				{
+					// Tratar de extraer mensaje de error del contenido
+					try
+					{
+						var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, GetJsonOptions());
+						return new ApiResponse<object>
+						{
+							Success = false,
+							Message = errorResponse?.Message ?? $"Error del servidor: {response.StatusCode}"
+						};
+					}
+					catch
+					{
+						return new ApiResponse<object>
+						{
+							Success = false,
+							Message = $"Error del servidor: {response.StatusCode}"
+						};
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error cambiando contraseña: {ex.Message}");
+				return new ApiResponse<object>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}"
+				};
+			}
+		}
 
 		private JsonSerializerOptions GetJsonOptions()
 		{
