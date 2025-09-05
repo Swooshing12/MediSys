@@ -5,424 +5,483 @@
              xmlns:models="clr-namespace:MediSys.Models"
              x:Class="MediSys.Views.Dashboard.HistorialClinicoPage"
              x:DataType="viewmodels:HistorialClinicoViewModel"
+             xmlns:local2="clr-namespace:MediSys.Converters"
              Title="Historial Clínico"
-             BackgroundColor="#F5F7FA">
+             BackgroundColor="#F8FAFC">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <local2:BoolToTextConverter x:Key="BoolToTextConverter" />
+            <local2:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <local2:BoolToColorConverter x:Key="BoolToColorConverter" />
+
+            <!-- COLORES COMPACTOS -->
+            <Color x:Key="PrimaryBlue">#2563EB</Color>
+            <Color x:Key="SecondaryBlue">#3B82F6</Color>
+            <Color x:Key="AccentTeal">#0D9488</Color>
+            <Color x:Key="SuccessGreen">#059669</Color>
+            <Color x:Key="WarningAmber">#D97706</Color>
+            <Color x:Key="DangerRed">#DC2626</Color>
+            <Color x:Key="CardWhite">#FFFFFF</Color>
+            <Color x:Key="TextDark">#1F2937</Color>
+            <Color x:Key="TextMedium">#6B7280</Color>
+            <Color x:Key="TextLight">#9CA3AF</Color>
+            <Color x:Key="BackgroundPale">#F9FAFB</Color>
+            <Color x:Key="BorderSoft">#E5E7EB</Color>
+            <Color x:Key="BorderDark">#374151</Color>
+
+            <!-- ESTILOS COMPACTOS -->
+            <Style x:Key="CompactCardStyle" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="{StaticResource CardWhite}" />
+                <Setter Property="HasShadow" Value="True" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="16" />
+                <Setter Property="Margin" Value="12,6" />
+                <Setter Property="BorderColor" Value="{StaticResource BorderSoft}" />
+            </Style>
+
+            <Style x:Key="SectionTitleStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{StaticResource PrimaryBlue}" />
+                <Setter Property="Margin" Value="0,0,0,12" />
+            </Style>
+
+            <Style x:Key="CompactButtonStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource PrimaryBlue}" />
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="HeightRequest" Value="40" />
+            </Style>
+
+            <Style x:Key="SecondaryCompactStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource TextMedium}" />
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="HeightRequest" Value="36" />
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <ScrollView>
-        <StackLayout Padding="15" Spacing="15">
+        <StackLayout Spacing="0" Padding="0,0,0,20">
 
-            <!-- HEADER -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="12" 
-                   HasShadow="True" 
-                   Padding="20"
-                   Margin="0,5,0,0">
+            <!-- HEADER COMPACTO -->
+            <Frame BackgroundColor="{StaticResource PrimaryBlue}"
+                  HasShadow="True" 
+                    Padding="20,16,20,16"
+                    Margin="18,12,18,12"
+                    CornerRadius="12"
+                    HorizontalOptions="FillAndExpand">
                 <StackLayout Spacing="8">
-                    <Label Text="Consultar Historial Clínico" 
-                           FontSize="22" 
-                           FontAttributes="Bold" 
-                           TextColor="#2C3E50" 
+                    <Label Text="📋 Historial Clínico Digital" 
+                           FontSize="20" 
+                           FontAttributes="Bold"
+                           TextColor="White"
                            HorizontalOptions="Center" />
-
-                    <Label Text="Ingrese la cédula del paciente para consultar su historial médico completo" 
-                           FontSize="14" 
-                           TextColor="#7F8C8D" 
-                           HorizontalOptions="Center" 
-                           HorizontalTextAlignment="Center" />
+                    <Label Text="Búsqueda rápida de expedientes médicos" 
+                           FontSize="13" 
+                           TextColor="#DBEAFE"
+                           HorizontalOptions="Center" />
                 </StackLayout>
             </Frame>
 
-            <!-- BÚSQUEDA -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="12" 
-                   HasShadow="True" 
-                   Padding="20">
-                <StackLayout Spacing="15">
+            <!-- BÚSQUEDA COMPACTA -->
+            <Frame Style="{StaticResource CompactCardStyle}">
+                <StackLayout Spacing="16">
 
-                    <Label Text="Cédula del Paciente" 
-                           FontSize="16" 
-                           FontAttributes="Bold" 
-                           TextColor="#2C3E50" />
+                    <Label Text="🔍 Búsqueda de Paciente" 
+                           Style="{StaticResource SectionTitleStyle}" />
 
-                    <Border BackgroundColor="White" 
-                            Stroke="#3498DB" 
-                            StrokeThickness="2" 
-                            Padding="12">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="8" />
-                        </Border.StrokeShape>
-                        <Entry Text="{Binding CedulaBusqueda}" 
-                               Placeholder="Ej: 1234567890"
-                               Keyboard="Numeric"
-                               BackgroundColor="Transparent"
-                               TextColor="#2C3E50"
-                               FontSize="16"
-                               PlaceholderColor="#BDC3C7" />
-                    </Border>
+                    <StackLayout Spacing="8">
+                        <Label Text="Cédula de Identidad" 
+                               FontSize="13" 
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextDark}" />
 
-                    <Grid ColumnDefinitions="2*,*" ColumnSpacing="10">
+                        <Frame BackgroundColor="{StaticResource BackgroundPale}" 
+                               CornerRadius="8" 
+                               HasShadow="False" 
+                               Padding="12">
+                            <Entry Text="{Binding CedulaBusqueda}" 
+                                   Placeholder="Ej: 1234567890"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="Transparent"
+                                   TextColor="{StaticResource TextDark}"
+                                   FontSize="16"
+                                   HeightRequest="40"
+                                   MaxLength="10"
+                                   ReturnCommand="{Binding BuscarHistorialCommand}" />
+                        </Frame>
+                    </StackLayout>
+
+                    <Grid ColumnDefinitions="3*,*" ColumnSpacing="12">
                         <Button Grid.Column="0"
-                                Text="Buscar Historial"
-                                BackgroundColor="#3498DB"
-                                TextColor="White"
-                                FontAttributes="Bold"
-                                FontSize="16"
-                                CornerRadius="8"
-                                HeightRequest="50"
-                                Command="{Binding BuscarHistorialCommand}" />
+                                Text="🔍 Buscar Historial"
+                                Command="{Binding BuscarHistorialCommand}"
+                                Style="{StaticResource CompactButtonStyle}" />
 
                         <Button Grid.Column="1"
-                                Text="Filtros"
-                                BackgroundColor="#95A5A6"
-                                TextColor="White"
-                                FontAttributes="Bold"
-                                FontSize="14"
-                                CornerRadius="8"
-                                HeightRequest="50"
-                                Command="{Binding ToggleFiltersCommand}" />
+                                Text="{Binding ShowFilters, Converter={StaticResource BoolToTextConverter}, ConverterParameter='❌|⚙️'}"
+                                Command="{Binding ToggleFiltersCommand}"
+                                Style="{StaticResource SecondaryCompactStyle}" />
                     </Grid>
 
-                    <ActivityIndicator IsVisible="{Binding IsLoading}" 
-                                       IsRunning="{Binding IsLoading}"
-                                       Color="#3498DB"
-                                       HeightRequest="40" />
+                    <!-- Indicador de carga compacto -->
+                    <StackLayout IsVisible="{Binding IsLoading}" 
+                                 Orientation="Horizontal" 
+                                 HorizontalOptions="Center"
+                                 Spacing="12">
+                        <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                           Color="{StaticResource PrimaryBlue}"
+                                           VerticalOptions="Center" />
+                        <Label Text="Buscando información..."
+                               FontSize="13"
+                               TextColor="{StaticResource TextMedium}"
+                               VerticalOptions="Center" />
+                    </StackLayout>
                 </StackLayout>
             </Frame>
 
-            <!-- FILTROS -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="12" 
-                   HasShadow="True" 
-                   Padding="20"
+            <!-- FILTROS COMPACTOS -->
+            <Frame Style="{StaticResource CompactCardStyle}" 
                    IsVisible="{Binding ShowFilters}">
-                <StackLayout Spacing="15">
+                <StackLayout Spacing="16">
 
-                    <Label Text="Filtros de Búsqueda" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2C3E50" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Label Grid.Column="0"
+                               Text="⚙️ Filtros Avanzados" 
+                               Style="{StaticResource SectionTitleStyle}"
+                               VerticalOptions="Center" />
 
-                    <!-- Fechas -->
-                    <StackLayout Spacing="10">
-                        <Label Text="Rango de Fechas" 
-                               FontSize="14" 
+                        <Button Grid.Column="1"
+                                Text="🗑️ Limpiar"
+                                Command="{Binding LimpiarFiltrosCommand}"
+                                BackgroundColor="{StaticResource DangerRed}"
+                                TextColor="White"
+                                CornerRadius="6"
+                                FontSize="11"
+                                HeightRequest="28"
+                                Padding="12,0" />
+                    </Grid>
+
+                    <!-- Fechas compactas -->
+                    <StackLayout Spacing="12">
+                        <Label Text="📅 Período de Consultas" 
+                               FontSize="13" 
                                FontAttributes="Bold"
-                               TextColor="#34495E" />
+                               TextColor="{StaticResource TextDark}" />
 
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-                            <StackLayout Grid.Column="0">
-                                <Label Text="Desde" 
-                                       FontSize="12" 
-                                       TextColor="#7F8C8D" />
-                                <Border BackgroundColor="White" 
-                                        Stroke="#BDC3C7" 
-                                        StrokeThickness="1" 
-                                        Padding="10">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="6" />
-                                    </Border.StrokeShape>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Frame Grid.Column="0" 
+                                   BackgroundColor="{StaticResource BackgroundPale}" 
+                                   CornerRadius="8" 
+                                   HasShadow="False" 
+                                   Padding="8">
+                                <StackLayout Spacing="4">
+                                    <Label Text="Desde" 
+                                           FontSize="11" 
+                                           TextColor="{StaticResource TextMedium}" />
                                     <DatePicker Date="{Binding FechaDesde}" 
-                                                TextColor="#2C3E50"
-                                                FontSize="14"
-                                                BackgroundColor="Transparent" />
-                                </Border>
-                            </StackLayout>
+                                                TextColor="{StaticResource TextDark}"
+                                                FontSize="13"
+                                                BackgroundColor="Transparent"
+                                                DateSelected="OnFechaDesdeChanged" />
+                                </StackLayout>
+                            </Frame>
 
-                            <StackLayout Grid.Column="1">
-                                <Label Text="Hasta" 
-                                       FontSize="12" 
-                                       TextColor="#7F8C8D" />
-                                <Border BackgroundColor="White" 
-                                        Stroke="#BDC3C7" 
-                                        StrokeThickness="1" 
-                                        Padding="10">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="6" />
-                                    </Border.StrokeShape>
+                            <Frame Grid.Column="1" 
+                                   BackgroundColor="{StaticResource BackgroundPale}" 
+                                   CornerRadius="8" 
+                                   HasShadow="False" 
+                                   Padding="8">
+                                <StackLayout Spacing="4">
+                                    <Label Text="Hasta" 
+                                           FontSize="11" 
+                                           TextColor="{StaticResource TextMedium}" />
                                     <DatePicker Date="{Binding FechaHasta}" 
-                                                TextColor="#2C3E50"
-                                                FontSize="14"
-                                                BackgroundColor="Transparent" />
-                                </Border>
-                            </StackLayout>
+                                                TextColor="{StaticResource TextDark}"
+                                                FontSize="13"
+                                                BackgroundColor="Transparent"
+                                                DateSelected="OnFechaHastaChanged" />
+                                </StackLayout>
+                            </Frame>
                         </Grid>
                     </StackLayout>
 
-                    <!-- Especialidad -->
-                    <!-- ESPECIALIDAD CON MEJOR CONTRASTE -->
-                    <StackLayout Spacing="5">
-                        <Label Text="Especialidad Médica" 
-           FontSize="14" 
-           FontAttributes="Bold"
-           TextColor="#2C3E50" />
+                    <!-- Filtros en línea compactos -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowSpacing="12">
 
-                        <Border BackgroundColor="White" 
-            Stroke="#3498DB" 
-            StrokeThickness="1" 
-            Padding="5">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="6" />
-                            </Border.StrokeShape>
-                            <Picker ItemsSource="{Binding Especialidades}"
-                ItemDisplayBinding="{Binding Nombre}"
-                SelectedItem="{Binding EspecialidadSeleccionada}"
-                Title="-- Seleccione especialidad --"
-                FontSize="14"
-                SelectedIndexChanged="OnEspecialidadChanged">
-                                <Picker.TextColor>
-                                    <OnPlatform x:TypeArguments="Color">
-                                        <On Platform="Android" Value="#2C3E50" />
-                                        <On Platform="iOS" Value="#2C3E50" />
-                                        <On Platform="WinUI" Value="#2C3E50" />
-                                    </OnPlatform>
-                                </Picker.TextColor>
-                                <Picker.BackgroundColor>
-                                    <OnPlatform x:TypeArguments="Color">
-                                        <On Platform="Android" Value="White" />
-                                        <On Platform="iOS" Value="White" />
-                                        <On Platform="WinUI" Value="White" />
-                                    </OnPlatform>
-                                </Picker.BackgroundColor>
-                            </Picker>
-                        </Border>
-                    </StackLayout>
-                    <!-- Doctor -->
-                    <StackLayout Spacing="5" IsVisible="{Binding EspecialidadSeleccionada, Converter={StaticResource IsNotNullConverter}}">
-                        <Label Text="Médico Especialista" 
-                               FontSize="14" 
-                               FontAttributes="Bold"
-                               TextColor="#34495E" />
-                        <Border BackgroundColor="White" 
-                                Stroke="#BDC3C7" 
-                                StrokeThickness="1" 
-                                Padding="10">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="6" />
-                            </Border.StrokeShape>
-                            <Picker ItemsSource="{Binding Doctores}"
-                                    ItemDisplayBinding="{Binding NombreCompleto}"
-                                    SelectedItem="{Binding DoctorSeleccionado}"
-                                    Title="Seleccione un médico"
-                                    TextColor="#2C3E50"
-                                    TitleColor="#7F8C8D"
-                                    FontSize="14"
-                                    BackgroundColor="Transparent" />
-                        </Border>
-                    </StackLayout>
+                        <Frame Grid.Column="0" 
+                               BackgroundColor="{StaticResource BackgroundPale}" 
+                               CornerRadius="8" 
+                               HasShadow="False" 
+                               Padding="8">
+                            <StackLayout Spacing="4">
+                                <Label Text="🏥 Especialidad" 
+                                       FontSize="11" 
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextMedium}" />
+                                <Picker ItemsSource="{Binding Especialidades}"
+                                        ItemDisplayBinding="{Binding Nombre}"
+                                        SelectedItem="{Binding EspecialidadSeleccionada}"
+                                        Title="Todas"
+                                        FontSize="12"
+                                        TextColor="{StaticResource TextDark}"
+                                        BackgroundColor="Transparent"
+                                        SelectedIndexChanged="OnEspecialidadChanged" />
+                            </StackLayout>
+                        </Frame>
 
-                    <!-- Estado y Sucursal -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-                        <StackLayout Grid.Column="0" Spacing="5">
-                            <Label Text="Estado de Cita" 
-                                   FontSize="14" 
-                                   FontAttributes="Bold"
-                                   TextColor="#34495E" />
-                            <Border BackgroundColor="White" 
-                                    Stroke="#BDC3C7" 
-                                    StrokeThickness="1" 
-                                    Padding="10">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="6" />
-                                </Border.StrokeShape>
+                        <Frame Grid.Column="1" 
+                               BackgroundColor="{StaticResource BackgroundPale}" 
+                               CornerRadius="8" 
+                               HasShadow="False" 
+                               Padding="8">
+                            <StackLayout Spacing="4">
+                                <Label Text="📋 Estado" 
+                                       FontSize="11" 
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextMedium}" />
                                 <Picker ItemsSource="{Binding Estados}"
                                         SelectedItem="{Binding EstadoSeleccionado}"
                                         Title="Todos"
-                                        TextColor="#2C3E50"
-                                        TitleColor="#7F8C8D"
-                                        FontSize="14"
-                                        BackgroundColor="Transparent" />
-                            </Border>
-                        </StackLayout>
+                                        FontSize="12"
+                                        TextColor="{StaticResource TextDark}"
+                                        BackgroundColor="Transparent"
+                                        SelectedIndexChanged="OnEstadoChanged" />
+                            </StackLayout>
+                        </Frame>
 
-                        <StackLayout Grid.Column="1" Spacing="5">
-                            <Label Text="Sucursal" 
+                        <!-- Doctor -->
+                        <Frame Grid.Row="1" Grid.ColumnSpan="2" 
+                               BackgroundColor="{StaticResource BackgroundPale}" 
+                               CornerRadius="8" 
+                               HasShadow="False" 
+                               Padding="8"
+                               IsVisible="{Binding EspecialidadSeleccionada, Converter={StaticResource IsNotNullConverter}}">
+                            <StackLayout Spacing="4">
+                                <Label Text="👨‍⚕️ Médico Especialista" 
+                                       FontSize="11" 
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextMedium}" />
+                                <Picker ItemsSource="{Binding Doctores}"
+                                        ItemDisplayBinding="{Binding NombreCompleto}"
+                                        SelectedItem="{Binding DoctorSeleccionado}"
+                                        Title="Todos los médicos"
+                                        FontSize="12"
+                                        TextColor="{StaticResource TextDark}"
+                                        BackgroundColor="Transparent"
+                                        SelectedIndexChanged="OnDoctorChanged" />
+                            </StackLayout>
+                        </Frame>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN DEL PACIENTE COMPACTA -->
+            <Frame Style="{StaticResource CompactCardStyle}" 
+                   IsVisible="{Binding ShowResults}">
+                <StackLayout Spacing="16">
+
+                    <Label Text="👤 Información del Paciente" 
+                           Style="{StaticResource SectionTitleStyle}" />
+
+                    <!-- Nombre destacado compacto -->
+                    <Frame BackgroundColor="{StaticResource PrimaryBlue}" 
+                           CornerRadius="8" 
+                           HasShadow="False" 
+                           Padding="12">
+                        <Label Text="{Binding PacienteEncontrado.NombreCompleto}" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               TextColor="White" 
+                               HorizontalOptions="Center" />
+                    </Frame>
+
+                    <!-- Grid compacto de información -->
+                    <Grid ColumnDefinitions="*,*" 
+                          RowDefinitions="Auto,Auto,Auto" 
+                          RowSpacing="8" 
+                          ColumnSpacing="12">
+
+                        <!-- Fila 1 -->
+                        <StackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+                            <Label Text="🆔 Cédula" 
+                                   FontSize="11" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextMedium}" />
+                            <Label Text="{Binding PacienteEncontrado.Cedula}" 
                                    FontSize="14" 
                                    FontAttributes="Bold"
-                                   TextColor="#34495E" />
-                            <Border BackgroundColor="White" 
-                                    Stroke="#BDC3C7" 
-                                    StrokeThickness="1" 
-                                    Padding="10">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="6" />
-                                </Border.StrokeShape>
-                                <Picker ItemsSource="{Binding Sucursales}"
-                                        ItemDisplayBinding="{Binding Nombre}"
-                                        SelectedItem="{Binding SucursalSeleccionada}"
-                                        Title="Todas"
-                                        TextColor="#2C3E50"
-                                        TitleColor="#7F8C8D"
-                                        FontSize="14"
-                                        BackgroundColor="Transparent" />
-                            </Border>
+                                   TextColor="{StaticResource TextDark}" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+                            <Label Text="🎂 Edad" 
+                                   FontSize="11" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextMedium}" />
+                            <Label Text="{Binding PacienteEncontrado.Edad, StringFormat='{0} años'}" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextDark}" />
+                        </StackLayout>
+
+                        <!-- Fila 2 -->
+                        <StackLayout Grid.Row="1" Grid.Column="0" Spacing="2">
+                            <Label Text="🩸 Tipo Sangre" 
+                                   FontSize="11" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource DangerRed}" />
+                            <Label Text="{Binding PacienteEncontrado.TipoSangre}" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource DangerRed}" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Row="1" Grid.Column="1" Spacing="2">
+                            <Label Text="⚧ Sexo" 
+                                   FontSize="11" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextMedium}" />
+                            <Label Text="{Binding PacienteEncontrado.Sexo}" 
+                                   FontSize="14" 
+                                   TextColor="{StaticResource TextDark}" />
+                        </StackLayout>
+
+                        <!-- Fila 3 -->
+                        <StackLayout Grid.Row="2" Grid.Column="0" Spacing="2">
+                            <Label Text="📞 Teléfono" 
+                                   FontSize="11" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextMedium}" />
+                            <Label Text="{Binding PacienteEncontrado.Telefono}" 
+                                   FontSize="13" 
+                                   TextColor="{StaticResource TextDark}" />
+                        </StackLayout>
+
+                        <StackLayout Grid.Row="2" Grid.Column="1" Spacing="2">
+                            <Label Text="🌍 Nacionalidad" 
+                                   FontSize="11" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextMedium}" />
+                            <Label Text="{Binding PacienteEncontrado.Nacionalidad}" 
+                                   FontSize="13" 
+                                   TextColor="{StaticResource TextDark}" />
                         </StackLayout>
                     </Grid>
 
-                    <Button Text="Limpiar Filtros"
-                            BackgroundColor="#E74C3C"
-                            TextColor="White"
-                            FontAttributes="Bold"
-                            FontSize="14"
-                            CornerRadius="8"
-                            HeightRequest="45"
-                            Command="{Binding LimpiarFiltrosCommand}" />
+                    <!-- Alergias compactas -->
+                    <Frame BackgroundColor="#FEF2F2" 
+                           CornerRadius="8" 
+                           HasShadow="False" 
+                           Padding="12"
+                           IsVisible="{Binding PacienteEncontrado.Alergias, Converter={StaticResource IsNotNullConverter}}">
+                        <StackLayout Spacing="6">
+                            <Label Text="⚠️ ALERGIAS IMPORTANTES" 
+                                   FontSize="12" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource DangerRed}" />
+                            <Label Text="{Binding PacienteEncontrado.Alergias}" 
+                                   FontSize="13" 
+                                   TextColor="{StaticResource DangerRed}" 
+                                   LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
                 </StackLayout>
             </Frame>
 
-            <!-- INFORMACIÓN DEL PACIENTE -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="12" 
-                   HasShadow="True" 
-                   Padding="20"
+            <!-- ESTADÍSTICAS COMPACTAS -->
+            <Frame Style="{StaticResource CompactCardStyle}" 
                    IsVisible="{Binding ShowResults}">
-                <StackLayout Spacing="15">
+                <StackLayout Spacing="12">
 
-                    <Label Text="Información del Paciente" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2C3E50" />
+                    <Label Text="📊 Resumen Estadístico" 
+                           Style="{StaticResource SectionTitleStyle}" />
 
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="20">
-
-                        <StackLayout Grid.Row="0" Grid.Column="0">
-                            <Label Text="Nombre Completo" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
-                            <Label Text="{Binding PacienteEncontrado.NombreCompleto}" FontSize="14" TextColor="#2C3E50" FontAttributes="Bold" />
-                        </StackLayout>
-
-                        <StackLayout Grid.Row="0" Grid.Column="1">
-                            <Label Text="Cédula" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
-                            <Label Text="{Binding PacienteEncontrado.Cedula}" FontSize="14" TextColor="#2C3E50" />
-                        </StackLayout>
-
-                        <StackLayout Grid.Row="1" Grid.Column="0">
-                            <Label Text="Edad" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
-                            <Label Text="{Binding PacienteEncontrado.Edad, StringFormat='{0} años'}" FontSize="14" TextColor="#2C3E50" />
-                        </StackLayout>
-
-                        <StackLayout Grid.Row="1" Grid.Column="1">
-                            <Label Text="Sexo" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
-                            <Label Text="{Binding PacienteEncontrado.Sexo}" FontSize="14" TextColor="#2C3E50" />
-                        </StackLayout>
-
-                        <StackLayout Grid.Row="2" Grid.Column="0">
-                            <Label Text="Tipo de Sangre" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
-                            <Label Text="{Binding PacienteEncontrado.TipoSangre}" FontSize="14" TextColor="#E74C3C" FontAttributes="Bold" />
-                        </StackLayout>
-
-                        <StackLayout Grid.Row="2" Grid.Column="1">
-                            <Label Text="Teléfono" FontSize="12" TextColor="#7F8C8D" FontAttributes="Bold" />
-                            <Label Text="{Binding PacienteEncontrado.Telefono}" FontSize="14" TextColor="#2C3E50" />
-                        </StackLayout>
-                    </Grid>
-
-                    <!-- Alergias y Antecedentes -->
-                    <StackLayout Spacing="10" IsVisible="{Binding PacienteEncontrado.Alergias, Converter={StaticResource IsNotNullConverter}}">
-                        <Label Text="Alergias" FontSize="12" TextColor="#E74C3C" FontAttributes="Bold" />
-                        <Frame BackgroundColor="#FDF2F2" CornerRadius="8" Padding="10" HasShadow="False">
-                            <Label Text="{Binding PacienteEncontrado.Alergias}" FontSize="13" TextColor="#E74C3C" LineBreakMode="WordWrap" />
-                        </Frame>
-                    </StackLayout>
-
-                    <StackLayout Spacing="10" IsVisible="{Binding PacienteEncontrado.AntecedentesMedicos, Converter={StaticResource IsNotNullConverter}}">
-                        <Label Text="Antecedentes Médicos" FontSize="12" TextColor="#F39C12" FontAttributes="Bold" />
-                        <Frame BackgroundColor="#FEF9E7" CornerRadius="8" Padding="10" HasShadow="False">
-                            <Label Text="{Binding PacienteEncontrado.AntecedentesMedicos}" FontSize="13" TextColor="#F39C12" LineBreakMode="WordWrap" />
-                        </Frame>
-                    </StackLayout>
-                </StackLayout>
-            </Frame>
-
-            <!-- ESTADÍSTICAS -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="12" 
-                   HasShadow="True" 
-                   Padding="20"
-                   IsVisible="{Binding ShowResults}">
-                <StackLayout Spacing="15">
-
-                    <Label Text="Resumen Estadístico" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2C3E50" />
-
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" ColumnSpacing="12" RowSpacing="12">
-
-                        <!-- Total Citas -->
-                        <Frame Grid.Row="0" Grid.Column="0" 
-                               BackgroundColor="#E8F6F3" 
-                               CornerRadius="10" 
+                    <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                        <!-- Total -->
+                        <Frame Grid.Column="0" 
+                               BackgroundColor="#EBF8FF" 
+                               CornerRadius="8" 
                                HasShadow="False" 
-                               Padding="15">
-                            <StackLayout Spacing="5">
+                               Padding="8">
+                            <StackLayout Spacing="2">
                                 <Label Text="{Binding Estadisticas.TotalCitas}" 
-                                       FontSize="24" 
+                                       FontSize="18" 
                                        FontAttributes="Bold" 
-                                       TextColor="#27AE60" 
+                                       TextColor="{StaticResource SecondaryBlue}" 
                                        HorizontalOptions="Center" />
-                                <Label Text="Total Citas" 
-                                       FontSize="12" 
+                                <Label Text="Total" 
+                                       FontSize="10" 
                                        FontAttributes="Bold"
-                                       TextColor="#27AE60" 
+                                       TextColor="{StaticResource SecondaryBlue}" 
                                        HorizontalOptions="Center" />
                             </StackLayout>
                         </Frame>
 
                         <!-- Completadas -->
-                        <Frame Grid.Row="0" Grid.Column="1" 
-                               BackgroundColor="#EBF5FF" 
-                               CornerRadius="10" 
+                        <Frame Grid.Column="1" 
+                               BackgroundColor="#ECFDF5" 
+                               CornerRadius="8" 
                                HasShadow="False" 
-                               Padding="15">
-                            <StackLayout Spacing="5">
+                               Padding="8">
+                            <StackLayout Spacing="2">
                                 <Label Text="{Binding Estadisticas.CitasCompletadas}" 
-                                       FontSize="24" 
+                                       FontSize="18" 
                                        FontAttributes="Bold" 
-                                       TextColor="#3498DB" 
+                                       TextColor="{StaticResource SuccessGreen}" 
                                        HorizontalOptions="Center" />
-                                <Label Text="Completadas" 
-                                       FontSize="12" 
+                                <Label Text="OK" 
+                                       FontSize="10" 
                                        FontAttributes="Bold"
-                                       TextColor="#3498DB" 
+                                       TextColor="{StaticResource SuccessGreen}" 
                                        HorizontalOptions="Center" />
                             </StackLayout>
                         </Frame>
 
                         <!-- Pendientes -->
-                        <Frame Grid.Row="1" Grid.Column="0" 
-                               BackgroundColor="#FEF9E7" 
-                               CornerRadius="10" 
+                        <Frame Grid.Column="2" 
+                               BackgroundColor="#FFFBEB" 
+                               CornerRadius="8" 
                                HasShadow="False" 
-                               Padding="15">
-                            <StackLayout Spacing="5">
+                               Padding="8">
+                            <StackLayout Spacing="2">
                                 <Label Text="{Binding Estadisticas.CitasPendientes}" 
-                                       FontSize="24" 
+                                       FontSize="18" 
                                        FontAttributes="Bold" 
-                                       TextColor="#F39C12" 
+                                       TextColor="{StaticResource WarningAmber}" 
                                        HorizontalOptions="Center" />
-                                <Label Text="Pendientes" 
-                                       FontSize="12" 
+                                <Label Text="Pend." 
+                                       FontSize="10" 
                                        FontAttributes="Bold"
-                                       TextColor="#F39C12" 
+                                       TextColor="{StaticResource WarningAmber}" 
                                        HorizontalOptions="Center" />
                             </StackLayout>
                         </Frame>
 
                         <!-- Canceladas -->
-                        <Frame Grid.Row="1" Grid.Column="1" 
-                               BackgroundColor="#FADBD8" 
-                               CornerRadius="10" 
+                        <Frame Grid.Column="3" 
+                               BackgroundColor="#FEF2F2" 
+                               CornerRadius="8" 
                                HasShadow="False" 
-                               Padding="15">
-                            <StackLayout Spacing="5">
+                               Padding="8">
+                            <StackLayout Spacing="2">
                                 <Label Text="{Binding Estadisticas.CitasCanceladas}" 
-                                       FontSize="24" 
+                                       FontSize="18" 
                                        FontAttributes="Bold" 
-                                       TextColor="#E74C3C" 
+                                       TextColor="{StaticResource DangerRed}" 
                                        HorizontalOptions="Center" />
-                                <Label Text="Canceladas" 
-                                       FontSize="12" 
+                                <Label Text="Canc." 
+                                       FontSize="10" 
                                        FontAttributes="Bold"
-                                       TextColor="#E74C3C" 
+                                       TextColor="{StaticResource DangerRed}" 
                                        HorizontalOptions="Center" />
                             </StackLayout>
                         </Frame>
@@ -430,141 +489,235 @@
                 </StackLayout>
             </Frame>
 
-            <!-- LISTA DE CITAS -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="12" 
-                   HasShadow="True" 
-                   Padding="20"
-                   IsVisible="{Binding ShowResults}">
-                <StackLayout Spacing="15">
+            <!-- LISTA DE CITAS ELEGANTE CON BORDE Y MÁS INFORMACIÓN -->
+            <Frame Style="{StaticResource CompactCardStyle}" 
+       IsVisible="{Binding ShowResults}">
+                <StackLayout Spacing="12">
 
-                    <Label Text="Historial de Citas Médicas" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2C3E50" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Label Grid.Column="0"
+                   Text="📋 Historial de Consultas" 
+                   Style="{StaticResource SectionTitleStyle}"
+                   VerticalOptions="Center" />
 
-                    <CollectionView ItemsSource="{Binding Citas}">
+                        <Label Grid.Column="1"
+                   Text="{Binding Citas.Count, StringFormat='{0} registros'}" 
+                   FontSize="11" 
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource AccentTeal}"
+                   VerticalOptions="Center" />
+                    </Grid>
+
+                    <CollectionView ItemsSource="{Binding Citas}"
+                        ItemSizingStrategy="MeasureAllItems">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:CitaMedica">
-                                <Grid Padding="0,0,0,15">
-                                    <Frame BackgroundColor="White" 
-                                           CornerRadius="10" 
-                                           HasShadow="True" 
-                                           Padding="16">
+                                <Grid Padding="0,0,0,10">
+                                    <!-- FRAME CON BORDE NEGRO ELEGANTE Y MÁS INFO -->
+                                    <Frame BackgroundColor="{StaticResource CardWhite}" 
+                               CornerRadius="12" 
+                               HasShadow="True" 
+                               Padding="16"
+                               Margin="0"
+                               BorderColor="{StaticResource BorderDark}"
+                               >
+
                                         <Frame.GestureRecognizers>
                                             <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HistorialClinicoViewModel}}, Path=VerDetalleCitaCommand}"
-                                                                  CommandParameter="{Binding .}" />
+                                                      CommandParameter="{Binding .}" />
                                         </Frame.GestureRecognizers>
 
                                         <StackLayout Spacing="12">
 
-                                            <!-- Header: Fecha y Estado -->
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <Label Grid.Column="0"
-                                                       Text="{Binding FechaHora}" 
-                                                       FontSize="16" 
-                                                       FontAttributes="Bold" 
-                                                       TextColor="#2C3E50" />
+                                            <!-- Header mejorado con fecha y estado -->
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                                <StackLayout Grid.Column="0" Spacing="3">
+                                                    <Label Text="{Binding FechaHora, StringFormat='{0:dddd, dd MMMM yyyy}'}" 
+                                               FontSize="15" 
+                                               FontAttributes="Bold" 
+                                               TextColor="{StaticResource PrimaryBlue}" />
+                                                    <Label Text="{Binding FechaHora, StringFormat='{0:HH:mm}'}" 
+                                               FontSize="13" 
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource TextMedium}" />
+                                                </StackLayout>
 
                                                 <Frame Grid.Column="1"
-                                                       BackgroundColor="{Binding EstadoColor}" 
-                                                       CornerRadius="12" 
-                                                       Padding="8,4"
-                                                       HasShadow="False"
-                                                       VerticalOptions="Start">
+                                           BackgroundColor="{Binding EstadoColor}" 
+                                           CornerRadius="12" 
+                                           Padding="10,5"
+                                           HasShadow="False">
                                                     <Label Text="{Binding Estado}" 
-                                                           FontSize="11" 
-                                                           FontAttributes="Bold" 
-                                                           TextColor="White" />
+                                               FontSize="11" 
+                                               FontAttributes="Bold" 
+                                               TextColor="White" />
                                                 </Frame>
                                             </Grid>
 
-                                            <!-- Información del médico -->
-                                            <StackLayout Spacing="4">
-                                                <Label Text="{Binding DoctorCompleto}" 
-                                                       FontSize="15" 
-                                                       FontAttributes="Bold"
-                                                       TextColor="#3498DB" />
-
-                                                <Label Text="{Binding EspecialidadNombre}" 
-                                                       FontSize="13" 
-                                                       TextColor="#7F8C8D" />
-
-                                                <Label Text="{Binding SucursalNombre}" 
-                                                       FontSize="12" 
-                                                       TextColor="#95A5A6" />
-                                            </StackLayout>
+                                            <!-- Información del médico y sucursal -->
+                                            <Frame BackgroundColor="{StaticResource BackgroundPale}" 
+                                       CornerRadius="8" 
+                                       HasShadow="False" 
+                                       Padding="12">
+                                                <StackLayout Spacing="4">
+                                                    <StackLayout Orientation="Horizontal" Spacing="6">
+                                                        <Label Text="👨‍⚕️" FontSize="14" />
+                                                        <Label Text="{Binding DoctorCompleto}" 
+                                                   FontSize="13" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource TextDark}" />
+                                                    </StackLayout>
+                                                    <StackLayout Orientation="Horizontal" Spacing="6">
+                                                        <Label Text="🏥" FontSize="12" />
+                                                        <Label Text="{Binding EspecialidadNombre}" 
+                                                   FontSize="12" 
+                                                   TextColor="{StaticResource SecondaryBlue}"
+                                                   FontAttributes="Bold" />
+                                                    </StackLayout>
+                                                    <StackLayout Orientation="Horizontal" Spacing="6">
+                                                        <Label Text="📍" FontSize="12" />
+                                                        <Label Text="{Binding SucursalNombre}" 
+                                                   FontSize="11" 
+                                                   TextColor="{StaticResource TextMedium}" />
+                                                    </StackLayout>
+                                                </StackLayout>
+                                            </Frame>
 
                                             <!-- Motivo de consulta -->
-                                            <Frame BackgroundColor="#F8F9FA" 
-                                                   CornerRadius="8" 
-                                                   HasShadow="False" 
-                                                   Padding="12"
-                                                   IsVisible="{Binding MotivoConsulta, Converter={StaticResource IsNotNullConverter}}">
-                                                <StackLayout Spacing="4">
-                                                    <Label Text="Motivo de Consulta:" 
-                                                           FontSize="12" 
-                                                           FontAttributes="Bold" 
-                                                           TextColor="#34495E" />
-                                                    <Label Text="{Binding MotivoConsulta}" 
-                                                           FontSize="13" 
-                                                           TextColor="#2C3E50"
-                                                           LineBreakMode="WordWrap" />
+                                            <StackLayout Spacing="4" 
+                                             IsVisible="{Binding MotivoConsulta, Converter={StaticResource IsNotNullConverter}}">
+                                                <StackLayout Orientation="Horizontal" Spacing="6">
+                                                    <Label Text="💬" FontSize="12" />
+                                                    <Label Text="Motivo:" 
+                                               FontSize="11" 
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource TextMedium}" />
                                                 </StackLayout>
-                                            </Frame>
+                                                <Label Text="{Binding MotivoConsulta}" 
+                                           FontSize="12" 
+                                           TextColor="{StaticResource TextDark}"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="2"
+                                           Margin="18,0,0,0" />
+                                            </StackLayout>
 
-                                            <!-- Diagnóstico -->
-                                            <Frame BackgroundColor="#E8F8F5" 
-                                                   CornerRadius="8" 
-                                                   HasShadow="False" 
-                                                   Padding="12"
-                                                   IsVisible="{Binding Diagnostico, Converter={StaticResource IsNotNullConverter}}">
-                                                <StackLayout Spacing="4">
-                                                    <Label Text="Diagnóstico:" 
-                                                           FontSize="12" 
-                                                           FontAttributes="Bold" 
-                                                           TextColor="#27AE60" />
-                                                    <Label Text="{Binding Diagnostico}" 
-                                                           FontSize="13" 
-                                                           TextColor="#2C3E50"
-                                                           LineBreakMode="WordWrap" />
-                                                </StackLayout>
-                                            </Frame>
+                                            <!-- Información médica si existe consulta -->
+                                            <StackLayout Spacing="8" 
+                                             IsVisible="{Binding TieneConsulta}">
 
-                                            <!-- Tratamiento -->
-                                            <Frame BackgroundColor="#FEF9E7" 
-                                                   CornerRadius="8" 
-                                                   HasShadow="False" 
-                                                   Padding="12"
-                                                   IsVisible="{Binding Tratamiento, Converter={StaticResource IsNotNullConverter}}">
-                                                <StackLayout Spacing="4">
-                                                    <Label Text="Tratamiento:" 
-                                                           FontSize="12" 
-                                                           FontAttributes="Bold" 
-                                                           TextColor="#F39C12" />
-                                                    <Label Text="{Binding Tratamiento}" 
-                                                           FontSize="13" 
-                                                           TextColor="#2C3E50"
-                                                           LineBreakMode="WordWrap" />
-                                                </StackLayout>
-                                            </Frame>
-
-                                            <!-- Indicadores de proceso -->
-                                            <Grid ColumnDefinitions="*,*" IsVisible="{Binding TieneTriaje}">
-                                                <Label Grid.Column="0"
-                                                       Text="Triaje Completo" 
-                                                       FontSize="12" 
+                                                <!-- Diagnóstico -->
+                                                <Frame BackgroundColor="#ECFDF5" 
+                                           CornerRadius="8" 
+                                           HasShadow="False" 
+                                           Padding="10"
+                                           IsVisible="{Binding Diagnostico, Converter={StaticResource IsNotNullConverter}}">
+                                                    <StackLayout Spacing="4">
+                                                        <StackLayout Orientation="Horizontal" Spacing="6">
+                                                            <Label Text="🩺" FontSize="12" />
+                                                            <Label Text="Diagnóstico:" 
+                                                       FontSize="11" 
                                                        FontAttributes="Bold"
-                                                       TextColor="#27AE60" 
-                                                       IsVisible="{Binding TieneTriaje}" />
+                                                       TextColor="{StaticResource SuccessGreen}" />
+                                                        </StackLayout>
+                                                        <Label Text="{Binding Diagnostico}" 
+                                                   FontSize="12" 
+                                                   TextColor="{StaticResource TextDark}"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="2"
+                                                   Margin="18,0,0,0" />
+                                                    </StackLayout>
+                                                </Frame>
 
-                                                <Label Grid.Column="1"
-                                                       Text="Consulta Realizada" 
-                                                       FontSize="12" 
+                                                <!-- Tratamiento -->
+                                                <Frame BackgroundColor="#FFFBEB" 
+                                           CornerRadius="8" 
+                                           HasShadow="False" 
+                                           Padding="10"
+                                           IsVisible="{Binding Tratamiento, Converter={StaticResource IsNotNullConverter}}">
+                                                    <StackLayout Spacing="4">
+                                                        <StackLayout Orientation="Horizontal" Spacing="6">
+                                                            <Label Text="💊" FontSize="12" />
+                                                            <Label Text="Tratamiento:" 
+                                                       FontSize="11" 
                                                        FontAttributes="Bold"
-                                                       TextColor="#3498DB"
-                                                       HorizontalOptions="End" 
-                                                       IsVisible="{Binding TieneConsulta}" />
+                                                       TextColor="{StaticResource WarningAmber}" />
+                                                        </StackLayout>
+                                                        <Label Text="{Binding Tratamiento}" 
+                                                   FontSize="12" 
+                                                   TextColor="{StaticResource TextDark}"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="2"
+                                                   Margin="18,0,0,0" />
+                                                    </StackLayout>
+                                                </Frame>
+                                            </StackLayout>
+
+                                            <!-- Información de triaje si existe
+                                            <Frame BackgroundColor="#FEF2F2" 
+                                       CornerRadius="8" 
+                                       HasShadow="False" 
+                                       Padding="10"
+                                       IsVisible="{Binding TieneTriaje}">
+                                                <StackLayout Spacing="6">
+                                                    <StackLayout Orientation="Horizontal" Spacing="6">
+                                                        <Label Text="🚨" FontSize="12" />
+                                                        <Label Text="Triaje Completado" 
+                                                   FontSize="11" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource DangerRed}" />
+                                                    </StackLayout>
+
+                                                     Signos vitales compactos 
+                                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="18,0,0,0">
+                                                        <StackLayout Grid.Column="0" Spacing="2">
+                                                            <Label Text="{Binding Temperatura, StringFormat='🌡️ {0}°C'}" 
+                                                       FontSize="10" 
+                                                       TextColor="{StaticResource TextDark}"
+                                                       IsVisible="{Binding Temperatura, Converter={StaticResource IsNotNullConverter}}" />
+                                                            <Label Text="{Binding PresionArterial, StringFormat='💓 {0}'}" 
+                                                       FontSize="10" 
+                                                       TextColor="{StaticResource TextDark}"
+                                                       IsVisible="{Binding PresionArterial, Converter={StaticResource IsNotNullConverter}}" />
+                                                        </StackLayout>
+                                                        <StackLayout Grid.Column="1" Spacing="2">
+                                                            <Label Text="{Binding FrecuenciaCardiaca, StringFormat='💗 {0} bpm'}" 
+                                                       FontSize="10" 
+                                                       TextColor="{StaticResource TextDark}"
+                                                       IsVisible="{Binding FrecuenciaCardiaca, Converter={StaticResource IsNotNullConverter}}" />
+                                                            <Label Text="{Binding Peso, StringFormat='⚖️ {0} kg'}" 
+                                                       FontSize="10" 
+                                                       TextColor="{StaticResource TextDark}"
+                                                       IsVisible="{Binding Peso, Converter={StaticResource IsNotNullConverter}}" />
+                                                        </StackLayout>
+                                                    </Grid>
+                                                </StackLayout>
+                                            </Frame>
+                                            -->
+
+                                            <!-- Footer con indicadores y fecha de seguimiento -->
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                                <!-- Indicadores de proceso -->
+                                                <StackLayout Grid.Column="0" 
+                                                 Orientation="Horizontal" 
+                                                 Spacing="12"
+                                                 VerticalOptions="Center">
+                                                    <StackLayout Orientation="Horizontal" Spacing="4">
+                                                        <Label Text="🏥" FontSize="12" />
+                                                        <Label Text="Triaje" 
+                                                   FontSize="10"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{Binding TieneTriaje, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#059669|#D1D5DB'}" />
+                                                    </StackLayout>
+                                                    <StackLayout Orientation="Horizontal" Spacing="4">
+                                                        <Label Text="💊" FontSize="12" />
+                                                        <Label Text="Consulta" 
+                                                   FontSize="10"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{Binding TieneConsulta, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#3B82F6|#D1D5DB'}" />
+                                                    </StackLayout>
+                                                </StackLayout>
+
+                                              
                                             </Grid>
 
                                         </StackLayout>
@@ -572,34 +725,33 @@
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
-                    </CollectionView>
 
-                    <!-- Mensaje cuando no hay citas -->
-                    <Frame BackgroundColor="#F8F9FA" 
-                           CornerRadius="8" 
-                           HasShadow="False" 
-                           Padding="20"
-                           IsVisible="{Binding Citas.Count, Converter={StaticResource EqualConverter}, ConverterParameter=0}">
-                        <StackLayout Spacing="10" HorizontalOptions="Center">
-                            <Label Text="📋" 
-                                   FontSize="40" 
-                                   HorizontalOptions="Center" 
-                                   TextColor="#BDC3C7" />
-                            <Label Text="No se encontraron citas médicas"
-                                   FontSize="16"
-                                   FontAttributes="Bold"
-                                   TextColor="#7F8C8D"
-                                   HorizontalOptions="Center" />
-                            <Label Text="Intente ajustar los filtros de búsqueda"
-                                   FontSize="14"
-                                   TextColor="#95A5A6"
-                                   HorizontalOptions="Center" />
-                        </StackLayout>
-                    </Frame>
+                        <CollectionView.EmptyView>
+                            <StackLayout Spacing="16" 
+                             Padding="20"
+                             HorizontalOptions="Center">
+                                <Label Text="📋" 
+                           FontSize="40" 
+                           HorizontalOptions="Center" 
+                           TextColor="{StaticResource TextLight}" />
+                                <Label Text="No se encontraron registros médicos"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextMedium}"
+                           HorizontalOptions="Center" />
+                                <Label Text="Intente ajustar los filtros o verificar la cédula"
+                           FontSize="12"
+                           TextColor="{StaticResource TextLight}"
+                           HorizontalOptions="Center" />
+                                <Button Text="🔄 Nueva Búsqueda"
+                            Command="{Binding BuscarHistorialCommand}"
+                            Style="{StaticResource SecondaryCompactStyle}"
+                            HorizontalOptions="Center" />
+                            </StackLayout>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
                 </StackLayout>
             </Frame>
-
-
 
         </StackLayout>
     </ScrollView>

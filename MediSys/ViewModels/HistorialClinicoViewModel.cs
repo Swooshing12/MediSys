@@ -22,6 +22,7 @@ namespace MediSys.ViewModels
 			}
 		}
 
+		// ===== PROPIEDADES PRINCIPALES =====
 		[ObservableProperty]
 		private string cedulaBusqueda = "";
 
@@ -43,6 +44,7 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private EstadisticasHistorial? estadisticas = null;
 
+		// ===== PROPIEDADES PARA FILTROS =====
 		[ObservableProperty]
 		private ObservableCollection<Especialidad> especialidades = new();
 
@@ -52,12 +54,16 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private ObservableCollection<Sucursal> sucursales = new();
 
-		// Filtros
 		[ObservableProperty]
-		private DateTime? fechaDesde = null;
+		private ObservableCollection<string> estados = new();
+
+		// ===== FILTROS SELECCIONADOS =====
+		// ===== FILTROS SELECCIONADOS =====
+		[ObservableProperty]
+		private DateTime fechaDesde = DateTime.Today.AddMonths(-1); // ✅ DateTime, no DateTime?
 
 		[ObservableProperty]
-		private DateTime? fechaHasta = null;
+		private DateTime fechaHasta = DateTime.Today; // ✅ DateTime, no DateTime?
 
 		[ObservableProperty]
 		private Especialidad? especialidadSeleccionada = null;
@@ -71,87 +77,45 @@ namespace MediSys.ViewModels
 		[ObservableProperty]
 		private Sucursal? sucursalSeleccionada = null;
 
-		public List<string> Estados { get; } = new() { "Programada", "Completada", "Cancelada", "No asistió" };
 
+
+		// ===== CONSTRUCTOR =====
 		public HistorialClinicoViewModel()
 		{
-			_ = CargarDatosParaFiltrosAsync();
+			// Inicializar estados
+			Estados.Add("Todas");
+			Estados.Add("Pendiente");
+			Estados.Add("Confirmada");
+			Estados.Add("En Proceso");
+			Estados.Add("Completada");
+			Estados.Add("Cancelada");
+			Estados.Add("No asistió");
+
+			System.Diagnostics.Debug.WriteLine("HistorialClinicoViewModel inicializado");
 		}
 
-		private async Task CargarDatosParaFiltrosAsync()
+		// ===== COMANDO PARA INICIALIZAR DATOS =====
+		[RelayCommand]
+		private async Task Inicializar()
 		{
 			try
 			{
-				System.Diagnostics.Debug.WriteLine("Cargando especialidades...");
-				var especialidadesResult = await ApiService.ObtenerEspecialidadesAsync();
+				System.Diagnostics.Debug.WriteLine("Inicializando HistorialClinicoViewModel...");
 
-				System.Diagnostics.Debug.WriteLine($"Especialidades result: Success={especialidadesResult.Success}, Count={especialidadesResult.Data?.Count ?? 0}");
+				await CargarEspecialidades();
+				await CargarSucursales();
 
-				if (especialidadesResult.Success && especialidadesResult.Data != null)
-				{
-					Especialidades.Clear();
-					foreach (var especialidad in especialidadesResult.Data)
-					{
-						System.Diagnostics.Debug.WriteLine($"Adding especialidad: {especialidad.Nombre}");
-						Especialidades.Add(especialidad);
-					}
-				}
-				else
-				{
-					System.Diagnostics.Debug.WriteLine($"Error especialidades: {especialidadesResult.Message}");
-				}
-
-
-				System.Diagnostics.Debug.WriteLine("Cargando sucursales...");
-				var sucursalesResult = await ApiService.ObtenerSucursalesAsync();
-
-				System.Diagnostics.Debug.WriteLine($"Sucursales result: Success={sucursalesResult.Success}, Count={sucursalesResult.Data?.Count ?? 0}");
-
-				if (sucursalesResult.Success && sucursalesResult.Data != null)
-				{
-					Sucursales.Clear();
-					foreach (var sucursales in sucursalesResult.Data)
-					{
-						System.Diagnostics.Debug.WriteLine($"Adding sucursal: {sucursales.Nombre}");
-						Sucursales.Add(sucursales);
-					}
-				}
-				else
-				{
-					System.Diagnostics.Debug.WriteLine($"Error sucursales: {sucursalesResult.Message}");
-				}
+				System.Diagnostics.Debug.WriteLine("Inicialización completada");
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"Error cargando filtros: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"Error en inicialización: {ex.Message}");
 			}
 		}
 
+		// ===== COMANDO PRINCIPAL DE BÚSQUEDA =====
 		[RelayCommand]
-		private async Task CargarDoctoresPorEspecialidadAsync()
-		{
-			if (EspecialidadSeleccionada == null) return;
-
-			try
-			{
-				var result = await ApiService.ObtenerDoctoresPorEspecialidadAsync(EspecialidadSeleccionada.IdEspecialidad);
-				if (result.Success && result.Data != null)
-				{
-					Doctores.Clear();
-					foreach (var doctor in result.Data)
-					{
-						Doctores.Add(doctor);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				System.Diagnostics.Debug.WriteLine($"Error cargando doctores: {ex.Message}");
-			}
-		}
-
-		[RelayCommand]
-		private async Task BuscarHistorialAsync()
+		private async Task BuscarHistorial()
 		{
 			if (string.IsNullOrWhiteSpace(CedulaBusqueda))
 			{
@@ -164,6 +128,9 @@ namespace MediSys.ViewModels
 
 			try
 			{
+				System.Diagnostics.Debug.WriteLine($"Buscando historial para cédula: {CedulaBusqueda.Trim()}");
+
+				// 1. Buscar paciente primero
 				var pacienteResult = await ApiService.BuscarPacienteAsync(CedulaBusqueda.Trim());
 
 				if (!pacienteResult.Success || pacienteResult.Data == null)
@@ -174,38 +141,16 @@ namespace MediSys.ViewModels
 				}
 
 				PacienteEncontrado = pacienteResult.Data;
+				System.Diagnostics.Debug.WriteLine($"Paciente encontrado: {PacienteEncontrado.NombreCompleto}");
 
-				var filtros = new HistorialClinicoFiltros
-				{
-					FechaDesde = FechaDesde?.ToString("yyyy-MM-dd"),
-					FechaHasta = FechaHasta?.ToString("yyyy-MM-dd"),
-					IdEspecialidad = EspecialidadSeleccionada?.IdEspecialidad,
-					IdDoctor = DoctorSeleccionado?.IdDoctor,
-					Estado = EstadoSeleccionado,
-					IdSucursal = SucursalSeleccionada?.IdSucursal
-				};
+				// 2. Buscar historial con filtros
+				await CargarHistorialConFiltros();
 
-				var historialResult = await ApiService.ObtenerHistorialAsync(CedulaBusqueda.Trim(), filtros);
-
-				if (historialResult.Success && historialResult.Data != null)
-				{
-					Citas.Clear();
-					foreach (var cita in historialResult.Data.Citas)
-					{
-						Citas.Add(cita);
-					}
-
-					Estadisticas = historialResult.Data.Estadisticas;
-					ShowResults = true;
-				}
-				else
-				{
-					await Shell.Current.DisplayAlert("Error",
-						historialResult.Message ?? "Error obteniendo historial clínico", "OK");
-				}
+				ShowResults = true;
 			}
 			catch (Exception ex)
 			{
+				System.Diagnostics.Debug.WriteLine($"Error en búsqueda: {ex.Message}");
 				await Shell.Current.DisplayAlert("Error", $"Error inesperado: {ex.Message}", "OK");
 			}
 			finally
@@ -214,36 +159,252 @@ namespace MediSys.ViewModels
 			}
 		}
 
-
-
+		// ===== COMANDO PARA APLICAR FILTROS =====
 		[RelayCommand]
-		private async Task VerDetalleCitaAsync(CitaMedica cita)
+		private async Task AplicarFiltros()
+		{
+			try
+			{
+				if (!ShowResults || string.IsNullOrWhiteSpace(CedulaBusqueda))
+					return;
+
+				System.Diagnostics.Debug.WriteLine("Aplicando filtros automáticamente...");
+				IsLoading = true;
+
+				await CargarHistorialConFiltros();
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error aplicando filtros: {ex.Message}");
+			}
+			finally
+			{
+				IsLoading = false;
+			}
+		}
+
+		// ===== MÉTODO INTERNO PARA CARGAR HISTORIAL CON FILTROS =====
+		// ===== MÉTODO INTERNO PARA CARGAR HISTORIAL CON FILTROS =====
+		private async Task CargarHistorialConFiltros()
+		{
+			try
+			{
+				var filtros = new HistorialClinicoFiltros
+				{
+					FechaDesde = FechaDesde.ToString("yyyy-MM-dd"), // ✅ CORREGIDO
+					FechaHasta = FechaHasta.ToString("yyyy-MM-dd"), // ✅ CORREGIDO
+					IdEspecialidad = EspecialidadSeleccionada?.IdEspecialidad,
+					IdDoctor = DoctorSeleccionado?.IdDoctor,
+					Estado = EstadoSeleccionado == "Todas" ? null : EstadoSeleccionado,
+					IdSucursal = SucursalSeleccionada?.IdSucursal
+				};
+
+				System.Diagnostics.Debug.WriteLine($"Filtros aplicados: Desde={filtros.FechaDesde}, Hasta={filtros.FechaHasta}, Especialidad={EspecialidadSeleccionada?.Nombre}, Estado={filtros.Estado}");
+
+				var historialResult = await ApiService.ObtenerHistorialAsync(CedulaBusqueda.Trim(), filtros);
+
+				if (historialResult.Success && historialResult.Data != null)
+				{
+					// Actualizar citas
+					Citas.Clear();
+					foreach (var cita in historialResult.Data.Citas)
+					{
+						Citas.Add(cita);
+					}
+
+					// Actualizar estadísticas
+					Estadisticas = historialResult.Data.Estadisticas;
+
+					System.Diagnostics.Debug.WriteLine($"Historial cargado: {Citas.Count} citas encontradas");
+				}
+				else
+				{
+					System.Diagnostics.Debug.WriteLine($"Error obteniendo historial: {historialResult.Message}");
+					Citas.Clear();
+					Estadisticas = new EstadisticasHistorial();
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error cargando historial: {ex.Message}");
+				throw;
+			}
+		}
+
+		// ===== COMANDO PARA CARGAR DOCTORES POR ESPECIALIDAD =====
+		[RelayCommand]
+		private async Task CargarDoctoresPorEspecialidad()
+		{
+			try
+			{
+				if (EspecialidadSeleccionada != null)
+				{
+					System.Diagnostics.Debug.WriteLine($"Cargando doctores para especialidad: {EspecialidadSeleccionada.Nombre}");
+
+					// Limpiar doctor seleccionado
+					DoctorSeleccionado = null;
+
+					var result = await ApiService.ObtenerDoctoresPorEspecialidadAsync(EspecialidadSeleccionada.IdEspecialidad);
+
+					if (result.Success && result.Data != null)
+					{
+						Doctores.Clear();
+						foreach (var doctor in result.Data)
+						{
+							Doctores.Add(doctor);
+						}
+
+						System.Diagnostics.Debug.WriteLine($"Doctores cargados: {Doctores.Count}");
+					}
+					else
+					{
+						System.Diagnostics.Debug.WriteLine($"Error cargando doctores: {result.Message}");
+						Doctores.Clear();
+					}
+				}
+				else
+				{
+					// Si no hay especialidad, limpiar doctores
+					Doctores.Clear();
+					DoctorSeleccionado = null;
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error cargando doctores: {ex.Message}");
+				Doctores.Clear();
+			}
+		}
+
+		// ===== COMANDOS DE NAVEGACIÓN =====
+		[RelayCommand]
+		private async Task VerDetalleCita(CitaMedica cita)
 		{
 			if (cita == null) return;
 
-			var detallePage = new DetalleCitaModalPage(cita);
-			await Shell.Current.Navigation.PushModalAsync(detallePage);
+			try
+			{
+				System.Diagnostics.Debug.WriteLine($"Navegando a detalle de cita ID: {cita.IdCita}");
+
+				var detallePage = new DetalleCitaModalPage(cita);
+				await Shell.Current.Navigation.PushModalAsync(detallePage);
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error navegando a detalle: {ex.Message}");
+				await Shell.Current.DisplayAlert("Error", "No se pudo abrir el detalle de la cita", "OK");
+			}
 		}
 
-
-
+		// ===== COMANDOS DE FILTROS =====
 		[RelayCommand]
-		private void LimpiarFiltros()
+		private async Task LimpiarFiltros()
 		{
-			FechaDesde = null;
-			FechaHasta = null;
-			EspecialidadSeleccionada = null;
-			DoctorSeleccionado = null;
-			EstadoSeleccionado = null;
-			SucursalSeleccionada = null;
-			Doctores.Clear();
+			try
+			{
+				System.Diagnostics.Debug.WriteLine("Limpiando filtros...");
+
+				FechaDesde = DateTime.Today.AddMonths(-6);
+				FechaHasta = DateTime.Today;
+				EspecialidadSeleccionada = null;
+				DoctorSeleccionado = null;
+				EstadoSeleccionado = null;
+				SucursalSeleccionada = null;
+
+				Doctores.Clear();
+
+				// Re-aplicar búsqueda si hay resultados mostrados
+				if (ShowResults && !string.IsNullOrWhiteSpace(CedulaBusqueda))
+				{
+					await CargarHistorialConFiltros();
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error limpiando filtros: {ex.Message}");
+			}
 		}
 
 		[RelayCommand]
 		private void ToggleFilters()
 		{
 			ShowFilters = !ShowFilters;
+			System.Diagnostics.Debug.WriteLine($"Filtros mostrados: {ShowFilters}");
 		}
 
+		// ===== MÉTODOS PRIVADOS PARA CARGAR DATOS =====
+		private async Task CargarEspecialidades()
+		{
+			try
+			{
+				System.Diagnostics.Debug.WriteLine("Cargando especialidades...");
+
+				var especialidadesResult = await ApiService.ObtenerEspecialidadesAsync();
+
+				if (especialidadesResult.Success && especialidadesResult.Data != null)
+				{
+					Especialidades.Clear();
+					foreach (var especialidad in especialidadesResult.Data)
+					{
+						Especialidades.Add(especialidad);
+					}
+
+					System.Diagnostics.Debug.WriteLine($"Especialidades cargadas: {Especialidades.Count}");
+				}
+				else
+				{
+					System.Diagnostics.Debug.WriteLine($"Error cargando especialidades: {especialidadesResult.Message}");
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error cargando especialidades: {ex.Message}");
+			}
+		}
+
+		private async Task CargarSucursales()
+		{
+			try
+			{
+				System.Diagnostics.Debug.WriteLine("Cargando sucursales...");
+
+				var sucursalesResult = await ApiService.ObtenerSucursalesAsync();
+
+				if (sucursalesResult.Success && sucursalesResult.Data != null)
+				{
+					Sucursales.Clear();
+					foreach (var sucursal in sucursalesResult.Data)
+					{
+						Sucursales.Add(sucursal);
+					}
+
+					System.Diagnostics.Debug.WriteLine($"Sucursales cargadas: {Sucursales.Count}");
+				}
+				else
+				{
+					System.Diagnostics.Debug.WriteLine($"Error cargando sucursales: {sucursalesResult.Message}");
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error cargando sucursales: {ex.Message}");
+			}
+		}
+
+		// ===== MÉTODO PARA DEBUGGING =====
+		public void LogCurrentState()
+		{
+			System.Diagnostics.Debug.WriteLine("=== ESTADO ACTUAL DEL VIEWMODEL ===");
+			System.Diagnostics.Debug.WriteLine($"CedulaBusqueda: {CedulaBusqueda}");
+			System.Diagnostics.Debug.WriteLine($"ShowResults: {ShowResults}");
+			System.Diagnostics.Debug.WriteLine($"ShowFilters: {ShowFilters}");
+			System.Diagnostics.Debug.WriteLine($"IsLoading: {IsLoading}");
+			System.Diagnostics.Debug.WriteLine($"Citas Count: {Citas.Count}");
+			System.Diagnostics.Debug.WriteLine($"Especialidades Count: {Especialidades.Count}");
+			System.Diagnostics.Debug.WriteLine($"Doctores Count: {Doctores.Count}");
+			System.Diagnostics.Debug.WriteLine($"EspecialidadSeleccionada: {EspecialidadSeleccionada?.Nombre ?? "null"}");
+			System.Diagnostics.Debug.WriteLine($"EstadoSeleccionado: {EstadoSeleccionado ?? "null"}");
+			System.Diagnostics.Debug.WriteLine("=====================================");
+		}
 	}
 }
