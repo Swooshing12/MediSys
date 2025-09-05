@@ -328,6 +328,12 @@ public partial class ConsultaMedicaPage : ContentPage
 			TratamientoEditor.Text = "";
 			RecetaEditor.Text = "";
 		}
+		else
+		{
+			// ✅ OPCIONAL: Agregar indicador visual de campos requeridos
+			// Podrías cambiar colores de borde o agregar asteriscos
+			System.Diagnostics.Debug.WriteLine("Tratamiento activado - campos ahora son obligatorios");
+		}
 	}
 
 	private void OnSeguimientoCheckChanged(object sender, CheckedChangedEventArgs e)
@@ -365,26 +371,57 @@ public partial class ConsultaMedicaPage : ContentPage
 			if (!ValidarCampos())
 				return;
 
-			// ✅ AJUSTAR NOMBRES DE CONTROLES PARA QUE COINCIDAN CON TU XAML
+			// ✅ PREPARAR DATOS CONDICIONALMENTE
 			var consultaData = new Models.ConsultaMedicaRequest
 			{
-				MotivoConsulta = MotivoConsultaEditor.Text?.Trim() ?? "", // ✅ Cambiado de MotivoEntry
-				Sintomatologia = SintomasEditor.Text?.Trim(),
+				MotivoConsulta = MotivoConsultaEditor.Text?.Trim() ?? "",
+				Sintomatologia = SintomasEditor.Text?.Trim(), // Opcional
 				Diagnostico = DiagnosticoEditor.Text?.Trim() ?? "",
-				Tratamiento = TratamientoCheckBox.IsChecked ? TratamientoEditor.Text?.Trim() : null,
-				Observaciones = TratamientoCheckBox.IsChecked ? RecetaEditor.Text?.Trim() : null,
+
+				// ✅ SOLO ENVIAR TRATAMIENTO SI EL CHECKBOX ESTÁ ACTIVADO
+				Tratamiento = TratamientoCheckBox.IsChecked ?
+					(string.IsNullOrWhiteSpace(TratamientoEditor.Text) ? null : TratamientoEditor.Text.Trim()) :
+					null,
+
+				// ✅ SOLO ENVIAR RECETA SI EL CHECKBOX ESTÁ ACTIVADO  
+				Observaciones = TratamientoCheckBox.IsChecked ?
+					(string.IsNullOrWhiteSpace(RecetaEditor.Text) ? null : RecetaEditor.Text.Trim()) :
+					null,
+
+				// ✅ SOLO ENVIAR FECHA DE SEGUIMIENTO SI EL CHECKBOX ESTÁ ACTIVADO
 				FechaSeguimiento = SeguimientoCheckBox.IsChecked ?
 					FechaSeguimientoPicker.Date.ToString("yyyy-MM-dd") : null
 			};
+
+			// Mostrar loading
+			var loadingIndicator = new ActivityIndicator
+			{
+				IsRunning = true,
+				Color = Color.FromHex("#3B82F6")
+			};
+
+			// Aquí podrías agregar el indicador a la vista si quieres
 
 			var response = await _apiService.CrearActualizarConsultaMedicaAsync(_idCita, consultaData);
 
 			if (response?.Success == true)
 			{
-				await DisplayAlert("Éxito",
-					"Consulta médica guardada correctamente.\n\n" +
-					"📧 Se ha enviado un correo al paciente con el reporte médico en PDF.",
-					"OK");
+				string mensaje = "Consulta médica guardada correctamente.";
+
+				// ✅ PERSONALIZAR MENSAJE SEGÚN LO QUE SE GUARDÓ
+				if (TratamientoCheckBox.IsChecked)
+				{
+					mensaje += "\n\n📋 Tratamiento y prescripción registrados.";
+				}
+
+				if (SeguimientoCheckBox.IsChecked)
+				{
+					mensaje += $"\n📅 Seguimiento programado para: {FechaSeguimientoPicker.Date:dd/MM/yyyy}";
+				}
+
+				mensaje += "\n\n📧 Se ha enviado un correo al paciente con el reporte médico en PDF.";
+
+				await DisplayAlert("Éxito", mensaje, "OK");
 				await Shell.Current.GoToAsync("..");
 			}
 			else
@@ -395,13 +432,13 @@ public partial class ConsultaMedicaPage : ContentPage
 		catch (Exception ex)
 		{
 			System.Diagnostics.Debug.WriteLine($"Error guardando: {ex.Message}");
-			await DisplayAlert("Error", $"Error: {ex.Message}", "OK");
+			await DisplayAlert("Error", $"Error inesperado: {ex.Message}", "OK");
 		}
 	}
 
-	// ✅ AGREGAR EL MÉTODO ValidarCampos QUE FALTA
 	private bool ValidarCampos()
 	{
+		// Validaciones básicas siempre obligatorias
 		if (string.IsNullOrWhiteSpace(MotivoConsultaEditor.Text))
 		{
 			DisplayAlert("Error", "El motivo de consulta es obligatorio", "OK");
@@ -412,6 +449,64 @@ public partial class ConsultaMedicaPage : ContentPage
 		{
 			DisplayAlert("Error", "El diagnóstico es obligatorio", "OK");
 			return false;
+		}
+
+		// ✅ VALIDACIÓN CONDICIONAL DE TRATAMIENTO
+		if (TratamientoCheckBox.IsChecked)
+		{
+			// Si el checkbox está marcado, validar que al menos uno de los campos tenga contenido
+			bool tieneTratamiento = !string.IsNullOrWhiteSpace(TratamientoEditor.Text);
+			bool tieneReceta = !string.IsNullOrWhiteSpace(RecetaEditor.Text);
+
+			if (!tieneTratamiento && !tieneReceta)
+			{
+				DisplayAlert("Error",
+					"Si activa el tratamiento, debe completar al menos uno de los campos:\n" +
+					"• Plan de Tratamiento\n" +
+					"• Prescripción Médica",
+					"OK");
+				return false;
+			}
+
+			// Opcional: Validar que el tratamiento tenga un mínimo de caracteres
+			if (tieneTratamiento && TratamientoEditor.Text.Trim().Length < 10)
+			{
+				DisplayAlert("Error",
+					"El plan de tratamiento debe ser más descriptivo (mínimo 10 caracteres)",
+					"OK");
+				return false;
+			}
+
+			if (tieneReceta && RecetaEditor.Text.Trim().Length < 10)
+			{
+				DisplayAlert("Error",
+					"La prescripción médica debe ser más descriptiva (mínimo 10 caracteres)",
+					"OK");
+				return false;
+			}
+		}
+
+		// ✅ VALIDACIÓN CONDICIONAL DE SEGUIMIENTO (si tienes checkbox de seguimiento)
+		if (SeguimientoCheckBox.IsChecked)
+		{
+			// Validar que la fecha de seguimiento sea futura
+			if (FechaSeguimientoPicker.Date <= DateTime.Today)
+			{
+				DisplayAlert("Error",
+					"La fecha de seguimiento debe ser posterior a hoy",
+					"OK");
+				return false;
+			}
+
+			// Opcional: Validar observaciones de seguimiento si las tienes
+			if (!string.IsNullOrWhiteSpace(ObservacionesEditor.Text) &&
+				ObservacionesEditor.Text.Trim().Length < 5)
+			{
+				DisplayAlert("Error",
+					"Las observaciones de seguimiento deben ser más descriptivas",
+					"OK");
+				return false;
+			}
 		}
 
 		return true;

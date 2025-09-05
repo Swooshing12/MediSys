@@ -271,9 +271,7 @@
         <ShellContent Title="📝 Crear Cita" 
                       ContentTemplate="{DataTemplate dashboard:CrearCitaPage}"
                       Route="crear_cita" />
-        <ShellContent Title="🩺 Registro de Triaje"
-                       ContentTemplate="{DataTemplate dashboard:TriajePage}"
-                       Route="triaje" />
+
     </FlyoutItem>
 
     <!-- AppShell.xaml - Asegúrate de que esté así: -->
@@ -288,7 +286,17 @@
                   Route="mis-citas" />
     </FlyoutItem>
     
-    
+    <FlyoutItem Title="🩺 Registro de Triaje" 
+        FlyoutDisplayOptions="AsMultipleItems"
+        IsVisible="{Binding IsEnfermero}">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="🩺" FontFamily="{OnPlatform iOS=Arial, Android=sans-serif}" Size="18" Color="{StaticResource MedicalGreen}" />
+        </FlyoutItem.Icon>
+        <ShellContent Title="🩺 Registro de Triaje"
+              ContentTemplate="{DataTemplate dashboard:TriajePage}"
+              Route="triaje" />
+    </FlyoutItem>
+
 
     <!-- PÁGINAS OCULTAS -->
     <ShellContent ContentTemplate="{DataTemplate auth:LoginPage}"

@@ -80,10 +80,10 @@
             <!-- HEADER COMPACTO -->
             <Frame Background="{StaticResource HeaderGradient}" 
                    HasShadow="True" 
-                   Padding="16,12,16,12"
-                   Margin="12,8,12,8"
+                   Padding="20,16,20,16"
+                   Margin="18,12,18,12"
                    CornerRadius="12"
-                   HorizontalOptions="FillAndExpand">
+                   HorizontalOptions="FillAndExpand">   
 
                 <!-- Título compacto -->
                 <StackLayout Orientation="Horizontal" 
@@ -91,7 +91,7 @@
                              Spacing="8">
                     <Label Text="📋" FontSize="18" VerticalOptions="Center" />
                     <Label Text="Expediente Digital" 
-                           FontSize="14" 
+                           FontSize="20" 
                            FontAttributes="Bold"
                            TextColor="White"
                            VerticalOptions="Center" />

@@ -22,6 +22,9 @@
             <Color x:Key="AccentBlue">#3498DB</Color>
             <Color x:Key="TextPrimary">#1F2937</Color>
             <Color x:Key="TextSecondary">#6B7280</Color>
+            <Color x:Key="SuccessGreen">#059669</Color>
+            <Color x:Key="DangerRed">#DC2626</Color>
+            
 
         </ResourceDictionary>
     </ContentPage.Resources>

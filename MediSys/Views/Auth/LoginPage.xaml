@@ -171,7 +171,7 @@
                             <Grid ColumnDefinitions="50,*,50" ColumnSpacing="0">
                                 <!-- Icono Contraseña -->
                                 <Label Grid.Column="0"
-                                       Text="🔒"
+                                       Text="🔑"
                                        FontSize="18"
                                        VerticalOptions="Center"
                                        HorizontalOptions="Center" />

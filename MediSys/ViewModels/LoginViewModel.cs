@@ -63,7 +63,7 @@ namespace MediSys.ViewModels
 		private void TogglePasswordVisibility()
 		{
 			IsPasswordHidden = !IsPasswordHidden;
-			PasswordToggleIcon = IsPasswordHidden ? "👁️" : "🙈";
+			PasswordToggleIcon = IsPasswordHidden ? "👁️" : "🔒";
 
 			System.Diagnostics.Debug.WriteLine($"Password visibility toggled: Hidden={IsPasswordHidden}, Icon={PasswordToggleIcon}");
 		}

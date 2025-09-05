@@ -112,7 +112,7 @@ namespace MediSys.ViewModels
 
 					// Configurar visibilidad según rol
 					IsMedico = currentUser.Rol?.ToLower() == "medico";
-					isEnfermero = currentUser.Rol?.ToLower() == "enfermero";
+					IsEnfermero = currentUser.Rol?.ToLower() == "enfermero";  // ✅ CORRECTO
 					CanViewHistorial = currentUser.Rol?.ToLower() != "paciente";
 					CanViewConsultaCitas = true;
 
@@ -146,6 +146,7 @@ namespace MediSys.ViewModels
 			UserRoleDisplay = "Invitado";
 			UserExtraInfo = "";
 			IsMedico = false;
+			IsEnfermero = false;
 			CanViewHistorial = false;
 			CanViewConsultaCitas = false;
 		}
