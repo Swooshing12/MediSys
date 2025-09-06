@@ -50,12 +50,30 @@ namespace MediSys.Models
 
 	public class HistorialClinicoFiltros
 	{
+		[JsonPropertyName("fecha_desde")]
 		public string? FechaDesde { get; set; }
+
+		[JsonPropertyName("fecha_hasta")]
 		public string? FechaHasta { get; set; }
+
+		[JsonPropertyName("id_especialidad")]
 		public int? IdEspecialidad { get; set; }
+
+		[JsonPropertyName("id_doctor")]
 		public int? IdDoctor { get; set; }
+
+		[JsonPropertyName("estado")]
 		public string? Estado { get; set; }
+
+		[JsonPropertyName("id_sucursal")]
 		public int? IdSucursal { get; set; }
+
+		// ✅ NUEVAS PROPIEDADES PARA PAGINACIÓN
+		[JsonPropertyName("pagina")]
+		public int Pagina { get; set; } = 1;
+
+		[JsonPropertyName("por_pagina")]
+		public int PorPagina { get; set; } = 10;
 	}
 
 	public class CitaMedica
@@ -285,11 +303,18 @@ namespace MediSys.Models
 
 	public class HistorialCompletoResponse
 	{
+		[JsonPropertyName("paciente")]
+		public PacienteResponse? Paciente { get; set; }
+
 		[JsonPropertyName("citas")]
-		public List<CitaMedica> Citas { get; set; } = new();
+		public List<CitaMedica>? Citas { get; set; }
 
 		[JsonPropertyName("estadisticas")]
-		public EstadisticasHistorial Estadisticas { get; set; } = new();
+		public EstadisticasHistorial? Estadisticas { get; set; }
+
+		// ✅ NUEVA PROPIEDAD PARA PAGINACIÓN
+		[JsonPropertyName("paginacion")]
+		public PaginacionInfo? Paginacion { get; set; }
 
 		[JsonPropertyName("filtros_aplicados")]
 		public Dictionary<string, object>? FiltrosAplicados { get; set; }
@@ -355,5 +380,32 @@ namespace MediSys.Models
 
 		[JsonPropertyName("email")]
 		public string? Email { get; set; }
+	}
+
+	public class PaginacionInfo
+	{
+		[JsonPropertyName("pagina_actual")]
+		public int PaginaActual { get; set; }
+
+		[JsonPropertyName("por_pagina")]
+		public int PorPagina { get; set; }
+
+		[JsonPropertyName("total_registros")]
+		public int TotalRegistros { get; set; }
+
+		[JsonPropertyName("total_paginas")]
+		public int TotalPaginas { get; set; }
+
+		[JsonPropertyName("tiene_anterior")]
+		public bool TieneAnterior { get; set; }
+
+		[JsonPropertyName("tiene_siguiente")]
+		public bool TieneSiguiente { get; set; }
+
+		[JsonPropertyName("desde")]
+		public int Desde { get; set; }
+
+		[JsonPropertyName("hasta")]
+		public int Hasta { get; set; }
 	}
 }

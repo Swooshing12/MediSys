@@ -750,6 +750,112 @@
                             </StackLayout>
                         </CollectionView.EmptyView>
                     </CollectionView>
+                    
+                </StackLayout>
+            </Frame>
+            <!-- ✅ AGREGAR AQUÍ LA PAGINACIÓN -->
+            <!-- CONTROLES DE PAGINACIÓN MEJORADOS -->
+            <Frame Style="{StaticResource CompactCardStyle}" 
+       IsVisible="{Binding MostrarControlesPaginacion}"
+       BackgroundColor="#FFFFFF"
+       BorderColor="{StaticResource BorderSoft}">
+                <StackLayout Spacing="20">
+
+                    <!-- INFORMACIÓN DE PAGINACIÓN -->
+                    <Label Text="{Binding TextoPaginacion}"
+               FontSize="13"
+               FontAttributes="Bold"
+               TextColor="{StaticResource TextMedium}"
+               HorizontalOptions="Center" />
+
+                    <!-- CONTENEDOR CENTRADO PARA BOTONES -->
+                    <StackLayout HorizontalOptions="Center">
+
+                        <!-- GRID DE BOTONES ALINEADO -->
+                        <Grid ColumnDefinitions="60,60,60,60" 
+                  ColumnSpacing="8"
+                  HorizontalOptions="Center">
+
+                            <!-- PRIMERA PÁGINA -->
+                            <Button Grid.Column="0"
+                        Text="⏮"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="{StaticResource PrimaryBlue}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="42"
+                        WidthRequest="56"
+                        Command="{Binding IrPrimeraPaginaCommand}"
+                        IsEnabled="{Binding TienePaginaAnterior}"
+                        Opacity="{Binding TienePaginaAnterior, Converter={StaticResource BoolToTextConverter}, ConverterParameter='1.0|0.4'}" />
+
+                            <!-- PÁGINA ANTERIOR -->
+                            <Button Grid.Column="1"
+                        Text="◀"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="{StaticResource SecondaryBlue}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="42"
+                        WidthRequest="56"
+                        Command="{Binding IrPaginaAnteriorCommand}"
+                        IsEnabled="{Binding TienePaginaAnterior}"
+                        Opacity="{Binding TienePaginaAnterior, Converter={StaticResource BoolToTextConverter}, ConverterParameter='1.0|0.4'}" />
+
+                            <!-- PÁGINA SIGUIENTE -->
+                            <Button Grid.Column="2"
+                        Text="▶"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="{StaticResource SecondaryBlue}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="42"
+                        WidthRequest="56"
+                        Command="{Binding IrPaginaSiguienteCommand}"
+                        IsEnabled="{Binding TienePaginaSiguiente}"
+                        Opacity="{Binding TienePaginaSiguiente, Converter={StaticResource BoolToTextConverter}, ConverterParameter='1.0|0.4'}" />
+
+                            <!-- ÚLTIMA PÁGINA -->
+                            <Button Grid.Column="3"
+                        Text="⏭"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="{StaticResource PrimaryBlue}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="42"
+                        WidthRequest="56"
+                        Command="{Binding IrUltimaPaginaCommand}"
+                        IsEnabled="{Binding TienePaginaSiguiente}"
+                        Opacity="{Binding TienePaginaSiguiente, Converter={StaticResource BoolToTextConverter}, ConverterParameter='1.0|0.4'}" />
+                        </Grid>
+
+                    </StackLayout>
+
+                    <!-- INDICADOR DE CARGA CON MEJOR DISEÑO -->
+                    <Frame BackgroundColor="#F0F9FF" 
+               CornerRadius="8" 
+               HasShadow="False" 
+               Padding="12"
+               IsVisible="{Binding IsLoading}"
+               HorizontalOptions="Center">
+                        <StackLayout Orientation="Horizontal" 
+                         Spacing="10">
+                            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                  Color="{StaticResource PrimaryBlue}"
+                                  HeightRequest="24"
+                                  WidthRequest="24" />
+                            <Label Text="Cargando página..."
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource PrimaryBlue}"
+                       VerticalOptions="Center" />
+                        </StackLayout>
+                    </Frame>
+
                 </StackLayout>
             </Frame>
 

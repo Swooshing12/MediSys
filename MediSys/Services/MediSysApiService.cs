@@ -295,18 +295,28 @@ namespace MediSys.Services
 						queryParams.Add($"estado={filtros.Estado}");
 					if (filtros.IdSucursal.HasValue)
 						queryParams.Add($"id_sucursal={filtros.IdSucursal}");
+
+					// ✅ AGREGAR PARÁMETROS DE PAGINACIÓN
+					queryParams.Add($"pagina={filtros.Pagina}");
+					queryParams.Add($"por_pagina={filtros.PorPagina}");
+				}
+				else
+				{
+					// ✅ VALORES POR DEFECTO SI NO HAY FILTROS
+					queryParams.Add("pagina=1");
+					queryParams.Add("por_pagina=10");
 				}
 
 				if (queryParams.Count > 0)
 					url += "?" + string.Join("&", queryParams);
 
-				System.Diagnostics.Debug.WriteLine($"Historial URL: {url}");
+				System.Diagnostics.Debug.WriteLine($"🔗 Historial URL: {url}");
 
 				var request = new HttpRequestMessage(HttpMethod.Get, url);
 				var response = await SendRequestWithSessionAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
-				System.Diagnostics.Debug.WriteLine($"Historial Status: {response.StatusCode}");
+				System.Diagnostics.Debug.WriteLine($"📊 Historial Status: {response.StatusCode}");
 
 				if (response.IsSuccessStatusCode)
 				{
@@ -317,7 +327,6 @@ namespace MediSys.Services
 						NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString,
 						AllowTrailingCommas = true,
 						ReadCommentHandling = JsonCommentHandling.Skip,
-
 						Converters = {
 					new DecimalConverter(),
 					new NullableDecimalConverter(),
@@ -326,90 +335,37 @@ namespace MediSys.Services
 				}
 					};
 
-					try
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<HistorialCompletoResponse>>(responseContent, options);
+
+					if (apiResponse?.Success == true && apiResponse.Data != null)
 					{
-						// Primero verificar si es el endpoint de filtros o el básico
-						if (responseContent.Contains("filtros_aplicados"))
-						{
-							// Es el endpoint con filtros - deserializar normal
-							var apiResponse = JsonSerializer.Deserialize<ApiResponse<HistorialCompletoResponse>>(responseContent, options);
-
-							if (apiResponse?.Success == true && apiResponse.Data != null)
-							{
-								System.Diagnostics.Debug.WriteLine($"Historial con filtros - Citas: {apiResponse.Data.Citas?.Count ?? 0}");
-								return apiResponse;
-							}
-						}
-						else
-						{
-							// Es búsqueda básica - usar estructura simplificada
-							var basicResponse = JsonSerializer.Deserialize<ApiResponse<HistorialBasicoResponse>>(responseContent, options);
-
-							if (basicResponse?.Success == true && basicResponse.Data != null)
-							{
-								// Convertir a HistorialCompletoResponse
-								var historialCompleto = new HistorialCompletoResponse
-								{
-									Citas = basicResponse.Data.CitasMedicas ?? new List<CitaMedica>(),
-									Estadisticas = basicResponse.Data.Estadisticas ?? new EstadisticasHistorial(),
-									FiltrosAplicados = new Dictionary<string, object>()
-								};
-
-								var apiResponse = new ApiResponse<HistorialCompletoResponse>
-								{
-									Success = true,
-									Message = basicResponse.Message,
-									Data = historialCompleto
-								};
-
-								System.Diagnostics.Debug.WriteLine($"Historial básico convertido - Citas: {historialCompleto.Citas.Count}");
-								return apiResponse;
-							}
-						}
+						System.Diagnostics.Debug.WriteLine($"✅ Historial cargado - Página: {apiResponse.Data.Paginacion?.PaginaActual}, Citas: {apiResponse.Data.Citas?.Count}");
+						return apiResponse;
 					}
-					catch (JsonException jsonEx)
+
+					return new ApiResponse<HistorialCompletoResponse>
 					{
-						System.Diagnostics.Debug.WriteLine($"JSON Error: {jsonEx.Message}");
-						System.Diagnostics.Debug.WriteLine($"Trying fallback deserialization...");
-
-						// Fallback: crear respuesta manualmente parseando lo básico
-						try
-						{
-							var fallbackData = CreateFallbackResponse(responseContent);
-							if (fallbackData != null)
-							{
-								return fallbackData;
-							}
-						}
-						catch (Exception fallbackEx)
-						{
-							System.Diagnostics.Debug.WriteLine($"Fallback failed: {fallbackEx.Message}");
-						}
-
-						return new ApiResponse<HistorialCompletoResponse>
-						{
-							Success = false,
-							Message = $"Error procesando datos: {jsonEx.Message}",
-							Data = new HistorialCompletoResponse()
-						};
-					}
+						Success = false,
+						Message = apiResponse?.Message ?? "Error procesando historial"
+					};
 				}
 
+				var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent);
 				return new ApiResponse<HistorialCompletoResponse>
 				{
 					Success = false,
-					Message = $"Error del servidor: {response.StatusCode}",
-					Data = new HistorialCompletoResponse()
+					Message = errorResponse?.Message ?? "Error obteniendo historial",
+					Code = (int)response.StatusCode
 				};
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"Error general: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"❌ Error obteniendo historial: {ex.Message}");
 				return new ApiResponse<HistorialCompletoResponse>
 				{
 					Success = false,
 					Message = $"Error: {ex.Message}",
-					Data = new HistorialCompletoResponse()
+					Code = 500
 				};
 			}
 		}
