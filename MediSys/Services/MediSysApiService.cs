@@ -23,7 +23,7 @@ namespace MediSys.Services
 			};
 
 			_httpClient = new HttpClient(handler);
-			_baseUrl = "http://192.168.100.33/MenuDinamico/api";
+			_baseUrl = "http://192.168.100.11/MenuDinamico/api";
 
 			_httpClient.DefaultRequestHeaders.Clear();
 			_httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -1890,49 +1890,53 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/citas/{idCita}/estado";
+				System.Diagnostics.Debug.WriteLine($"Actualizando estado de cita {idCita} a: {nuevoEstado}");
 
-				System.Diagnostics.Debug.WriteLine($"🔄 Actualizando estado cita: {url} - Estado: {nuevoEstado}");
+				var requestData = new { estado = nuevoEstado };
+				var json = JsonSerializer.Serialize(requestData, GetJsonOptions());
+				var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-				// ✅ CAMBIAR A PUT en lugar de POST
-				var request = new HttpRequestMessage(HttpMethod.Put, url);
-				request.Content = new StringContent(JsonSerializer.Serialize(new { estado = nuevoEstado }), Encoding.UTF8, "application/json");
+				// ✅ USAR PUT EN LUGAR DE POST
+				var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/citas/{idCita}/estado")
+				{
+					Content = content
+				};
 
 				var response = await SendRequestWithSessionAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
-				System.Diagnostics.Debug.WriteLine($"📥 Estado cita response: {responseContent}");
+				System.Diagnostics.Debug.WriteLine($"Respuesta actualizar estado: {response.StatusCode}");
+				System.Diagnostics.Debug.WriteLine($"Contenido: {responseContent}");
 
 				if (response.IsSuccessStatusCode)
 				{
-					var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
-					{
-						PropertyNameCaseInsensitive = true
-					});
-
-					return apiResponse ?? new ApiResponse<object>
-					{
-						Success = false,
-						Message = "Error procesando respuesta"
-					};
+					var result = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, GetJsonOptions());
+					return result ?? new ApiResponse<object> { Success = false, Message = "Respuesta vacía" };
 				}
 				else
 				{
-					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					try
 					{
-						PropertyNameCaseInsensitive = true
-					});
-
-					return new ApiResponse<object>
+						var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, GetJsonOptions());
+						return new ApiResponse<object>
+						{
+							Success = false,
+							Message = errorResponse?.Message ?? $"Error del servidor: {response.StatusCode}"
+						};
+					}
+					catch
 					{
-						Success = false,
-						Message = errorResponse?.Message ?? "Error actualizando estado de cita"
-					};
+						return new ApiResponse<object>
+						{
+							Success = false,
+							Message = $"Error del servidor: {response.StatusCode}"
+						};
+					}
 				}
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"❌ Error actualizando estado: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"Error actualizando estado de cita: {ex.Message}");
 				return new ApiResponse<object>
 				{
 					Success = false,

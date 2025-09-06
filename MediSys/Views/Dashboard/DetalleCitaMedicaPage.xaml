@@ -788,7 +788,7 @@
                         <StackLayout Spacing="6">
                             <StackLayout Orientation="Horizontal" Spacing="6">
                                 <Label Text="📋" FontSize="16" />
-                                <Label Text="Observaciones Adicionales" 
+                                <Label Text="Receta Médica y Observaciones Adicionales" 
                            FontSize="13" 
                            FontAttributes="Bold" 
                            TextColor="{StaticResource PurpleAccent}" />
@@ -863,7 +863,7 @@
                     </Button>
 
 
-                    <!-- Botón Refrescar -->
+                    <!-- Botón Refrescar 
                     <Button Command="{Binding RefrescarDatosCommand}"
                             Style="{StaticResource ActionButtonStyle}"
                             BackgroundColor="{StaticResource WarningOrange}"
@@ -875,7 +875,7 @@
                                 <Binding Source="Actualizar Información" />
                             </MultiBinding>
                         </Button.Text>
-                    </Button>
+                    </Button> -->
 
                     <!-- Botón Cerrar -->
                     <Button Command="{Binding CerrarModalCommand}"

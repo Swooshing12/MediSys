@@ -132,8 +132,13 @@ namespace MediSys.Models
 		public string? Temperatura => Triaje?.SignosVitales?.Temperatura?.ToString("F1");
 		public string? PresionArterial => Triaje?.SignosVitales?.PresionArterial;
 		public string? FrecuenciaCardiaca => Triaje?.SignosVitales?.FrecuenciaCardiaca?.ToString();
+		public string? FrecuenciaRespiratoria => Triaje?.SignosVitales?.FrecuenciaRespiratoria?.ToString();
+		public string? SaturacionOxigeno => Triaje?.SignosVitales?.SaturacionOxigeno?.ToString();
+		public string? Imc => Triaje?.SignosVitales?.Imc?.ToString("F2");
 		public string? Peso => Triaje?.SignosVitales?.Peso?.ToString("F2");
 		public string? Altura => Triaje?.SignosVitales?.Altura?.ToString();
+
+
 
 		public string EstadoColor => Estado switch
 		{
@@ -251,6 +256,15 @@ namespace MediSys.Models
 
 		[JsonPropertyName("imc")]
 		public decimal? Imc { get; set; }  // decimal(4,2)
+
+		[JsonPropertyName("frecuencia_respiratoria")]
+		public int? FrecuenciaRespiratoria { get; set; }  // int
+
+		[JsonPropertyName("saturacion_oxigeno")]
+		public int? SaturacionOxigeno { get; set; }  // int
+
+
+
 	}
 
 

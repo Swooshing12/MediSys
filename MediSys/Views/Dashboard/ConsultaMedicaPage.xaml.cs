@@ -79,10 +79,10 @@ public partial class ConsultaMedicaPage : ContentPage
 			var cita = response.Data.Cita;
 
 			// 1. INFORMACIÓN PERSONAL
-			var seccionPersonal = CrearSeccionInfo("Datos Personales", "👤", Color.FromHex("#F0F9FF"));
+			var seccionPersonal = CrearSeccionInfo("Datos Personales", "ℹ️", Color.FromHex("#F0F9FF"));
 			var personalContainer = (seccionPersonal.Content as StackLayout);
 
-			personalContainer.Children.Add(CrearFilaDato("Nombre:", paciente.NombreCompleto));
+			personalContainer.Children.Add(CrearFilaDato("Nombre:", paciente.NombreCompleto ?? "No disponible", "🙎‍♂️"));
 			personalContainer.Children.Add(CrearFilaDato("Cédula:", paciente.Cedula?.ToString(), "🪪"));
 			personalContainer.Children.Add(CrearFilaDato("Teléfono:", paciente.Telefono ?? "No disponible", "📞"));
 			personalContainer.Children.Add(CrearFilaDato("Email:", paciente.Correo ?? "No disponible", "📧"));

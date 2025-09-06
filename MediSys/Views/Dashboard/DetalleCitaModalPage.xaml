@@ -194,7 +194,7 @@
                     </StackLayout>
 
                     <!-- Signos vitales en grid compacto -->
-                    <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" 
+                    <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto" 
                           RowSpacing="6" ColumnSpacing="6">
 
                         <Frame Grid.Row="0" Grid.Column="0" 
@@ -211,7 +211,7 @@
                                BackgroundColor="#FFFBEB" CornerRadius="6" 
                                HasShadow="False" Padding="8">
                             <StackLayout Spacing="2">
-                                <Label Text="💓 Presión" Style="{StaticResource DataLabelStyle}" />
+                                <Label Text="💓 Presión Arterial" Style="{StaticResource DataLabelStyle}" />
                                 <Label Text="{Binding Cita.PresionArterial}" 
                                        Style="{StaticResource DataValueStyle}" />
                             </StackLayout>
@@ -221,7 +221,7 @@
                                BackgroundColor="#FFFBEB" CornerRadius="6" 
                                HasShadow="False" Padding="8">
                             <StackLayout Spacing="2">
-                                <Label Text="💗 FC" Style="{StaticResource DataLabelStyle}" />
+                                <Label Text="💗 Frecuencia Cardiáca" Style="{StaticResource DataLabelStyle}" />
                                 <Label Text="{Binding Cita.FrecuenciaCardiaca, StringFormat='{0}'}" 
                                        Style="{StaticResource DataValueStyle}" />
                             </StackLayout>
@@ -237,7 +237,7 @@
                             </StackLayout>
                         </Frame>
 
-                        <Frame Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" 
+                        <Frame Grid.Row="1" Grid.Column="1"  
                                BackgroundColor="#FFFBEB" CornerRadius="6" 
                                HasShadow="False" Padding="8">
                             <StackLayout Spacing="2">
@@ -246,6 +246,44 @@
                                        Style="{StaticResource DataValueStyle}" />
                             </StackLayout>
                         </Frame>
+                        <Frame Grid.Row="1" Grid.Column="2"  
+                              BackgroundColor="#FFFBEB" CornerRadius="6" 
+                              HasShadow="False" Padding="8">
+                            <StackLayout Spacing="2">
+                                <Label Text="🫁 Frecuencia Respiratoria" Style="{StaticResource DataLabelStyle}" />
+                                <Label Text="{Binding Cita.FrecuenciaRespiratoria, StringFormat='{0} rpm'}" 
+                                      Style="{StaticResource DataValueStyle}" />
+                            </StackLayout>
+                        </Frame>
+                        <Frame Grid.Row="2" Grid.Column="0"  
+                               BackgroundColor="#FFFBEB" CornerRadius="6" 
+                               HasShadow="False" Padding="8">
+                            <StackLayout Spacing="2">
+                                                <Label Text="🫁 Saturacion Oxigeno" Style="{StaticResource DataLabelStyle}" />
+                                    <Label Text="{Binding Cita.SaturacionOxigeno, StringFormat='{0} %'}" 
+                                   Style="{StaticResource DataValueStyle}" />
+                               </StackLayout>      
+                        </Frame>
+                        <Frame Grid.Row="2" Grid.Column="1"  
+                                 BackgroundColor="#FFFBEB" CornerRadius="6" 
+                                 HasShadow="False" Padding="8">
+                                                <StackLayout Spacing="2">
+                                <Label Text="📊 IMC" Style="{StaticResource DataLabelStyle}" />
+                                                    <Label Text="{Binding Cita.Imc, StringFormat='{0}'}" 
+                                     Style="{StaticResource DataValueStyle}" />
+                          </StackLayout>  
+                        </Frame>
+                        <Frame Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
+       BackgroundColor="#FFFBEB" CornerRadius="6" 
+       HasShadow="False" Padding="8">
+                            <StackLayout Spacing="2">
+                                <Label Text="✍️ Observaciones Triaje" Style="{StaticResource DataLabelStyle}" />
+                                <Label Text="{Binding Cita.Triaje.Observaciones}" 
+               Style="{StaticResource DataValueStyle}"
+               LineBreakMode="WordWrap" />
+                            </StackLayout>
+                        </Frame>
+
                     </Grid>
                 </StackLayout>
             </Frame>

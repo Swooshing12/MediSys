@@ -119,6 +119,7 @@
                                 <Entry Text="{Binding TelefonoPaciente}"
                                        Placeholder="0987654321"
                                        Keyboard="Telephone"
+                                       MaxLength="10"
                                        BackgroundColor="Transparent"
                                        TextColor="#2C3E50"/>
                             </Frame>
@@ -198,6 +199,7 @@
                                 <Entry Text="{Binding TelefonoEmergenciaPaciente}"
                                        Placeholder="0987654321"
                                        Keyboard="Telephone"
+                                       MaxLength="10"
                                        BackgroundColor="Transparent"
                                        TextColor="#2C3E50"/>
                             </Frame>

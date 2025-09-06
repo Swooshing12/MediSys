@@ -316,37 +316,76 @@ namespace MediSys.ViewModels
 		[RelayCommand]
 		private async Task BuscarPacienteAsync()
 		{
-			if (string.IsNullOrWhiteSpace(CedulaBusqueda) || CedulaBusqueda.Length != 10)
-			{
-				await Shell.Current.DisplayAlert("Error", "Ingrese una cédula válida de 10 dígitos", "OK");
-				return;
-			}
-
 			try
 			{
+				if (string.IsNullOrWhiteSpace(CedulaBusqueda))
+				{
+					await Shell.Current.DisplayAlert("Error", "Ingrese una cédula válida", "OK");
+					return;
+				}
+
 				IsLoading = true;
-				var result = await ApiService.BuscarPacientePorCedulaAsync(CedulaBusqueda.Trim());
+				var cedula = CedulaBusqueda.Trim();
+
+				var result = await ApiService.BuscarPacientePorCedulaAsync(cedula);
 
 				if (result.Success && result.Data != null)
 				{
+					// ✅ PACIENTE ENCONTRADO
 					PacienteSeleccionado = result.Data;
 					PacienteEncontrado = true;
-					MostrarFormularioPaciente = false;
+					MostrarFormularioPaciente = false; // Ocultar formulario de crear paciente
+
+					await Shell.Current.DisplayAlert("Paciente Encontrado",
+						$"✅ {result.Data.NombreCompleto}\n📧 {result.Data.Correo}\n📞 {result.Data.Telefono}",
+						"OK");
 				}
 				else
 				{
-					PacienteEncontrado = false;
-					MostrarFormularioPaciente = true;
+					// ❌ PACIENTE NO ENCONTRADO - ANALIZAR EL TIPO DE ERROR
 					PacienteSeleccionado = null;
+					PacienteEncontrado = false;
+
+					string mensajeError = result.Message ?? "Error buscando paciente";
+
+					// ✅ VERIFICAR SI ES ERROR DE CÉDULA EXISTENTE CON OTRO ROL
+					if (mensajeError.Contains("ya está registrada como") ||
+						mensajeError.Contains("ya está registrada en el sistema"))
+					{
+						// 🚫 CÉDULA PERTENECE A OTRO USUARIO (médico, enfermero, etc.)
+						MostrarFormularioPaciente = false; // NO mostrar botón de crear
+
+						await Shell.Current.DisplayAlert("Cédula Ya Registrada",
+							$"❌ {mensajeError}\n\n" +
+							"No se puede crear un paciente con esta cédula porque ya pertenece a otro usuario del sistema.",
+							"Entendido");
+					}
+					else
+					{
+						// ✅ CÉDULA NO EXISTE EN EL SISTEMA - PUEDE CREAR PACIENTE
+						MostrarFormularioPaciente = true; // Mostrar formulario de crear paciente
+
+						await Shell.Current.DisplayAlert("Paciente No Encontrado",
+							$"No se encontró un paciente con la cédula: {cedula}\n\n" +
+							"Puede registrar un nuevo paciente con esta cédula.",
+							"OK");
+					}
 				}
 			}
 			catch (Exception ex)
 			{
-				await Shell.Current.DisplayAlert("Error", $"Error buscando paciente: {ex.Message}", "OK");
+				System.Diagnostics.Debug.WriteLine($"❌ Error buscando paciente: {ex.Message}");
+
+				PacienteSeleccionado = null;
+				PacienteEncontrado = false;
+				MostrarFormularioPaciente = false; // Por seguridad, no mostrar formulario en caso de error
+
+				await Shell.Current.DisplayAlert("Error", "Error inesperado buscando paciente", "OK");
 			}
 			finally
 			{
 				IsLoading = false;
+				ValidarPuedeCrearCita(); // Revalidar estado del formulario
 			}
 		}
 

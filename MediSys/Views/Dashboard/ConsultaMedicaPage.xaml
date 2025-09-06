@@ -83,12 +83,14 @@
 
             <!-- HEADER -->
             <Frame BackgroundColor="{StaticResource PrimaryBlue}" 
-                   HasShadow="True" 
-                   Padding="24,40,24,24"
-                   Margin="0,0,0,16">
+                    HasShadow="True" 
+                    Padding="20,16,20,16"
+                    Margin="18,12,18,12"
+                    CornerRadius="12"
+                    HorizontalOptions="FillAndExpand">      
                 <StackLayout Spacing="8">
                     <Label Text="Consulta Médica" 
-                           FontSize="26" 
+                           FontSize="21" 
                            FontAttributes="Bold"
                            TextColor="White"
                            HorizontalOptions="Center" />

@@ -104,7 +104,7 @@
 
                     <!-- Título del Formulario -->
                     <StackLayout Spacing="8">
-                        <Label Text="Bienvenido de vuelta" 
+                        <Label Text="¡Bienvenido!" 
                                FontSize="24" 
                                FontAttributes="Bold"
                                TextColor="{StaticResource TextDark}"
