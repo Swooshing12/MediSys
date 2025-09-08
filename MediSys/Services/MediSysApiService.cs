@@ -370,6 +370,98 @@ namespace MediSys.Services
 			}
 		}
 
+		public async Task<ApiResponse<List<Especialidad>>> ObtenerEspecialidadesPacienteAsync(string cedula)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/especialidades/paciente/{cedula}";
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<Especialidad>>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+
+				var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+				{
+					PropertyNameCaseInsensitive = true
+				});
+
+				return new ApiResponse<List<Especialidad>>
+				{
+					Success = false,
+					Message = errorResponse?.Message ?? "Error obteniendo especialidades",
+					Code = (int)response.StatusCode
+				};
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<List<Especialidad>>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}",
+					Code = 500
+				};
+			}
+		}
+
+		public async Task<ApiResponse<List<Doctor>>> ObtenerDoctoresPorEspecialidadPacienteAsync(int idEspecialidad, string cedula)
+		{
+			try
+			{
+				var url = $"{_baseUrl}/doctores/especialidad/{idEspecialidad}/paciente/{cedula}";
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				var response = await SendRequestWithSessionAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<Doctor>>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+
+				var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+				{
+					PropertyNameCaseInsensitive = true
+				});
+
+				return new ApiResponse<List<Doctor>>
+				{
+					Success = false,
+					Message = errorResponse?.Message ?? "Error obteniendo doctores",
+					Code = (int)response.StatusCode
+				};
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<List<Doctor>>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}",
+					Code = 500
+				};
+			}
+		}
+
 		// Método fallback para casos extremos
 		private ApiResponse<HistorialCompletoResponse>? CreateFallbackResponse(string jsonContent)
 		{

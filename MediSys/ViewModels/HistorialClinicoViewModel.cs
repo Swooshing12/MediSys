@@ -156,6 +156,8 @@ namespace MediSys.ViewModels
 				PacienteEncontrado = pacienteResult.Data;
 				System.Diagnostics.Debug.WriteLine($"✅ Paciente encontrado: {PacienteEncontrado.NombreCompleto}");
 
+				await CargarEspecialidadesPaciente();
+
 				// ✅ 2. REINICIAR PAGINACIÓN AL BUSCAR NUEVO PACIENTE
 				ReiniciarPaginacion();
 
@@ -174,7 +176,37 @@ namespace MediSys.ViewModels
 				IsLoading = false;
 			}
 		}
+		// Nuevo método para cargar especialidades del paciente
+		private async Task CargarEspecialidadesPaciente()
+		{
+			try
+			{
+				if (string.IsNullOrWhiteSpace(CedulaBusqueda)) return;
 
+				var especialidadesResult = await ApiService.ObtenerEspecialidadesPacienteAsync(CedulaBusqueda.Trim());
+
+				if (especialidadesResult.Success && especialidadesResult.Data != null)
+				{
+					Especialidades.Clear();
+					foreach (var especialidad in especialidadesResult.Data)
+					{
+						Especialidades.Add(especialidad);
+					}
+
+					System.Diagnostics.Debug.WriteLine($"✅ Especialidades del paciente cargadas: {Especialidades.Count}");
+				}
+				else
+				{
+					System.Diagnostics.Debug.WriteLine($"⚠️ Error cargando especialidades del paciente: {especialidadesResult.Message}");
+					Especialidades.Clear();
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error cargando especialidades del paciente: {ex.Message}");
+				Especialidades.Clear();
+			}
+		}
 		// ===== COMANDO PARA APLICAR FILTROS =====
 		[RelayCommand]
 		private async Task AplicarFiltros()
@@ -395,19 +427,22 @@ namespace MediSys.ViewModels
 		}
 
 		// ===== COMANDO PARA CARGAR DOCTORES POR ESPECIALIDAD =====
+		// En HistorialClinicoViewModel.cs, verificar que exista este método:
 		[RelayCommand]
 		private async Task CargarDoctoresPorEspecialidad()
 		{
 			try
 			{
-				if (EspecialidadSeleccionada != null)
+				if (EspecialidadSeleccionada != null && !string.IsNullOrWhiteSpace(CedulaBusqueda))
 				{
-					System.Diagnostics.Debug.WriteLine($"Cargando doctores para especialidad: {EspecialidadSeleccionada.Nombre}");
+					System.Diagnostics.Debug.WriteLine($"🩺 Cargando doctores de {EspecialidadSeleccionada.Nombre} para paciente {CedulaBusqueda}");
 
-					// Limpiar doctor seleccionado
 					DoctorSeleccionado = null;
 
-					var result = await ApiService.ObtenerDoctoresPorEspecialidadAsync(EspecialidadSeleccionada.IdEspecialidad);
+					var result = await ApiService.ObtenerDoctoresPorEspecialidadPacienteAsync(
+						EspecialidadSeleccionada.IdEspecialidad,
+						CedulaBusqueda.Trim()
+					);
 
 					if (result.Success && result.Data != null)
 					{
@@ -415,26 +450,25 @@ namespace MediSys.ViewModels
 						foreach (var doctor in result.Data)
 						{
 							Doctores.Add(doctor);
+							System.Diagnostics.Debug.WriteLine($"Doctor agregado: {doctor.NombreCompleto}");
 						}
 
-						System.Diagnostics.Debug.WriteLine($"Doctores cargados: {Doctores.Count}");
+						System.Diagnostics.Debug.WriteLine($"✅ Total doctores específicos: {Doctores.Count}");
 					}
 					else
 					{
-						System.Diagnostics.Debug.WriteLine($"Error cargando doctores: {result.Message}");
+						System.Diagnostics.Debug.WriteLine($"⚠️ Error: {result.Message}");
 						Doctores.Clear();
 					}
 				}
 				else
 				{
-					// Si no hay especialidad, limpiar doctores
 					Doctores.Clear();
-					DoctorSeleccionado = null;
 				}
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine($"Error cargando doctores: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"❌ Error: {ex.Message}");
 				Doctores.Clear();
 			}
 		}
@@ -555,6 +589,41 @@ namespace MediSys.ViewModels
 			}
 		}
 
+		[RelayCommand]
+		private async Task BorrarFormulario()
+		{
+			try
+			{
+				// Limpiar todos los campos
+				CedulaBusqueda = "";
+				PacienteEncontrado = null;
+				ShowResults = false;
+				ShowFilters = false;
+
+				// Limpiar citas y estadísticas
+				Citas.Clear();
+				Estadisticas = null;
+
+				// Reiniciar filtros
+				FechaDesde = DateTime.Today.AddMonths(-1);
+				FechaHasta = DateTime.Today;
+				EspecialidadSeleccionada = null;
+				DoctorSeleccionado = null;
+				EstadoSeleccionado = null;
+				SucursalSeleccionada = null;
+
+				// Limpiar colecciones
+				Doctores.Clear();
+				PaginacionInfo = null;
+				ActualizarEstadoPaginacion();
+
+				System.Diagnostics.Debug.WriteLine("✅ Formulario borrado completamente");
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error borrando formulario: {ex.Message}");
+			}
+		}
 		// ===== MÉTODO PARA DEBUGGING =====
 		public void LogCurrentState()
 		{

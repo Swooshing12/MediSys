@@ -188,7 +188,7 @@ namespace MediSys.Models
 		[JsonPropertyName("id_especialidad")]
 		public int IdEspecialidad { get; set; }
 
-		[JsonPropertyName("nombre")]
+		[JsonPropertyName("nombre_especialidad")]
 		public string Nombre { get; set; } = "";
 
 		[JsonPropertyName("descripcion")]

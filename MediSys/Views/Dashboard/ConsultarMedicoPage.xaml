@@ -152,7 +152,7 @@
                         <Label Text="{Binding MedicoEncontrado.TituloProfesional, StringFormat='🎓 {0}'}" 
                                FontSize="14" 
                                TextColor="#34495E"
-                               IsVisible="{Binding MedicoEncontrado.TituloProfesional, Converter={StaticResource StringToBoolConverter}}" />
+                               IsVisible="{Binding MedicoEncontrado.TituloProfesional, Converter={StaticResource IsNotNullConverter}}" />
 
                         <Label Text="{Binding MedicoEncontrado.SucursalesTexto, StringFormat='🏢 Sucursales: {0}'}" 
                                FontSize="14" 

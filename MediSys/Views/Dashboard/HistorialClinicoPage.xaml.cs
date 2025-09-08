@@ -1,4 +1,4 @@
-using MediSys.ViewModels;
+﻿using MediSys.ViewModels;
 
 namespace MediSys.Views.Dashboard;
 
@@ -47,7 +47,7 @@ public partial class HistorialClinicoPage : ContentPage
 				// Auto-aplicar filtros cuando hay resultados mostrados
 				if (_viewModel.AplicarFiltrosCommand?.CanExecute(null) == true)
 				{
-					await Task.Delay(300); // Peque�a pausa para UX
+					await Task.Delay(300); // Pequeña pausa para UX
 					await _viewModel.AplicarFiltrosCommand.ExecuteAsync(null);
 				}
 			}
@@ -83,27 +83,33 @@ public partial class HistorialClinicoPage : ContentPage
 	{
 		try
 		{
-			if (sender is Picker picker && _viewModel != null)
+			if (_viewModel.EspecialidadSeleccionada != null)
 			{
-				System.Diagnostics.Debug.WriteLine($"Especialidad cambiada");
+				// Limpiar doctor seleccionado
+				_viewModel.DoctorSeleccionado = null;
 
-				// Cargar doctores de la especialidad seleccionada
-				if (_viewModel.CargarDoctoresPorEspecialidadCommand?.CanExecute(null) == true)
+				// Solo cargar doctores si ya hay un paciente buscado
+				if (!string.IsNullOrWhiteSpace(_viewModel.CedulaBusqueda) && _viewModel.PacienteEncontrado != null)
 				{
 					await _viewModel.CargarDoctoresPorEspecialidadCommand.ExecuteAsync(null);
 				}
+			}
+			else
+			{
+				// Si no hay especialidad, limpiar doctores
+				_viewModel.Doctores.Clear();
+				_viewModel.DoctorSeleccionado = null;
+			}
 
-				// Auto-aplicar filtros si hay resultados
-				if (_viewModel.ShowResults && _viewModel.AplicarFiltrosCommand?.CanExecute(null) == true)
-				{
-					await Task.Delay(300);
-					await _viewModel.AplicarFiltrosCommand.ExecuteAsync(null);
-				}
+			// Si hay resultados mostrados, aplicar filtros
+			if (_viewModel.ShowResults)
+			{
+				await _viewModel.AplicarFiltrosCommand.ExecuteAsync(null);
 			}
 		}
 		catch (Exception ex)
 		{
-			System.Diagnostics.Debug.WriteLine($"Error cambiando especialidad: {ex.Message}");
+			System.Diagnostics.Debug.WriteLine($"Error en OnEspecialidadChanged: {ex.Message}");
 		}
 	}
 
@@ -111,20 +117,14 @@ public partial class HistorialClinicoPage : ContentPage
 	{
 		try
 		{
-			if (_viewModel != null && _viewModel.ShowResults)
+			if (_viewModel.ShowResults)
 			{
-				System.Diagnostics.Debug.WriteLine("Doctor seleccionado cambiado");
-
-				if (_viewModel.AplicarFiltrosCommand?.CanExecute(null) == true)
-				{
-					await Task.Delay(300);
-					await _viewModel.AplicarFiltrosCommand.ExecuteAsync(null);
-				}
+				await _viewModel.AplicarFiltrosCommand.ExecuteAsync(null);
 			}
 		}
 		catch (Exception ex)
 		{
-			System.Diagnostics.Debug.WriteLine($"Error cambiando doctor: {ex.Message}");
+			System.Diagnostics.Debug.WriteLine($"Error en OnDoctorChanged: {ex.Message}");
 		}
 	}
 

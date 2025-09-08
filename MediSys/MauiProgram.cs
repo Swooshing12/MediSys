@@ -21,7 +21,6 @@ namespace MediSys
 			builder.Services.AddSingleton<Services.MediSysApiService>();
 
 			// Registrar ViewModels
-			builder.Services.AddTransient<ViewModels.ConsultarMedicoViewModel>();
 			builder.Services.AddTransient<ViewModels.DashboardViewModel>();
             builder.Services.AddTransient<ViewModels.CrearCitaViewModel>();
             builder.Services.AddTransient<ViewModels.RegistrarMedicoViewModel>();
@@ -29,7 +28,6 @@ namespace MediSys
 			// Agregar otros ViewModels que uses
 
 			// Registrar Views
-			builder.Services.AddTransient<Views.Dashboard.ConsultarMedicoPage>();
             builder.Services.AddTransient<Views.Dashboard.CrearCitaPage>();
             builder.Services.AddTransient<Views.Dashboard.RegistrarMedicoPage>();
             builder.Services.AddTransient<Views.Dashboard.MisCitasPage>();

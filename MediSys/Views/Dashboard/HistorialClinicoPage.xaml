@@ -120,7 +120,7 @@
                         </Frame>
                     </StackLayout>
 
-                    <Grid ColumnDefinitions="3*,*" ColumnSpacing="12">
+                    <Grid ColumnDefinitions="3*,*,*" ColumnSpacing="12">
                         <Button Grid.Column="0"
                                 Text="🔍 Buscar Historial"
                                 Command="{Binding BuscarHistorialCommand}"
@@ -130,6 +130,15 @@
                                 Text="{Binding ShowFilters, Converter={StaticResource BoolToTextConverter}, ConverterParameter='❌|⚙️'}"
                                 Command="{Binding ToggleFiltersCommand}"
                                 Style="{StaticResource SecondaryCompactStyle}" />
+                          <!-- NUEVO BOTÓN -->
+                        <Button Grid.Column="2"
+                Text="🗑️"
+                Command="{Binding BorrarFormularioCommand}"
+                BackgroundColor="{StaticResource DangerRed}"
+                TextColor="White"
+                CornerRadius="8"
+                FontSize="14"
+                HeightRequest="36" />   
                     </Grid>
 
                     <!-- Indicador de carga compacto -->
@@ -148,139 +157,142 @@
                 </StackLayout>
             </Frame>
 
-            <!-- FILTROS COMPACTOS -->
+            <!-- FILTROS COMPACTOS CORREGIDOS -->
             <Frame Style="{StaticResource CompactCardStyle}" 
-                   IsVisible="{Binding ShowFilters}">
+       IsVisible="{Binding ShowFilters}">
                 <StackLayout Spacing="16">
 
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                         <Label Grid.Column="0"
-                               Text="⚙️ Filtros Avanzados" 
-                               Style="{StaticResource SectionTitleStyle}"
-                               VerticalOptions="Center" />
+                   Text="⚙️ Filtros Avanzados" 
+                   Style="{StaticResource SectionTitleStyle}"
+                   VerticalOptions="Center" />
 
                         <Button Grid.Column="1"
-                                Text="🗑️ Limpiar"
-                                Command="{Binding LimpiarFiltrosCommand}"
-                                BackgroundColor="{StaticResource DangerRed}"
-                                TextColor="White"
-                                CornerRadius="6"
-                                FontSize="11"
-                                HeightRequest="28"
-                                Padding="12,0" />
+                    Text="🗑️ Limpiar"
+                    Command="{Binding LimpiarFiltrosCommand}"
+                    BackgroundColor="{StaticResource DangerRed}"
+                    TextColor="White"
+                    CornerRadius="6"
+                    FontSize="11"
+                    HeightRequest="28"
+                    Padding="12,0" />
                     </Grid>
 
                     <!-- Fechas compactas -->
                     <StackLayout Spacing="12">
                         <Label Text="📅 Período de Consultas" 
-                               FontSize="13" 
-                               FontAttributes="Bold"
-                               TextColor="{StaticResource TextDark}" />
+                   FontSize="13" 
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextDark}" />
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                             <Frame Grid.Column="0" 
-                                   BackgroundColor="{StaticResource BackgroundPale}" 
-                                   CornerRadius="8" 
-                                   HasShadow="False" 
-                                   Padding="8">
+                       BackgroundColor="{StaticResource BackgroundPale}" 
+                       CornerRadius="8" 
+                       HasShadow="False" 
+                       Padding="8">
                                 <StackLayout Spacing="4">
                                     <Label Text="Desde" 
-                                           FontSize="11" 
-                                           TextColor="{StaticResource TextMedium}" />
+                               FontSize="11" 
+                               TextColor="{StaticResource TextMedium}" />
                                     <DatePicker Date="{Binding FechaDesde}" 
-                                                TextColor="{StaticResource TextDark}"
-                                                FontSize="13"
-                                                BackgroundColor="Transparent"
-                                                DateSelected="OnFechaDesdeChanged" />
+            TextColor="{StaticResource TextDark}"
+            FontSize="13"
+            BackgroundColor="Transparent"
+            DateSelected="OnFechaDesdeChanged" />
                                 </StackLayout>
                             </Frame>
 
                             <Frame Grid.Column="1" 
-                                   BackgroundColor="{StaticResource BackgroundPale}" 
-                                   CornerRadius="8" 
-                                   HasShadow="False" 
-                                   Padding="8">
+                       BackgroundColor="{StaticResource BackgroundPale}" 
+                       CornerRadius="8" 
+                       HasShadow="False" 
+                       Padding="8">
                                 <StackLayout Spacing="4">
                                     <Label Text="Hasta" 
-                                           FontSize="11" 
-                                           TextColor="{StaticResource TextMedium}" />
+                               FontSize="11" 
+                               TextColor="{StaticResource TextMedium}" />
                                     <DatePicker Date="{Binding FechaHasta}" 
-                                                TextColor="{StaticResource TextDark}"
-                                                FontSize="13"
-                                                BackgroundColor="Transparent"
-                                                DateSelected="OnFechaHastaChanged" />
+            TextColor="{StaticResource TextDark}"
+            FontSize="13"
+            BackgroundColor="Transparent"
+            DateSelected="OnFechaHastaChanged" />
                                 </StackLayout>
                             </Frame>
                         </Grid>
                     </StackLayout>
 
-                    <!-- Filtros en línea compactos -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowSpacing="12">
+                    <!-- Filtros organizados correctamente -->
+                    <StackLayout Spacing="12">
 
-                        <Frame Grid.Column="0" 
-                               BackgroundColor="{StaticResource BackgroundPale}" 
-                               CornerRadius="8" 
-                               HasShadow="False" 
-                               Padding="8">
-                            <StackLayout Spacing="4">
-                                <Label Text="🏥 Especialidad" 
-                                       FontSize="11" 
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource TextMedium}" />
-                                <Picker ItemsSource="{Binding Especialidades}"
-                                        ItemDisplayBinding="{Binding Nombre}"
-                                        SelectedItem="{Binding EspecialidadSeleccionada}"
-                                        Title="Todas"
-                                        FontSize="12"
-                                        TextColor="{StaticResource TextDark}"
-                                        BackgroundColor="Transparent"
-                                        SelectedIndexChanged="OnEspecialidadChanged" />
-                            </StackLayout>
-                        </Frame>
+                        <!-- Primera fila: Especialidad y Estado -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Frame Grid.Column="0" 
+                       BackgroundColor="{StaticResource BackgroundPale}" 
+                       CornerRadius="8" 
+                       HasShadow="False" 
+                       Padding="8">
+                                <StackLayout Spacing="4">
+                                    <Label Text="🏥 Especialidad" 
+                               FontSize="11" 
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextMedium}" />
+                                    <Picker ItemsSource="{Binding Especialidades}"
+                                ItemDisplayBinding="{Binding Nombre}"
+                                SelectedItem="{Binding EspecialidadSeleccionada}"
+                                Title="Todas"
+                                FontSize="12"
+                                TextColor="{StaticResource TextDark}"
+                                BackgroundColor="Transparent"
+                                SelectedIndexChanged="OnEspecialidadChanged" />
+                                </StackLayout>
+                            </Frame>
 
-                        <Frame Grid.Column="1" 
-                               BackgroundColor="{StaticResource BackgroundPale}" 
-                               CornerRadius="8" 
-                               HasShadow="False" 
-                               Padding="8">
-                            <StackLayout Spacing="4">
-                                <Label Text="📋 Estado" 
-                                       FontSize="11" 
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource TextMedium}" />
-                                <Picker ItemsSource="{Binding Estados}"
-                                        SelectedItem="{Binding EstadoSeleccionado}"
-                                        Title="Todos"
-                                        FontSize="12"
-                                        TextColor="{StaticResource TextDark}"
-                                        BackgroundColor="Transparent"
-                                        SelectedIndexChanged="OnEstadoChanged" />
-                            </StackLayout>
-                        </Frame>
+                            <Frame Grid.Column="1" 
+                       BackgroundColor="{StaticResource BackgroundPale}" 
+                       CornerRadius="8" 
+                       HasShadow="False" 
+                       Padding="8">
+                                <StackLayout Spacing="4">
+                                    <Label Text="📋 Estado" 
+                               FontSize="11" 
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextMedium}" />
+                                    <Picker ItemsSource="{Binding Estados}"
+                                SelectedItem="{Binding EstadoSeleccionado}"
+                                Title="Todos"
+                                FontSize="12"
+                                TextColor="{StaticResource TextDark}"
+                                BackgroundColor="Transparent"
+                                SelectedIndexChanged="OnEstadoChanged" />
+                                </StackLayout>
+                            </Frame>
+                        </Grid>
 
-                        <!-- Doctor -->
-                        <Frame Grid.Row="1" Grid.ColumnSpan="2" 
-                               BackgroundColor="{StaticResource BackgroundPale}" 
-                               CornerRadius="8" 
-                               HasShadow="False" 
-                               Padding="8"
-                               IsVisible="{Binding EspecialidadSeleccionada, Converter={StaticResource IsNotNullConverter}}">
+                        <!-- Segunda fila: Doctor (solo si hay especialidad seleccionada) -->
+                        <Frame BackgroundColor="{StaticResource BackgroundPale}" 
+                   CornerRadius="8" 
+                   HasShadow="False" 
+                   Padding="8"
+                   IsVisible="{Binding EspecialidadSeleccionada, Converter={StaticResource IsNotNullConverter}}">
                             <StackLayout Spacing="4">
                                 <Label Text="👨‍⚕️ Médico Especialista" 
-                                       FontSize="11" 
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource TextMedium}" />
+                           FontSize="11" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextMedium}" />
                                 <Picker ItemsSource="{Binding Doctores}"
-                                        ItemDisplayBinding="{Binding NombreCompleto}"
-                                        SelectedItem="{Binding DoctorSeleccionado}"
-                                        Title="Todos los médicos"
-                                        FontSize="12"
-                                        TextColor="{StaticResource TextDark}"
-                                        BackgroundColor="Transparent"
-                                        SelectedIndexChanged="OnDoctorChanged" />
+                            ItemDisplayBinding="{Binding NombreCompleto}"
+                            SelectedItem="{Binding DoctorSeleccionado}"
+                            Title="Todos los médicos"
+                            FontSize="12"
+                            TextColor="{StaticResource TextDark}"
+                            BackgroundColor="Transparent"
+                            SelectedIndexChanged="OnDoctorChanged" />
                             </StackLayout>
                         </Frame>
-                    </Grid>
+
+                    </StackLayout>
                 </StackLayout>
             </Frame>
 
@@ -530,30 +542,43 @@
                                         <StackLayout Spacing="12">
 
                                             <!-- Header mejorado con fecha y estado -->
-                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                            <!-- Header mejorado con fecha y estado -->
+                                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                                                 <StackLayout Grid.Column="0" Spacing="3">
                                                     <Label Text="{Binding FechaHora, StringFormat='{0:dddd, dd MMMM yyyy}'}" 
-                                               FontSize="15" 
-                                               FontAttributes="Bold" 
-                                               TextColor="{StaticResource PrimaryBlue}" />
+               FontSize="15" 
+               FontAttributes="Bold" 
+               TextColor="{StaticResource PrimaryBlue}" />
                                                     <Label Text="{Binding FechaHora, StringFormat='{0:HH:mm}'}" 
-                                               FontSize="13" 
-                                               FontAttributes="Bold"
-                                               TextColor="{StaticResource TextMedium}" />
+               FontSize="13" 
+               FontAttributes="Bold"
+               TextColor="{StaticResource TextMedium}" />
                                                 </StackLayout>
 
+                                                <!-- NUEVA COLUMNA: Especialidad -->
                                                 <Frame Grid.Column="1"
-                                           BackgroundColor="{Binding EstadoColor}" 
-                                           CornerRadius="12" 
-                                           Padding="10,5"
-                                           HasShadow="False">
+           BackgroundColor="{StaticResource SecondaryBlue}" 
+           CornerRadius="8" 
+           Padding="8,4"
+           HasShadow="False">
+                                                    <Label Text="{Binding Especialidad.Nombre}" 
+               FontSize="10" 
+               FontAttributes="Bold" 
+               TextColor="White" />
+                                                </Frame>
+
+                                                <!-- Estado (ahora en columna 2) -->
+                                                <Frame Grid.Column="2"
+           BackgroundColor="{Binding EstadoColor}" 
+           CornerRadius="12" 
+           Padding="10,5"
+           HasShadow="False">
                                                     <Label Text="{Binding Estado}" 
-                                               FontSize="11" 
-                                               FontAttributes="Bold" 
-                                               TextColor="White" />
+               FontSize="11" 
+               FontAttributes="Bold" 
+               TextColor="White" />
                                                 </Frame>
                                             </Grid>
-
                                             <!-- Información del médico y sucursal -->
                                             <Frame BackgroundColor="{StaticResource BackgroundPale}" 
                                        CornerRadius="8" 
