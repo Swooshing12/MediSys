@@ -13,6 +13,11 @@ namespace MediSys.Services
 		private readonly HttpClient _httpClient;
 		private readonly string _baseUrl;
 		private string _sessionId = null;
+		// ✅ NUEVAS PROPIEDADES PARA JWT
+		private static string? _sharedJwtToken;
+		private static DateTime? _sharedTokenExpiration;
+		private static User? _sharedCurrentUser;
+
 
 		public MediSysApiService()
 		{
@@ -23,7 +28,7 @@ namespace MediSys.Services
 			};
 
 			_httpClient = new HttpClient(handler);
-			_baseUrl = "http://192.168.100.11/MenuDinamico/api";
+			_baseUrl = "http://192.168.100.17/MenuDinamico/api";
 
 			_httpClient.DefaultRequestHeaders.Clear();
 			_httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -32,6 +37,7 @@ namespace MediSys.Services
 
 			System.Diagnostics.Debug.WriteLine("API Service initialized with MANUAL cookie handling");
 		}
+
 
 		private async Task<HttpResponseMessage> SendRequestWithSessionAsync(HttpRequestMessage request)
 		{
@@ -59,7 +65,217 @@ namespace MediSys.Services
 			return response;
 		}
 
-		// MÉTODOS EXISTENTES DE AUTENTICACIÓN
+		// ✅ MODIFICAR: IsTokenValid usa variables estáticas
+		private bool IsTokenValid()
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(_sharedJwtToken))
+				{
+					System.Diagnostics.Debug.WriteLine("❌ No hay JWT token compartido");
+					return false;
+				}
+
+				if (!_sharedTokenExpiration.HasValue)
+				{
+					System.Diagnostics.Debug.WriteLine("❌ No hay fecha de expiración del token compartido");
+					return false;
+				}
+
+				var now = DateTime.Now;
+				var expiry = _sharedTokenExpiration.Value;
+				var timeRemaining = expiry.Subtract(now);
+
+				System.Diagnostics.Debug.WriteLine($"🕐 Token compartido expira: {expiry:yyyy-MM-dd HH:mm:ss}");
+				System.Diagnostics.Debug.WriteLine($"🕐 Hora actual: {now:yyyy-MM-dd HH:mm:ss}");
+				System.Diagnostics.Debug.WriteLine($"🕐 Tiempo restante: {timeRemaining.TotalMinutes:F2} minutos");
+
+				if (expiry <= now.AddMinutes(5))
+				{
+					System.Diagnostics.Debug.WriteLine("❌ Token compartido expirado o por expirar");
+					// Limpiar token expirado
+					_sharedJwtToken = null;
+					_sharedTokenExpiration = null;
+					_sharedCurrentUser = null;
+					return false;
+				}
+
+				System.Diagnostics.Debug.WriteLine("✅ Token compartido válido");
+				return true;
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"❌ Error validando token compartido: {ex.Message}");
+				return false;
+			}
+		}
+
+
+		// ✅ MODIFICAR: AddAuthHeaders usa token estático
+		private void AddAuthHeaders(HttpRequestMessage request)
+		{
+			// Agregar JWT token compartido si está disponible
+			if (!string.IsNullOrEmpty(_sharedJwtToken))
+			{
+				request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _sharedJwtToken);
+				System.Diagnostics.Debug.WriteLine($"Added shared JWT token: Bearer {_sharedJwtToken.Substring(0, 20)}...");
+			}
+
+			// Mantener sesión PHP para compatibilidad
+			if (!string.IsNullOrEmpty(_sessionId))
+			{
+				request.Headers.Add("Cookie", $"PHPSESSID={_sessionId}");
+				System.Diagnostics.Debug.WriteLine($"Added session cookie: PHPSESSID={_sessionId}");
+			}
+		}
+
+		// ✅ MÉTODO BASE PARA REQUESTS QUE REQUIEREN AUTENTICACIÓN
+		private async Task<HttpRequestMessage> CreateAuthenticatedRequest(HttpMethod method, string endpoint)
+		{
+			var url = $"{_baseUrl}{endpoint}";
+			var request = new HttpRequestMessage(method, url);
+
+			// Agregar headers de autenticación
+			AddAuthHeaders(request);
+
+			return request;
+		}
+
+		// ✅ MÉTODO PARA HACER GET CON AUTENTICACIÓN
+		private async Task<ApiResponse<T>> MakeAuthenticatedGetAsync<T>(string endpoint)
+		{
+			try
+			{
+				if (!IsTokenValid())
+				{
+					return new ApiResponse<T>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<T>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<T>
+					{
+						Success = false,
+						Message = "Error al procesar respuesta del servidor"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<T>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error en la solicitud",
+						Code = (int)response.StatusCode
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<T>
+				{
+					Success = false,
+					Message = $"Error inesperado: {ex.Message}",
+					Code = 500
+				};
+			}
+		}
+
+		// ✅ AGREGAR ESTOS MÉTODOS A TU CLASE:
+		private async Task<ApiResponse<T>> MakeAuthenticatedPostAsync<T>(string endpoint, object data)
+		{
+			try
+			{
+				if (!IsTokenValid())
+				{
+					return new ApiResponse<T>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				var request = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
+
+				if (data != null)
+				{
+					var json = JsonSerializer.Serialize(data);
+					request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+				}
+
+				var response = await _httpClient.SendAsync(request);
+				var responseContent = await response.Content.ReadAsStringAsync();
+
+				if (response.IsSuccessStatusCode)
+				{
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<T>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return apiResponse ?? new ApiResponse<T>
+					{
+						Success = false,
+						Message = "Error al procesar respuesta del servidor"
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<T>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error en la solicitud",
+						Code = (int)response.StatusCode
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ApiResponse<T>
+				{
+					Success = false,
+					Message = $"Error inesperado: {ex.Message}",
+					Code = 500
+				};
+			}
+		}
+
+		// ✅ MODIFICAR: Logout limpia variables estáticas
+		public void Logout()
+		{
+			_sharedJwtToken = null;
+			_sharedTokenExpiration = null;
+			_sharedCurrentUser = null;
+			_sessionId = null;
+
+			System.Diagnostics.Debug.WriteLine("🚪 Shared JWT token and session cleared - User logged out");
+		}
+
+
 		public async Task<ApiResponse<LoginResponse>> LoginAsync(string correo, string password)
 		{
 			try
@@ -76,10 +292,10 @@ namespace MediSys.Services
 				var json = JsonSerializer.Serialize(loginRequest);
 				var content = new StringContent(json, Encoding.UTF8, "application/json");
 				var url = $"{_baseUrl}/auth/login";
-
 				var request = new HttpRequestMessage(HttpMethod.Post, url);
 				request.Content = content;
 
+				// Solo agregar sesión PHP (no JWT porque es login)
 				if (!string.IsNullOrEmpty(_sessionId))
 				{
 					request.Headers.Add("Cookie", $"PHPSESSID={_sessionId}");
@@ -87,19 +303,17 @@ namespace MediSys.Services
 				}
 
 				System.Diagnostics.Debug.WriteLine($"Making request to: {url}");
-
 				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
-
 				System.Diagnostics.Debug.WriteLine($"Response Status: {response.StatusCode}");
 
+				// Procesar cookies de sesión
 				if (response.Headers.Contains("Set-Cookie"))
 				{
 					var setCookies = response.Headers.GetValues("Set-Cookie");
 					foreach (var cookie in setCookies)
 					{
 						System.Diagnostics.Debug.WriteLine($"Received Set-Cookie: {cookie}");
-
 						var match = Regex.Match(cookie, @"PHPSESSID=([^;]+)");
 						if (match.Success)
 						{
@@ -117,6 +331,33 @@ namespace MediSys.Services
 					{
 						PropertyNameCaseInsensitive = true
 					});
+
+					// ✅ CAMBIO: GUARDAR EN VARIABLES ESTÁTICAS COMPARTIDAS
+					if (apiResponse?.Data != null && !string.IsNullOrEmpty(apiResponse.Data.Token))
+					{
+						_sharedJwtToken = apiResponse.Data.Token;  // ✅ CAMBIO: _sharedJwtToken
+						_sharedCurrentUser = apiResponse.Data.Usuario;  // ✅ AGREGAR: guardar usuario
+
+						// Calcular expiración del token
+						if (apiResponse.Data.ExpiresIn > 0)
+						{
+							_sharedTokenExpiration = DateTime.Now.AddSeconds(apiResponse.Data.ExpiresIn);  // ✅ CAMBIO: _sharedTokenExpiration
+							System.Diagnostics.Debug.WriteLine($"✅ Shared token expiration calculated from ExpiresIn: {_sharedTokenExpiration}");
+						}
+						else if (!string.IsNullOrEmpty(apiResponse.Data.ExpiresAt))
+						{
+							if (DateTime.TryParseExact(apiResponse.Data.ExpiresAt, "yyyy-MM-dd HH:mm:ss",
+								System.Globalization.CultureInfo.InvariantCulture,
+								System.Globalization.DateTimeStyles.None, out DateTime expDate))
+							{
+								_sharedTokenExpiration = expDate;  // ✅ CAMBIO: _sharedTokenExpiration
+								System.Diagnostics.Debug.WriteLine($"✅ Shared token expiration parsed from ExpiresAt: {_sharedTokenExpiration}");
+							}
+						}
+
+						System.Diagnostics.Debug.WriteLine($"Shared JWT token saved: {_sharedJwtToken.Substring(0, 20)}...");
+						System.Diagnostics.Debug.WriteLine($"Shared current user saved: {_sharedCurrentUser?.NombreCompleto} ({_sharedCurrentUser?.Rol})");
+					}
 
 					System.Diagnostics.Debug.WriteLine("Login successful!");
 					return apiResponse ?? new ApiResponse<LoginResponse>
@@ -222,12 +463,25 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/pacientes/buscar/{cedula}";
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				// ✅ VERIFICAR TOKEN ANTES DE HACER LA REQUEST
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("❌ Token inválido o expirado - BuscarPaciente");
+					return new ApiResponse<PacienteResponse>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"Buscando paciente: {cedula}");
+				// ✅ USAR CreateAuthenticatedRequest EN LUGAR DE URL DIRECTA
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, $"/pacientes/buscar/{cedula}");
 
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"Buscando paciente con JWT: {cedula}");
+
+				// ✅ USAR _httpClient.SendAsync EN LUGAR DE SendRequestWithSessionAsync
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"Buscar paciente response: {responseContent}");
@@ -248,6 +502,19 @@ namespace MediSys.Services
 							Data = apiResponse.Data["paciente"]
 						};
 					}
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO
+					System.Diagnostics.Debug.WriteLine("❌ Token expirado en BuscarPaciente - limpiando datos");
+					Logout();
+
+					return new ApiResponse<PacienteResponse>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
 				}
 
 				var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -278,7 +545,19 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/historial/{cedula}/filtros";
+				// ✅ VERIFICAR TOKEN ANTES DE HACER LA REQUEST
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("❌ Token inválido o expirado - ObtenerHistorial");
+					return new ApiResponse<HistorialCompletoResponse>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				var endpoint = $"/historial/{cedula}/filtros";
 				var queryParams = new List<string>();
 
 				if (filtros != null)
@@ -296,24 +575,25 @@ namespace MediSys.Services
 					if (filtros.IdSucursal.HasValue)
 						queryParams.Add($"id_sucursal={filtros.IdSucursal}");
 
-					// ✅ AGREGAR PARÁMETROS DE PAGINACIÓN
 					queryParams.Add($"pagina={filtros.Pagina}");
 					queryParams.Add($"por_pagina={filtros.PorPagina}");
 				}
 				else
 				{
-					// ✅ VALORES POR DEFECTO SI NO HAY FILTROS
 					queryParams.Add("pagina=1");
 					queryParams.Add("por_pagina=10");
 				}
 
 				if (queryParams.Count > 0)
-					url += "?" + string.Join("&", queryParams);
+					endpoint += "?" + string.Join("&", queryParams);
 
-				System.Diagnostics.Debug.WriteLine($"🔗 Historial URL: {url}");
+				System.Diagnostics.Debug.WriteLine($"🔗 Historial endpoint: {endpoint}");
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// ✅ USAR CreateAuthenticatedRequest
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+
+				// ✅ USAR _httpClient.SendAsync EN LUGAR DE SendRequestWithSessionAsync
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📊 Historial Status: {response.StatusCode}");
@@ -349,6 +629,19 @@ namespace MediSys.Services
 						Message = apiResponse?.Message ?? "Error procesando historial"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO
+					System.Diagnostics.Debug.WriteLine("❌ Token expirado en ObtenerHistorial - limpiando datos");
+					Logout();
+
+					return new ApiResponse<HistorialCompletoResponse>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
 				var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent);
 				return new ApiResponse<HistorialCompletoResponse>
@@ -374,9 +667,23 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/especialidades/paciente/{cedula}";
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// Verificar token antes de hacer la request
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerEspecialidadesPaciente");
+					return new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				// Usar CreateAuthenticatedRequest para agregar JWT automáticamente
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, $"/especialidades/paciente/{cedula}");
+
+				// Usar _httpClient.SendAsync en lugar de SendRequestWithSessionAsync
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				if (response.IsSuccessStatusCode)
@@ -390,6 +697,19 @@ namespace MediSys.Services
 					{
 						Success = false,
 						Message = "Error procesando respuesta"
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// Manejar token expirado
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerEspecialidadesPaciente - limpiando datos");
+					Logout();
+
+					return new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
 					};
 				}
 
@@ -420,9 +740,23 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/doctores/especialidad/{idEspecialidad}/paciente/{cedula}";
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// Verificar token antes de hacer la request
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerDoctoresPorEspecialidadPaciente");
+					return new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				// Usar CreateAuthenticatedRequest para agregar JWT automáticamente
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, $"/doctores/especialidad/{idEspecialidad}/paciente/{cedula}");
+
+				// Usar _httpClient.SendAsync en lugar de SendRequestWithSessionAsync
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				if (response.IsSuccessStatusCode)
@@ -436,6 +770,19 @@ namespace MediSys.Services
 					{
 						Success = false,
 						Message = "Error procesando respuesta"
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// Manejar token expirado
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerDoctoresPorEspecialidadPaciente - limpiando datos");
+					Logout();
+
+					return new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
 					};
 				}
 
@@ -519,6 +866,7 @@ namespace MediSys.Services
 			return null;
 		}
 
+		
 
 
 		// Convertidores adicionales necesarios
@@ -595,9 +943,24 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/especialidades";
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// Verificar token antes de hacer la request
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerEspecialidades");
+					return new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<Especialidad>()
+					};
+				}
+
+				// Usar CreateAuthenticatedRequest para agregar JWT automáticamente
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, "/especialidades");
+
+				// Usar _httpClient.SendAsync en lugar de SendRequestWithSessionAsync
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"Especialidades response: {responseContent}");
@@ -614,6 +977,20 @@ namespace MediSys.Services
 						System.Diagnostics.Debug.WriteLine($"Especialidades count: {apiResponse.Data.Count}");
 						return apiResponse;
 					}
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// Manejar token expirado
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerEspecialidades - limpiando datos");
+					Logout();
+
+					return new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<Especialidad>()
+					};
 				}
 
 				return new ApiResponse<List<Especialidad>>
@@ -634,13 +1011,28 @@ namespace MediSys.Services
 				};
 			}
 		}
+
 		public async Task<ApiResponse<List<Doctor>>> ObtenerDoctoresPorEspecialidadAsync(int idEspecialidad)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/doctores/especialidad/{idEspecialidad}";
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// Verificar token antes de hacer la request
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerDoctoresPorEspecialidad");
+					return new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				// Usar CreateAuthenticatedRequest para agregar JWT automáticamente
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, $"/doctores/especialidad/{idEspecialidad}");
+
+				// Usar _httpClient.SendAsync en lugar de SendRequestWithSessionAsync
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				if (response.IsSuccessStatusCode)
@@ -654,6 +1046,19 @@ namespace MediSys.Services
 					{
 						Success = false,
 						Message = "Error procesando doctores"
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// Manejar token expirado
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerDoctoresPorEspecialidad - limpiando datos");
+					Logout();
+
+					return new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
 					};
 				}
 
@@ -679,11 +1084,26 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/sucursales";
-				System.Diagnostics.Debug.WriteLine($"Sucursales URL: {url}");
+				// Verificar token antes de hacer la request
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerSucursales");
+					return new ApiResponse<List<Sucursal>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<Sucursal>()
+					};
+				}
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// Usar CreateAuthenticatedRequest para agregar JWT automáticamente
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, "/sucursales");
+
+				System.Diagnostics.Debug.WriteLine($"Sucursales endpoint: /sucursales");
+
+				// Usar _httpClient.SendAsync en lugar de SendRequestWithSessionAsync
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"Sucursales Status: {response.StatusCode}");
@@ -714,6 +1134,20 @@ namespace MediSys.Services
 						System.Diagnostics.Debug.WriteLine($"Sucursales JSON Error: {jsonEx.Message}");
 					}
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// Manejar token expirado
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerSucursales - limpiando datos");
+					Logout();
+
+					return new ApiResponse<List<Sucursal>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<Sucursal>()
+					};
+				}
 
 				return new ApiResponse<List<Sucursal>>
 				{
@@ -741,23 +1175,36 @@ namespace MediSys.Services
 		{
 			try
 			{
+				// ✅ VALIDACIÓN DE ENTRADA
 				if (string.IsNullOrWhiteSpace(cedula))
 				{
+					System.Diagnostics.Debug.WriteLine("❌ Cédula vacía o nula");
 					return new ApiResponse<MedicoCompleto>
 					{
 						Success = false,
-						Message = "Cédula es requerida"
+						Message = "Cédula es requerida",
+						Code = 400
 					};
 				}
 
-				// 🔥 USAR EL NUEVO ENDPOINT buscarPorCedula
-				var url = $"{_baseUrl}/doctores-api?action=buscarPorCedula&cedula={cedula}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - BuscarMedicoPorCedula");
+					return new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
+				var endpoint = $"/doctores-api?action=buscarPorCedula&cedula={cedula}";
 				System.Diagnostics.Debug.WriteLine($"🔍 Buscando médico por cédula: {cedula}");
-				System.Diagnostics.Debug.WriteLine($"🔗 URL: {url}");
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Response: {responseContent}");
@@ -775,6 +1222,18 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en BuscarMedicoPorCedula - limpiando datos");
+					Logout(); // Usar método static si lo tienes
+					return new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -785,7 +1244,8 @@ namespace MediSys.Services
 					return new ApiResponse<MedicoCompleto>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Médico no encontrado"
+						Message = errorResponse?.Message ?? "Médico no encontrado",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -795,7 +1255,8 @@ namespace MediSys.Services
 				return new ApiResponse<MedicoCompleto>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -810,16 +1271,31 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/doctores-api?action=listar&page={page}&limit={limit}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ListarMedicos");
+					return new ApiResponse<MedicosResponse>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				var endpoint = $"/doctores-api?action=listar&page={page}&limit={limit}";
 
 				if (!string.IsNullOrEmpty(search))
-					url += $"&search={Uri.EscapeDataString(search)}";
+					endpoint += $"&search={Uri.EscapeDataString(search)}";
 
 				if (especialidad > 0)
-					url += $"&especialidad={especialidad}";
+					endpoint += $"&especialidad={especialidad}";
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"👨‍⚕️ Listando médicos - Página: {page}, Límite: {limit}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				if (response.IsSuccessStatusCode)
@@ -835,6 +1311,18 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ListarMedicos - limpiando datos");
+					Logout();
+					return new ApiResponse<MedicosResponse>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -845,7 +1333,8 @@ namespace MediSys.Services
 					return new ApiResponse<MedicosResponse>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error obteniendo médicos"
+						Message = errorResponse?.Message ?? "Error obteniendo médicos",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -854,7 +1343,8 @@ namespace MediSys.Services
 				return new ApiResponse<MedicosResponse>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -864,7 +1354,19 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/doctores-api?action=crear";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - CrearMedico");
+					return new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				var endpoint = "/doctores-api?action=crear";
 				var json = JsonSerializer.Serialize(medico, new JsonSerializerOptions
 				{
 					PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -872,10 +1374,11 @@ namespace MediSys.Services
 
 				System.Diagnostics.Debug.WriteLine($"📤 Creando médico: {json}");
 
-				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
 				request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(request);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Response: {responseContent}");
@@ -893,6 +1396,18 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en CrearMedico - limpiando datos");
+					Logout();
+					return new ApiResponse<MedicoCompleto>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -903,7 +1418,8 @@ namespace MediSys.Services
 					return new ApiResponse<MedicoCompleto>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error creando médico"
+						Message = errorResponse?.Message ?? "Error creando médico",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -912,7 +1428,8 @@ namespace MediSys.Services
 				return new ApiResponse<MedicoCompleto>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -926,15 +1443,28 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/doctores-api?action=obtenerHorarios&id_doctor={idDoctor}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerHorarios");
+					return new ApiResponse<HorariosResponse>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				var endpoint = $"/doctores-api?action=obtenerHorarios&id_doctor={idDoctor}";
 
 				if (idSucursal > 0)
-					url += $"&id_sucursal={idSucursal}";
+					endpoint += $"&id_sucursal={idSucursal}";
 
-				System.Diagnostics.Debug.WriteLine($"🕐 Obteniendo horarios: {url}");
+				System.Diagnostics.Debug.WriteLine($"🕐 Obteniendo horarios: {_baseUrl}{endpoint}");
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Horarios response: {responseContent}");
@@ -952,6 +1482,18 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta de horarios"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerHorarios - limpiando datos");
+					Logout();
+					return new ApiResponse<HorariosResponse>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -962,7 +1504,8 @@ namespace MediSys.Services
 					return new ApiResponse<HorariosResponse>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error obteniendo horarios"
+						Message = errorResponse?.Message ?? "Error obteniendo horarios",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -971,7 +1514,8 @@ namespace MediSys.Services
 				return new ApiResponse<HorariosResponse>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -979,11 +1523,26 @@ namespace MediSys.Services
 		/// <summary>
 		/// Guardar/actualizar horarios de un médico
 		/// </summary>
+		/// <summary>
+		/// Guardar/actualizar horarios de un médico
+		/// </summary>
 		public async Task<ApiResponse<object>> GuardarHorariosAsync(GuardarHorariosRequest request)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/doctores-api?action=guardarHorarios";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - GuardarHorarios");
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
+				var endpoint = "/doctores-api?action=guardarHorarios";
 				var json = JsonSerializer.Serialize(request, new JsonSerializerOptions
 				{
 					PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -991,10 +1550,11 @@ namespace MediSys.Services
 
 				System.Diagnostics.Debug.WriteLine($"💾 Guardando horarios: {json}");
 
-				var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var httpRequest = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
 				httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(httpRequest);
+				var response = await _httpClient.SendAsync(httpRequest);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Guardar horarios response: {responseContent}");
@@ -1012,6 +1572,18 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en GuardarHorarios - limpiando datos");
+					Logout();
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -1022,7 +1594,8 @@ namespace MediSys.Services
 					return new ApiResponse<object>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error guardando horarios"
+						Message = errorResponse?.Message ?? "Error guardando horarios",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1031,7 +1604,8 @@ namespace MediSys.Services
 				return new ApiResponse<object>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -1039,16 +1613,33 @@ namespace MediSys.Services
 		/// <summary>
 		/// 1. Obtener tipos de cita disponibles
 		/// </summary>
+		/// <summary>
+		/// 1. Obtener tipos de cita disponibles
+		/// </summary>
 		public async Task<ApiResponse<List<TipoCita>>> ObtenerTiposCitaAsync()
 		{
 			try
 			{
-				var url = $"{_baseUrl}/tipos-cita";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerTiposCita");
+					return new ApiResponse<List<TipoCita>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<TipoCita>()
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"📋 Obteniendo tipos de cita: {url}");
+				var endpoint = "/tipos-cita";
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"📋 Obteniendo tipos de cita: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Tipos cita response: {responseContent}");
@@ -1063,15 +1654,36 @@ namespace MediSys.Services
 					return apiResponse ?? new ApiResponse<List<TipoCita>>
 					{
 						Success = false,
-						Message = "Error procesando respuesta"
+						Message = "Error procesando respuesta",
+						Data = new List<TipoCita>()
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerTiposCita - limpiando datos");
+					Logout();
+					return new ApiResponse<List<TipoCita>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<TipoCita>()
 					};
 				}
 				else
 				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
 					return new ApiResponse<List<TipoCita>>
 					{
 						Success = false,
-						Message = "Error obteniendo tipos de cita"
+						Message = errorResponse?.Message ?? "Error obteniendo tipos de cita",
+						Code = (int)response.StatusCode,
+						Data = new List<TipoCita>()
 					};
 				}
 			}
@@ -1080,7 +1692,9 @@ namespace MediSys.Services
 				return new ApiResponse<List<TipoCita>>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500,
+					Data = new List<TipoCita>()
 				};
 			}
 		}
@@ -1098,13 +1712,26 @@ namespace MediSys.Services
 		{
 			try
 			{
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - BuscarPacientePorCedula");
+					return new ApiResponse<PacienteBusqueda>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
 				// ✅ LA URL SIGUE USANDO STRING PORQUE ASÍ LO ESPERA LA API
-				var url = $"{_baseUrl}/pacientes/buscar/{cedula}";
+				var endpoint = $"/pacientes/buscar/{cedula}";
 
-				System.Diagnostics.Debug.WriteLine($"🔍 Buscando paciente: {url}");
+				System.Diagnostics.Debug.WriteLine($"🔍 Buscando paciente: {_baseUrl}{endpoint}");
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Paciente response: {responseContent}");
@@ -1139,7 +1766,20 @@ namespace MediSys.Services
 					return new ApiResponse<PacienteBusqueda>
 					{
 						Success = false,
-						Message = "Paciente no encontrado"
+						Message = "Paciente no encontrado",
+						Code = 404
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en BuscarPacientePorCedula - limpiando datos");
+					Logout();
+					return new ApiResponse<PacienteBusqueda>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
 					};
 				}
 				else
@@ -1152,7 +1792,8 @@ namespace MediSys.Services
 					return new ApiResponse<PacienteBusqueda>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error buscando paciente"
+						Message = errorResponse?.Message ?? "Error buscando paciente",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1162,7 +1803,8 @@ namespace MediSys.Services
 				return new ApiResponse<PacienteBusqueda>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -1173,19 +1815,35 @@ namespace MediSys.Services
 		/// <summary>
 		/// 3. Crear nuevo paciente - CORREGIDO
 		/// </summary>
+		/// <summary>
+		/// 3. Crear nuevo paciente - CORREGIDO CON JWT
+		/// </summary>
 		public async Task<ApiResponse<PacienteBusqueda>> CrearPacienteAsync(CrearPacienteRequest pacienteData)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/pacientes/crear2";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - CrearPaciente");
+					return new ApiResponse<PacienteBusqueda>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"👤 Creando paciente: {url}");
+				var endpoint = "/pacientes/crear2";
+
+				System.Diagnostics.Debug.WriteLine($"👤 Creando paciente: {_baseUrl}{endpoint}");
 				System.Diagnostics.Debug.WriteLine($"📤 Datos: {JsonSerializer.Serialize(pacienteData)}");
 
-				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
 				request.Content = new StringContent(JsonSerializer.Serialize(pacienteData), Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(request);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Crear paciente response: {responseContent}");
@@ -1211,6 +1869,18 @@ namespace MediSys.Services
 						};
 					}
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en CrearPaciente - limpiando datos");
+					Logout();
+					return new ApiResponse<PacienteBusqueda>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -1221,7 +1891,8 @@ namespace MediSys.Services
 					return new ApiResponse<PacienteBusqueda>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error creando paciente"
+						Message = errorResponse?.Message ?? "Error creando paciente",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1231,7 +1902,8 @@ namespace MediSys.Services
 				return new ApiResponse<PacienteBusqueda>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -1239,16 +1911,33 @@ namespace MediSys.Services
 		/// <summary>
 		/// 4. Obtener especialidades disponibles en una sucursal
 		/// </summary>
+		/// <summary>
+		/// 4. Obtener especialidades disponibles en una sucursal
+		/// </summary>
 		public async Task<ApiResponse<List<Especialidad>>> ObtenerEspecialidadesPorSucursalAsync(int idSucursal)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/especialidades/sucursal/{idSucursal}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerEspecialidadesPorSucursal");
+					return new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<Especialidad>()
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"🏥 Obteniendo especialidades por sucursal: {url}");
+				var endpoint = $"/especialidades/sucursal/{idSucursal}";
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"🏥 Obteniendo especialidades por sucursal: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Especialidades por sucursal response: {responseContent}");
@@ -1263,15 +1952,36 @@ namespace MediSys.Services
 					return apiResponse ?? new ApiResponse<List<Especialidad>>
 					{
 						Success = false,
-						Message = "Error procesando respuesta"
+						Message = "Error procesando respuesta",
+						Data = new List<Especialidad>()
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerEspecialidadesPorSucursal - limpiando datos");
+					Logout();
+					return new ApiResponse<List<Especialidad>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<Especialidad>()
 					};
 				}
 				else
 				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
 					return new ApiResponse<List<Especialidad>>
 					{
 						Success = false,
-						Message = "Error obteniendo especialidades"
+						Message = errorResponse?.Message ?? "Error obteniendo especialidades",
+						Code = (int)response.StatusCode,
+						Data = new List<Especialidad>()
 					};
 				}
 			}
@@ -1280,11 +1990,12 @@ namespace MediSys.Services
 				return new ApiResponse<List<Especialidad>>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500,
+					Data = new List<Especialidad>()
 				};
 			}
 		}
-
 		/// <summary>
 		/// 5. Obtener doctores de una especialidad en una sucursal específica
 		/// </summary>
@@ -1292,12 +2003,26 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/doctores/especialidad/{idEspecialidad}/sucursal/{idSucursal}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerDoctoresPorEspecialidadYSucursal");
+					return new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<Doctor>()
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"👨‍⚕️ Obteniendo doctores: {url}");
+				var endpoint = $"/doctores/especialidad/{idEspecialidad}/sucursal/{idSucursal}";
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"👨‍⚕️ Obteniendo doctores: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Doctores response: {responseContent}");
@@ -1312,15 +2037,36 @@ namespace MediSys.Services
 					return apiResponse ?? new ApiResponse<List<Doctor>>
 					{
 						Success = false,
-						Message = "Error procesando respuesta"
+						Message = "Error procesando respuesta",
+						Data = new List<Doctor>()
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerDoctoresPorEspecialidadYSucursal - limpiando datos");
+					Logout();
+					return new ApiResponse<List<Doctor>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<Doctor>()
 					};
 				}
 				else
 				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
 					return new ApiResponse<List<Doctor>>
 					{
 						Success = false,
-						Message = "Error obteniendo doctores"
+						Message = errorResponse?.Message ?? "Error obteniendo doctores",
+						Code = (int)response.StatusCode,
+						Data = new List<Doctor>()
 					};
 				}
 			}
@@ -1329,7 +2075,9 @@ namespace MediSys.Services
 				return new ApiResponse<List<Doctor>>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500,
+					Data = new List<Doctor>()
 				};
 			}
 		}
@@ -1337,16 +2085,32 @@ namespace MediSys.Services
 		/// <summary>
 		/// 6. Obtener horarios disponibles de un doctor en una semana específica
 		/// </summary>
+		/// <summary>
+		/// 6. Obtener horarios disponibles de un doctor en una semana específica
+		/// </summary>
 		public async Task<ApiResponse<HorariosDisponiblesResponse>> ObtenerHorariosDisponiblesAsync(int idDoctor, int idSucursal, string semana)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/horarios/disponibles?id_doctor={idDoctor}&id_sucursal={idSucursal}&semana={semana}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerHorariosDisponibles");
+					return new ApiResponse<HorariosDisponiblesResponse>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"🕐 Obteniendo horarios disponibles: {url}");
+				var endpoint = $"/horarios/disponibles?id_doctor={idDoctor}&id_sucursal={idSucursal}&semana={semana}";
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"🕐 Obteniendo horarios disponibles: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Horarios disponibles response: {responseContent}");
@@ -1364,12 +2128,30 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta"
 					};
 				}
-				else
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
 				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerHorariosDisponibles - limpiando datos");
+					Logout();
 					return new ApiResponse<HorariosDisponiblesResponse>
 					{
 						Success = false,
-						Message = "Error obteniendo horarios"
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<HorariosDisponiblesResponse>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error obteniendo horarios",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1378,7 +2160,8 @@ namespace MediSys.Services
 				return new ApiResponse<HorariosDisponiblesResponse>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -1386,19 +2169,35 @@ namespace MediSys.Services
 		/// <summary>
 		/// 7. Crear nueva cita médica
 		/// </summary>
+		/// <summary>
+		/// 7. Crear nueva cita médica
+		/// </summary>
 		public async Task<ApiResponse<CitaMedica2>> CrearCitaAsync(CrearCitaRequest citaData)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/citas/crear";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - CrearCita");
+					return new ApiResponse<CitaMedica2>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"📅 Creando cita: {url}");
+				var endpoint = "/citas/crear";
+
+				System.Diagnostics.Debug.WriteLine($"📅 Creando cita: {_baseUrl}{endpoint}");
 				System.Diagnostics.Debug.WriteLine($"📤 Datos: {JsonSerializer.Serialize(citaData)}");
 
-				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
 				request.Content = new StringContent(JsonSerializer.Serialize(citaData), Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(request);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Crear cita response: {responseContent}");
@@ -1416,6 +2215,18 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en CrearCita - limpiando datos");
+					Logout();
+					return new ApiResponse<CitaMedica2>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -1426,7 +2237,8 @@ namespace MediSys.Services
 					return new ApiResponse<CitaMedica2>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error creando cita"
+						Message = errorResponse?.Message ?? "Error creando cita",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1435,59 +2247,164 @@ namespace MediSys.Services
 				return new ApiResponse<CitaMedica2>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
-
 		// En MediSysApiService.cs agregar:
 		public async Task<ApiResponse<object>> GuardarHorariosAsync2(GuardarHorariosRequest request)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/doctores/horarios";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - GuardarHorariosAsync2");
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+				var endpoint = "/doctores/horarios";
+
+				System.Diagnostics.Debug.WriteLine($"💾 Guardando horarios: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var httpRequest = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
 				httpRequest.Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(httpRequest);
+				var response = await _httpClient.SendAsync(httpRequest);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
-				var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+				if (response.IsSuccessStatusCode)
 				{
-					PropertyNameCaseInsensitive = true
-				});
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
 
-				return apiResponse ?? new ApiResponse<object> { Success = false, Message = "Error" };
+					return apiResponse ?? new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en GuardarHorariosAsync2 - limpiando datos");
+					Logout();
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error guardando horarios",
+						Code = (int)response.StatusCode
+					};
+				}
 			}
 			catch (Exception ex)
 			{
-				return new ApiResponse<object> { Success = false, Message = ex.Message };
+				return new ApiResponse<object>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}",
+					Code = 500
+				};
 			}
 		}
-
 		public async Task<ApiResponse<object>> EditarHorarioAsync(EditarHorarioRequest request)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/horarios";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - EditarHorario");
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+				var endpoint = "/horarios";
+
+				System.Diagnostics.Debug.WriteLine($"✏️ Editando horario: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var httpRequest = await CreateAuthenticatedRequest(HttpMethod.Put, endpoint);
 				httpRequest.Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(httpRequest);
+				var response = await _httpClient.SendAsync(httpRequest);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
-				var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+				if (response.IsSuccessStatusCode)
 				{
-					PropertyNameCaseInsensitive = true
-				});
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
 
-				return apiResponse ?? new ApiResponse<object> { Success = false, Message = "Error" };
+					return apiResponse ?? new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en EditarHorario - limpiando datos");
+					Logout();
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error editando horario",
+						Code = (int)response.StatusCode
+					};
+				}
 			}
 			catch (Exception ex)
 			{
-				return new ApiResponse<object> { Success = false, Message = ex.Message };
+				return new ApiResponse<object>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}",
+					Code = 500
+				};
 			}
 		}
 
@@ -1495,22 +2412,75 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/horarios?id={idHorario}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - EliminarHorario");
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				var request = new HttpRequestMessage(HttpMethod.Delete, url);
-				var response = await SendRequestWithSessionAsync(request);
+				var endpoint = $"/horarios?id={idHorario}";
+
+				System.Diagnostics.Debug.WriteLine($"🗑️ Eliminando horario: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Delete, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
-				var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+				if (response.IsSuccessStatusCode)
 				{
-					PropertyNameCaseInsensitive = true
-				});
+					var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
 
-				return apiResponse ?? new ApiResponse<object> { Success = false, Message = "Error" };
+					return apiResponse ?? new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Error procesando respuesta"
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en EliminarHorario - limpiando datos");
+					Logout();
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Error eliminando horario",
+						Code = (int)response.StatusCode
+					};
+				}
 			}
 			catch (Exception ex)
 			{
-				return new ApiResponse<object> { Success = false, Message = ex.Message };
+				return new ApiResponse<object>
+				{
+					Success = false,
+					Message = $"Error: {ex.Message}",
+					Code = 500
+				};
 			}
 		}
 
@@ -1523,12 +2493,26 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/citas/paciente/{cedula}?fecha={fecha}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerCitasPacientePorFecha");
+					return new ApiResponse<List<CitaDetallada>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<CitaDetallada>()
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"📅 Obteniendo citas del paciente: {url}");
+				var endpoint = $"/citas/paciente/{cedula}?fecha={fecha}";
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"📅 Obteniendo citas del paciente: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Citas response: {responseContent}");
@@ -1543,7 +2527,21 @@ namespace MediSys.Services
 					return apiResponse ?? new ApiResponse<List<CitaDetallada>>
 					{
 						Success = false,
-						Message = "Respuesta inválida del servidor"
+						Message = "Respuesta inválida del servidor",
+						Data = new List<CitaDetallada>()
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerCitasPacientePorFecha - limpiando datos");
+					Logout();
+					return new ApiResponse<List<CitaDetallada>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<CitaDetallada>()
 					};
 				}
 				else
@@ -1556,7 +2554,9 @@ namespace MediSys.Services
 					return new ApiResponse<List<CitaDetallada>>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error obteniendo citas del paciente"
+						Message = errorResponse?.Message ?? "Error obteniendo citas del paciente",
+						Code = (int)response.StatusCode,
+						Data = new List<CitaDetallada>()
 					};
 				}
 			}
@@ -1566,7 +2566,9 @@ namespace MediSys.Services
 				return new ApiResponse<List<CitaDetallada>>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500,
+					Data = new List<CitaDetallada>()
 				};
 			}
 		}
@@ -1574,19 +2576,35 @@ namespace MediSys.Services
 		/// <summary>
 		/// Crear triaje para una cita
 		/// </summary>
+		/// <summary>
+		/// Crear triaje para una cita
+		/// </summary>
 		public async Task<ApiResponse<CrearTriajeResponse>> CrearTriajeAsync(CrearTriajeRequest triajeData)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/triaje/crear";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - CrearTriaje");
+					return new ApiResponse<CrearTriajeResponse>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"🏥 Creando triaje: {url}");
+				var endpoint = "/triaje/crear";
+
+				System.Diagnostics.Debug.WriteLine($"🏥 Creando triaje: {_baseUrl}{endpoint}");
 				System.Diagnostics.Debug.WriteLine($"📤 Datos: {JsonSerializer.Serialize(triajeData)}");
 
-				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
 				request.Content = new StringContent(JsonSerializer.Serialize(triajeData), Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(request);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Crear triaje response: {responseContent}");
@@ -1604,6 +2622,18 @@ namespace MediSys.Services
 						Message = "Respuesta inválida del servidor"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en CrearTriaje - limpiando datos");
+					Logout();
+					return new ApiResponse<CrearTriajeResponse>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -1614,7 +2644,8 @@ namespace MediSys.Services
 					return new ApiResponse<CrearTriajeResponse>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error creando triaje"
+						Message = errorResponse?.Message ?? "Error creando triaje",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1624,11 +2655,14 @@ namespace MediSys.Services
 				return new ApiResponse<CrearTriajeResponse>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
-
+		/// <summary>
+		/// Obtener triaje existente de una cita
+		/// </summary>
 		/// <summary>
 		/// Obtener triaje existente de una cita
 		/// </summary>
@@ -1636,12 +2670,25 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/triaje/cita/{idCita}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerTriajePorCita");
+					return new ApiResponse<Triaje2>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"🔍 Obteniendo triaje: {url}");
+				var endpoint = $"/triaje/cita/{idCita}";
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"🔍 Obteniendo triaje: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				if (response.IsSuccessStatusCode)
@@ -1657,12 +2704,30 @@ namespace MediSys.Services
 						Message = "Respuesta inválida del servidor"
 					};
 				}
-				else
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
 				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerTriajePorCita - limpiando datos");
+					Logout();
 					return new ApiResponse<Triaje2>
 					{
 						Success = false,
-						Message = "Triaje no encontrado"
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+				else
+				{
+					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
+					{
+						PropertyNameCaseInsensitive = true
+					});
+
+					return new ApiResponse<Triaje2>
+					{
+						Success = false,
+						Message = errorResponse?.Message ?? "Triaje no encontrado",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1671,11 +2736,11 @@ namespace MediSys.Services
 				return new ApiResponse<Triaje2>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
-
 		// Services/MediSysApiService.cs - AGREGAR ESTOS MÉTODOS AL FINAL
 
 		/// <summary>
@@ -1685,7 +2750,20 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/consultas/doctor/{cedulaDoctor}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerCitasConsultaDoctor");
+					return new ApiResponse<List<CitaConsultaMedica>>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<CitaConsultaMedica>()
+					};
+				}
+
+				var endpoint = $"/consultas/doctor/{cedulaDoctor}";
 				var queryParams = new List<string> { $"fecha={fecha}" };
 
 				if (!string.IsNullOrEmpty(estado) && estado != "Todas")
@@ -1695,13 +2773,14 @@ namespace MediSys.Services
 
 				if (queryParams.Any())
 				{
-					url += "?" + string.Join("&", queryParams);
+					endpoint += "?" + string.Join("&", queryParams);
 				}
 
-				System.Diagnostics.Debug.WriteLine($"🩺 Obteniendo citas doctor: {url}");
+				System.Diagnostics.Debug.WriteLine($"🩺 Obteniendo citas doctor: {_baseUrl}{endpoint}");
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Citas doctor response: {responseContent}");
@@ -1716,7 +2795,21 @@ namespace MediSys.Services
 					return apiResponse ?? new ApiResponse<List<CitaConsultaMedica>>
 					{
 						Success = false,
-						Message = "Error procesando respuesta"
+						Message = "Error procesando respuesta",
+						Data = new List<CitaConsultaMedica>()
+					};
+				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerCitasConsultaDoctor - limpiando datos");
+					Logout();
+					return new ApiResponse<List<CitaConsultaMedica>>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401,
+						Data = new List<CitaConsultaMedica>()
 					};
 				}
 				else
@@ -1729,7 +2822,9 @@ namespace MediSys.Services
 					return new ApiResponse<List<CitaConsultaMedica>>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error obteniendo citas del doctor"
+						Message = errorResponse?.Message ?? "Error obteniendo citas del doctor",
+						Code = (int)response.StatusCode,
+						Data = new List<CitaConsultaMedica>()
 					};
 				}
 			}
@@ -1739,7 +2834,9 @@ namespace MediSys.Services
 				return new ApiResponse<List<CitaConsultaMedica>>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500,
+					Data = new List<CitaConsultaMedica>()
 				};
 			}
 		}
@@ -1747,19 +2844,35 @@ namespace MediSys.Services
 		/// <summary>
 		/// Crear o actualizar consulta médica
 		/// </summary>
+		/// <summary>
+		/// Crear o actualizar consulta médica
+		/// </summary>
 		public async Task<ApiResponse<object>> CrearActualizarConsultaMedicaAsync(int idCita, ConsultaMedicaRequest consultaData)
 		{
 			try
 			{
-				var url = $"{_baseUrl}/consultas/cita/{idCita}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - CrearActualizarConsultaMedica");
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"🩺 Creando/actualizando consulta: {url}");
+				var endpoint = $"/consultas/cita/{idCita}";
+
+				System.Diagnostics.Debug.WriteLine($"🩺 Creando/actualizando consulta: {_baseUrl}{endpoint}");
 				System.Diagnostics.Debug.WriteLine($"📤 Datos consulta: {JsonSerializer.Serialize(consultaData)}");
 
-				var request = new HttpRequestMessage(HttpMethod.Post, url);
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
 				request.Content = new StringContent(JsonSerializer.Serialize(consultaData), Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(request);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Consulta response: {responseContent}");
@@ -1777,6 +2890,18 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en CrearActualizarConsultaMedica - limpiando datos");
+					Logout();
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -1787,7 +2912,8 @@ namespace MediSys.Services
 					return new ApiResponse<object>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Error procesando consulta médica"
+						Message = errorResponse?.Message ?? "Error procesando consulta médica",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1797,11 +2923,15 @@ namespace MediSys.Services
 				return new ApiResponse<object>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
-		
+
+		/// <summary>
+		/// Obtener detalle completo de una consulta médica
+		/// </summary>
 		/// <summary>
 		/// Obtener detalle completo de una consulta médica
 		/// </summary>
@@ -1809,12 +2939,25 @@ namespace MediSys.Services
 		{
 			try
 			{
-				var url = $"{_baseUrl}/consultas/detalle/{idCita}";
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerDetalleConsulta");
+					return new ApiResponse<DetalleConsulta>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				System.Diagnostics.Debug.WriteLine($"🔍 Obteniendo detalle consulta: {url}");
+				var endpoint = $"/consultas/detalle/{idCita}";
 
-				var request = new HttpRequestMessage(HttpMethod.Get, url);
-				var response = await SendRequestWithSessionAsync(request);
+				System.Diagnostics.Debug.WriteLine($"🔍 Obteniendo detalle consulta: {_baseUrl}{endpoint}");
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📥 Detalle consulta response: {responseContent}");
@@ -1832,6 +2975,18 @@ namespace MediSys.Services
 						Message = "Error procesando respuesta"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerDetalleConsulta - limpiando datos");
+					Logout();
+					return new ApiResponse<DetalleConsulta>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new JsonSerializerOptions
@@ -1842,7 +2997,8 @@ namespace MediSys.Services
 					return new ApiResponse<DetalleConsulta>
 					{
 						Success = false,
-						Message = errorResponse?.Message ?? "Consulta no encontrada"
+						Message = errorResponse?.Message ?? "Consulta no encontrada",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1852,20 +3008,37 @@ namespace MediSys.Services
 				return new ApiResponse<DetalleConsulta>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
 
 		// ✅ NUEVO MÉTODO para obtener información de cita (sin requerir consulta médica)
+		// ✅ NUEVO MÉTODO para obtener información de cita (sin requerir consulta médica)
 		public async Task<ApiResponse<ConsultaDetalleResponse>> ObtenerInformacionCitaAsync(int idCita)
 		{
 			try
 			{
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ObtenerInformacionCita");
+					return new ApiResponse<ConsultaDetalleResponse>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
 				System.Diagnostics.Debug.WriteLine($"🔍 Obteniendo información de cita ID: {idCita}");
 
-				var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/citas/informacion/{idCita}");
-				var response = await SendRequestWithSessionAsync(request);
+				var endpoint = $"/citas/informacion/{idCita}";
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Get, endpoint);
+				var response = await _httpClient.SendAsync(request);
 				var content = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"📡 Respuesta HTTP: {response.StatusCode}");
@@ -1881,13 +3054,26 @@ namespace MediSys.Services
 						Message = "Respuesta vacía del servidor"
 					};
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ObtenerInformacionCita - limpiando datos");
+					Logout();
+					return new ApiResponse<ConsultaDetalleResponse>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					System.Diagnostics.Debug.WriteLine($"❌ Error HTTP {response.StatusCode}: {content}");
 					return new ApiResponse<ConsultaDetalleResponse>
 					{
 						Success = false,
-						Message = $"Error del servidor: {response.StatusCode}"
+						Message = $"Error del servidor: {response.StatusCode}",
+						Code = (int)response.StatusCode
 					};
 				}
 			}
@@ -1897,7 +3083,8 @@ namespace MediSys.Services
 				return new ApiResponse<ConsultaDetalleResponse>
 				{
 					Success = false,
-					Message = "Error de conexión al servidor"
+					Message = "Error de conexión al servidor",
+					Code = 500
 				};
 			}
 			catch (TaskCanceledException ex)
@@ -1906,7 +3093,8 @@ namespace MediSys.Services
 				return new ApiResponse<ConsultaDetalleResponse>
 				{
 					Success = false,
-					Message = "Tiempo de espera agotado"
+					Message = "Tiempo de espera agotado",
+					Code = 408
 				};
 			}
 			catch (JsonException ex)
@@ -1915,7 +3103,8 @@ namespace MediSys.Services
 				return new ApiResponse<ConsultaDetalleResponse>
 				{
 					Success = false,
-					Message = "Error procesando respuesta del servidor"
+					Message = "Error procesando respuesta del servidor",
+					Code = 500
 				};
 			}
 			catch (Exception ex)
@@ -1924,7 +3113,8 @@ namespace MediSys.Services
 				return new ApiResponse<ConsultaDetalleResponse>
 				{
 					Success = false,
-					Message = $"Error inesperado: {ex.Message}"
+					Message = $"Error inesperado: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -1934,23 +3124,36 @@ namespace MediSys.Services
 		/// Actualizar estado de una cita
 		/// </summary>
 		// En MediSysApiService.cs - CORREGIR EL MÉTODO
+		/// <summary>
+		/// Actualizar estado de una cita
+		/// </summary>
 		public async Task<ApiResponse<object>> ActualizarEstadoCitaAsync(int idCita, string nuevoEstado)
 		{
 			try
 			{
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
+				{
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - ActualizarEstadoCita");
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
+
 				System.Diagnostics.Debug.WriteLine($"Actualizando estado de cita {idCita} a: {nuevoEstado}");
 
 				var requestData = new { estado = nuevoEstado };
 				var json = JsonSerializer.Serialize(requestData, GetJsonOptions());
-				var content = new StringContent(json, Encoding.UTF8, "application/json");
+				var endpoint = $"/citas/{idCita}/estado";
 
-				// ✅ USAR PUT EN LUGAR DE POST
-				var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/citas/{idCita}/estado")
-				{
-					Content = content
-				};
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var request = await CreateAuthenticatedRequest(HttpMethod.Put, endpoint);
+				request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-				var response = await SendRequestWithSessionAsync(request);
+				var response = await _httpClient.SendAsync(request);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"Respuesta actualizar estado: {response.StatusCode}");
@@ -1961,6 +3164,18 @@ namespace MediSys.Services
 					var result = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, GetJsonOptions());
 					return result ?? new ApiResponse<object> { Success = false, Message = "Respuesta vacía" };
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en ActualizarEstadoCita - limpiando datos");
+					Logout();
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					try
@@ -1969,7 +3184,8 @@ namespace MediSys.Services
 						return new ApiResponse<object>
 						{
 							Success = false,
-							Message = errorResponse?.Message ?? $"Error del servidor: {response.StatusCode}"
+							Message = errorResponse?.Message ?? $"Error del servidor: {response.StatusCode}",
+							Code = (int)response.StatusCode
 						};
 					}
 					catch
@@ -1977,7 +3193,8 @@ namespace MediSys.Services
 						return new ApiResponse<object>
 						{
 							Success = false,
-							Message = $"Error del servidor: {response.StatusCode}"
+							Message = $"Error del servidor: {response.StatusCode}",
+							Code = (int)response.StatusCode
 						};
 					}
 				}
@@ -1988,7 +3205,8 @@ namespace MediSys.Services
 				return new ApiResponse<object>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}
@@ -2017,21 +3235,32 @@ namespace MediSys.Services
 		}
 
 		// ✅ CAMBIAR CONTRASEÑA PARA USUARIO LOGUEADO
+		// ✅ CAMBIAR CONTRASEÑA PARA USUARIO LOGUEADO
 		public async Task<ApiResponse<object>> CambiarPasswordLogueadoAsync(CambiarPasswordRequest request)
 		{
 			try
 			{
-				System.Diagnostics.Debug.WriteLine($"Cambiando contraseña para usuario ID: {request.IdUsuario}");
-
-				var json = JsonSerializer.Serialize(request, GetJsonOptions());
-				var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-				var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/auth/change-password-logged")
+				// ✅ VERIFICAR TOKEN COMPARTIDO
+				if (!IsTokenValid())
 				{
-					Content = content
-				};
+					System.Diagnostics.Debug.WriteLine("Token inválido o expirado - CambiarPasswordLogueado");
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Token expirado. Inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 
-				var response = await SendRequestWithSessionAsync(httpRequest);
+				System.Diagnostics.Debug.WriteLine($"Cambiando contraseña para usuario ID: {request.IdUsuario}");
+				var json = JsonSerializer.Serialize(request, GetJsonOptions());
+				var endpoint = "/auth/change-password-logged";
+
+				// ✅ USAR CreateAuthenticatedRequest CON TOKEN COMPARTIDO
+				var httpRequest = await CreateAuthenticatedRequest(HttpMethod.Post, endpoint);
+				httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+				var response = await _httpClient.SendAsync(httpRequest);
 				var responseContent = await response.Content.ReadAsStringAsync();
 
 				System.Diagnostics.Debug.WriteLine($"Respuesta cambio password: {response.StatusCode}");
@@ -2042,6 +3271,18 @@ namespace MediSys.Services
 					var result = JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, GetJsonOptions());
 					return result ?? new ApiResponse<object> { Success = false, Message = "Respuesta vacía" };
 				}
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
+				{
+					// ✅ MANEJAR TOKEN EXPIRADO CON LOGOUT
+					System.Diagnostics.Debug.WriteLine("Token expirado en CambiarPasswordLogueado - limpiando datos");
+					Logout();
+					return new ApiResponse<object>
+					{
+						Success = false,
+						Message = "Sesión expirada. Por favor, inicie sesión nuevamente.",
+						Code = 401
+					};
+				}
 				else
 				{
 					// Tratar de extraer mensaje de error del contenido
@@ -2051,7 +3292,8 @@ namespace MediSys.Services
 						return new ApiResponse<object>
 						{
 							Success = false,
-							Message = errorResponse?.Message ?? $"Error del servidor: {response.StatusCode}"
+							Message = errorResponse?.Message ?? $"Error del servidor: {response.StatusCode}",
+							Code = (int)response.StatusCode
 						};
 					}
 					catch
@@ -2059,7 +3301,8 @@ namespace MediSys.Services
 						return new ApiResponse<object>
 						{
 							Success = false,
-							Message = $"Error del servidor: {response.StatusCode}"
+							Message = $"Error del servidor: {response.StatusCode}",
+							Code = (int)response.StatusCode
 						};
 					}
 				}
@@ -2070,7 +3313,8 @@ namespace MediSys.Services
 				return new ApiResponse<object>
 				{
 					Success = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"Error: {ex.Message}",
+					Code = 500
 				};
 			}
 		}

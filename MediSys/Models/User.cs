@@ -92,6 +92,19 @@ namespace MediSys.Models
 
 		[JsonPropertyName("mensaje")]
 		public string? Mensaje { get; set; }
+
+		// ✅ NUEVAS PROPIEDADES PARA JWT
+		[JsonPropertyName("token")]
+		public string Token { get; set; } = string.Empty;
+
+		[JsonPropertyName("token_type")]
+		public string TokenType { get; set; } = "Bearer";
+
+		[JsonPropertyName("expires_in")]
+		public int ExpiresIn { get; set; }
+
+		[JsonPropertyName("expires_at")]
+		public string? ExpiresAt { get; set; }
 	}
 
 	public class ForgotPasswordRequest

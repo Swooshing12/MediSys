@@ -100,7 +100,7 @@
 
             <!-- INFO CITA COMPACTA -->
             <Frame Style="{StaticResource MedicalCardStyle}">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
                     <StackLayout Grid.Column="0" Spacing="4">
                         <StackLayout Orientation="Horizontal" Spacing="6">
                             <Label Text="🗓️" FontSize="14" />
@@ -120,6 +120,16 @@
                                FontSize="10" 
                                FontAttributes="Bold" 
                                TextColor="White" />
+                    </Frame>
+                    <Frame Grid.Column="2"
+       BackgroundColor="CadetBlue" 
+       CornerRadius="12" 
+       Padding="8,4"
+       HasShadow="False">
+                        <Label Text="{Binding Cita.Especialidad.Nombre}" 
+           FontSize="10" 
+           FontAttributes="Bold" 
+           TextColor="Black" />
                     </Frame>
                 </Grid>
             </Frame>

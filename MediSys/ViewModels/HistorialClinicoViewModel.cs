@@ -117,6 +117,7 @@ namespace MediSys.ViewModels
 
 				await CargarEspecialidades();
 				await CargarSucursales();
+				await CargarEspecialidadesPaciente();
 
 				System.Diagnostics.Debug.WriteLine("Inicialización completada");
 			}
