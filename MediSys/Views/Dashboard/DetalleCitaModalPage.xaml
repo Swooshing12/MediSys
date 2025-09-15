@@ -347,7 +347,7 @@
                 <StackLayout Spacing="8">
                     <Label Text="🔧 Acciones" Style="{StaticResource SectionTitleStyle}" />
 
-                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                    <Grid ColumnDefinitions="*" ColumnSpacing="8">
                         <Button Grid.Column="0"
                                 Text="❌ Cerrar"
                                 BackgroundColor="{StaticResource TextMedium}"
@@ -355,19 +355,6 @@
                                 Style="{StaticResource ActionButtonStyle}"
                                 Command="{Binding CerrarModalCommand}" />
 
-                        <Button Grid.Column="1"
-                                Text="🖨️ PDF"
-                                BackgroundColor="{StaticResource MedicalBlue}"
-                                TextColor="White"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Command="{Binding ImprimirCitaCommand}" />
-
-                        <Button Grid.Column="2"
-                                Text="📤 Compartir"
-                                BackgroundColor="{StaticResource MedicalTeal}"
-                                TextColor="White"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Command="{Binding CompartirExpedienteCommand}" />
                     </Grid>
                 </StackLayout>
             </Frame>
